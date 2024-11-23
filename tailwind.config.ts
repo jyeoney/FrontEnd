@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import daisyui from "daisyui";
 
 export default {
   content: [
@@ -14,5 +15,9 @@ export default {
       },
     },
   },
-  plugins: [],
+  daisyui: {
+    themes: ["business", "night"], // 사용할 테마들을 배열로 나열
+    darkTheme: "night",           // 다크모드일 때 사용할 테마
+  },
+  plugins: [daisyui],
 } satisfies Config;
