@@ -8,8 +8,14 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value:
-              "upgrade-insecure-requests; default-src 'self' 'unsafe-inline' 'unsafe-eval' http: https: data: blob: ws: wss:; connect-src 'self' ws: wss: http: https:;",
+            value: [
+              'upgrade-insecure-requests',
+              "default-src 'self' 'unsafe-inline' 'unsafe-eval' http: https: data: blob: ws: wss:",
+              "connect-src 'self' ws: wss: http: https:",
+              "media-src 'self' http: https: data: blob:",
+              "webrtc 'allow'",
+              "rtc-peer-connection 'allow'",
+            ].join('; '),
           },
         ],
       },
