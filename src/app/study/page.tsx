@@ -193,11 +193,16 @@ export default function VideoRoom() {
   };
 
   const connectSocket = async () => {
-    // WebSocket 연결 설정 및 시그널링 서버와의 통신
-    const socket = new SockJS(
-      `${process.env.NEXT_PUBLIC_SOCKET_URL}/signaling`,
-    );
-    stompClient.current = Stomp.over(socket);
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL;
+
+    if (!socketUrl) {
+      console.error('Socket URL is not configured');
+      return;
+    }
+
+    console.log('Connecting to socket URL:', socketUrl);
+
+    stompClient.current = Stomp.over(new SockJS(`${socketUrl}/signaling`));
     stompClient.current.debug = () => {};
 
     stompClient.current.connect({}, function () {
