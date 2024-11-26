@@ -40,7 +40,7 @@ export default function VideoRoom() {
 
       const video = document.createElement('video');
       video.id = `video-${otherKey}`;
-      video.autoPlay = true;
+      video.autoplay = true;
       video.playsInline = true;
       video.className = 'w-full h-full object-cover rounded-lg cursor-pointer';
       video.srcObject = event.streams[0];
