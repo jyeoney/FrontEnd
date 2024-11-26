@@ -87,11 +87,11 @@ export default function VideoRoom() {
     // STUN/TURN 서버 설정
     const configuration = {
       iceServers: [
-        { urls: process.env.NEXT_PUBLIC_STUN_URL },
+        { urls: process.env.NEXT_PUBLIC_STUN_URL || '' },
         {
-          urls: process.env.NEXT_PUBLIC_TURN_URL,
-          username: process.env.NEXT_PUBLIC_TURN_USERNAME,
-          credential: process.env.NEXT_PUBLIC_TURN_CREDENTIAL,
+          urls: process.env.NEXT_PUBLIC_TURN_URL || '',
+          username: process.env.NEXT_PUBLIC_TURN_USERNAME || '',
+          credential: process.env.NEXT_PUBLIC_TURN_CREDENTIAL || '',
         },
       ],
     };
@@ -393,7 +393,7 @@ export default function VideoRoom() {
             pcListMap.current.forEach(pc => {
               const sender = pc
                 .getSenders()
-                .find(s => s.track?.kind === 'video');
+                .find((s: RTCRtpSender) => s.track?.kind === 'video');
               if (sender) sender.replaceTrack(cameraTrack);
             });
           }
@@ -402,7 +402,9 @@ export default function VideoRoom() {
 
         // 모든 피어 연결에 화면 공유 트랙으로 교체
         pcListMap.current.forEach(pc => {
-          const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+          const sender = pc
+            .getSenders()
+            .find((s: RTCRtpSender) => s.track?.kind === 'video');
           if (sender) sender.replaceTrack(videoTrack);
         });
 
@@ -412,7 +414,9 @@ export default function VideoRoom() {
         const videoTrack = localStream.current?.getVideoTracks()[0];
         if (videoTrack) {
           pcListMap.current.forEach(pc => {
-            const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+            const sender = pc
+              .getSenders()
+              .find((s: RTCRtpSender) => s.track?.kind === 'video');
             if (sender) sender.replaceTrack(videoTrack);
           });
         }
