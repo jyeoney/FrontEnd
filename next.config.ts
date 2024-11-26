@@ -9,12 +9,13 @@ const nextConfig: NextConfig = {
           {
             key: 'Content-Security-Policy',
             value: [
-              "default-src 'self' 'unsafe-inline' 'unsafe-eval' http: https: data: blob: ws: wss:",
-              "connect-src 'self' ws: wss: http: https: *",
-              "media-src 'self' http: https: data: blob:",
-              "child-src 'self' blob:",
-              "worker-src 'self' blob:",
-              "frame-src 'self' blob:",
+              "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:",
+              "connect-src * 'unsafe-inline'",
+              'media-src * data: blob:',
+              'img-src * data: blob:',
+              'frame-src * data: blob:',
+              'worker-src * blob:',
+              'child-src * blob:',
             ].join('; '),
           },
           {
