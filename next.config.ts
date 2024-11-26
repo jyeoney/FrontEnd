@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
           {
             key: 'Content-Security-Policy',
             value:
-              "upgrade-insecure-requests; default-src 'self' 'unsafe-inline' 'unsafe-eval' http: https: data: blob: ws:",
+              "upgrade-insecure-requests; default-src 'self' 'unsafe-inline' 'unsafe-eval' http: https: data: blob: ws: wss:; connect-src 'self' ws: wss: http: https:;",
           },
         ],
       },
