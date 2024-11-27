@@ -30,20 +30,20 @@ export const useGroupChat = (chatRoomId: string) => {
   const isConnecting = useRef(false);
   const token = useRef<string>('token'); // 실제 토큰 관리 로직으로 대체 필요
 
-  // const convertToKST = (timestamp: string) => {
-  //   const date = new Date(timestamp);
-  //   return date.toLocaleString('ko-KR', {
-  //     timeZone: 'Asia/Seoul',
-  //     hour12: false,
-  //   });
-  // };
-
   const connect = useCallback(async () => {
-    // 연결 중 중복 요청 방지
+    console.log('connect 함수 호출됨', {
+      time: new Date().toISOString(),
+      stompClientExists: !!stompClient.current,
+      chatRoomId,
+    });
+
     if (isConnecting.current || stompClient.current?.connected) {
+      console.log('연결 중복 방지 조건 확인', {
+        isConnecting: isConnecting.current,
+        isAlreadyConnected: stompClient.current?.connected,
+      });
       return;
     }
-    console.log(`Connecting to chat room: ${chatRoomId}`);
 
     isConnecting.current = true;
     setChatState(prev => ({ ...prev, isConnecting: true, error: null }));
@@ -52,44 +52,64 @@ export const useGroupChat = (chatRoomId: string) => {
       const socket = new SockJS(
         `${process.env.NEXT_PUBLIC_BACKEND_SOCKET_URL}/ws` as string,
       );
-      console.log('웹 소켓 연결까지 성공');
-
-      const client = new Client({
-        webSocketFactory: () => socket,
-        reconnectDelay: 5000, // 연결 끊김 시 5초 후 재연결 시도
-        heartbeatIncoming: 4000,
-        heartbeatOutgoing: 4000, // 서버-클라이언트 간 생존 신호 주기
-
-        onConnect: () => {
-          console.log('웹소켓 Connected:', stompClient.current?.connected);
-
-          client.subscribe(`/topic/chat/${chatRoomId}`, messageOutput => {
-            const newMessage = JSON.parse(messageOutput.body) as ChatMessage; // 서버로부터 받은 메시지 처리
-            setMessages(prev => [...prev, newMessage]); // 메시지 배열에 추가
-          });
-
-          setChatState({
-            isConnected: true,
-            isConnecting: false,
-            error: null,
-          });
-          isConnecting.current = false; // 연결 완료 상태로 변경
-        },
-
-        onStompError: frame => {
-          console.error('STOMP 연결 오류:', frame);
-          setChatState(prev => ({
-            ...prev,
-            isConnected: false,
-            error: frame.headers.message || '연결 오류가 발생했습니다.',
-          }));
-          isConnecting.current = false; // 연결 상태 초기화
-        },
+      console.log('SockJS 생성 완료', {
+        socketState: socket.readyState, // 0: connecting, 1: open, 2: closing, 3: closed
       });
 
-      stompClient.current = client;
-      client.activate();
+      await new Promise<void>((resolve, reject) => {
+        const client = new Client({
+          webSocketFactory: () => socket,
+          reconnectDelay: 5000,
+          heartbeatIncoming: 4000,
+          heartbeatOutgoing: 4000,
+          debug: msg => {
+            console.log('STOMP Debug:', msg);
+          },
+
+          onConnect: () => {
+            console.log('onConnect 실행', {
+              time: new Date().toISOString(),
+              socketState: socket.readyState,
+              clientConnected: client.connected,
+            });
+
+            client.subscribe(`/topic/chat/${chatRoomId}`, messageOutput => {
+              console.log('메시지 구독 성공');
+              const newMessage = JSON.parse(messageOutput.body) as ChatMessage;
+              setMessages(prev => [...prev, newMessage]);
+            });
+
+            setChatState({
+              isConnected: true,
+              isConnecting: false,
+              error: null,
+            });
+            isConnecting.current = false;
+            resolve();
+          },
+
+          onStompError: frame => {
+            console.error('STOMP 에러 발생:', {
+              headers: frame.headers,
+              body: frame.body,
+              command: frame.command,
+            });
+            reject(
+              new Error(frame.headers.message || '연결 오류가 발생했습니다.'),
+            );
+          },
+        });
+
+        stompClient.current = client;
+        console.log('client.activate() 호출 전');
+        client.activate();
+        console.log('client.activate() 호출 후');
+      });
     } catch (error) {
+      console.log('연결 실패', {
+        error,
+        time: new Date().toISOString(),
+      });
       setChatState(prev => ({
         ...prev,
         isConnecting: false,
@@ -98,7 +118,8 @@ export const useGroupChat = (chatRoomId: string) => {
             ? error.message
             : '알 수 없는 오류가 발생했습니다.',
       }));
-      isConnecting.current = false; // 연결 상태 초기화
+      isConnecting.current = false;
+      throw error;
     }
   }, [chatRoomId]);
 
@@ -127,10 +148,6 @@ export const useGroupChat = (chatRoomId: string) => {
       console.error('연결이 되어있지 않습니다.');
       return;
     }
-    // if (!stompClient.current?.connected || !stompClient.current.connected) {
-    //   console.error('WebSocket이 연결되지 않았습니다.');
-    //   return;
-    // }
 
     let imgUrl: string | undefined;
     // 파일 업로드 처리
@@ -178,16 +195,33 @@ export const useGroupChat = (chatRoomId: string) => {
   };
 
   useEffect(() => {
-    // if (!isConnecting.current || !stompClient.current?.connected) {
-    //   connect();
-    //   console.log('이거 보여요?');
-    // }
-    // loadPreviousMessages();
-    connect();
-    loadPreviousMessages();
+    console.log('useEffect 실행', {
+      time: new Date().toISOString(),
+      chatRoomId,
+      isFirstRender: stompClient.current === null,
+    });
+
+    const initChat = async () => {
+      try {
+        console.log('initChat 시작');
+        await connect();
+        console.log('connect 완료');
+        await loadPreviousMessages();
+        console.log('이전 메시지 로드 완료');
+      } catch (error) {
+        console.error('초기화 실패:', error);
+      }
+    };
+
+    initChat();
 
     return () => {
-      stompClient.current?.deactivate(); // 컴포넌트 언마운트 시 연결 해제
+      console.log('cleanup 실행', {
+        wasConnected: stompClient.current?.connected,
+      });
+      if (stompClient.current?.connected) {
+        stompClient.current.deactivate();
+      }
     };
   }, [chatRoomId, connect, loadPreviousMessages]);
 
