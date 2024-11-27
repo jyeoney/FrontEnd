@@ -17,6 +17,7 @@ export default function VideoRoom() {
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false); // 모달 상태 추가
 
   const sendAnswer = (pc: RTCPeerConnection, otherKey: string) => {
     pc.createAnswer().then(answer => {
@@ -170,21 +171,30 @@ export default function VideoRoom() {
   };
 
   const startCam = async () => {
-    // 카메라와 마이크 접근 권한 요청 및 스트림 설정
     if (navigator.mediaDevices) {
       try {
+        console.log('미디어 장치 접근 시도...');
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: true,
           video: true,
         });
-        console.log('Stream found');
+        console.log('스트림 획득 성공:', stream.getTracks());
         localStream.current = stream;
-        stream.getAudioTracks()[0].enabled = true;
+
         const localVideo = document.getElementById(
           'localStream',
         ) as HTMLVideoElement;
+        console.log('비디오 엘리먼트:', localVideo);
+
         if (localVideo) {
           localVideo.srcObject = stream;
+          console.log('스트림이 비디오에 설정됨');
+
+          // 메타데이터 로드 이벤트 추가
+          localVideo.onloadedmetadata = () => {
+            console.log('비디오 메타데이터 로드됨');
+            localVideo.play().catch(e => console.error('비디오 재생 실패:', e));
+          };
         }
       } catch (error) {
         console.error('미디어 장치 접근 오류:', error);
@@ -200,87 +210,93 @@ export default function VideoRoom() {
       return;
     }
 
-    console.log('Connecting to socket URL:', socketUrl);
-
     stompClient.current = Stomp.over(new SockJS(`${socketUrl}/signaling`));
     stompClient.current.debug = () => {};
 
-    stompClient.current.connect({}, function () {
-      console.log('Connected to WebRTC server');
+    stompClient.current.connect(
+      {
+        roomId: roomId.current,
+        camKey: myKey.current,
+      },
+      function () {
+        console.log('Connected to WebRTC server');
 
-      stompClient.current.subscribe(
-        `/topic/peer/iceCandidate/${myKey.current}/${roomId.current}`,
-        (candidate: any) => {
-          const key = JSON.parse(candidate.body).key;
-          const message = JSON.parse(candidate.body).body;
-          pcListMap.current.get(key)?.addIceCandidate(
-            new RTCIceCandidate({
-              candidate: message.candidate,
-              sdpMLineIndex: message.sdpMLineIndex,
-              sdpMid: message.sdpMid,
-            }),
-          );
-        },
-      );
-
-      stompClient.current.subscribe(
-        `/topic/peer/offer/${myKey.current}/${roomId.current}`,
-        (offer: any) => {
-          const key = JSON.parse(offer.body).key;
-          const message = JSON.parse(offer.body).body;
-
-          pcListMap.current.set(key, createPeerConnection(key));
-          pcListMap.current.get(key)?.setRemoteDescription(
-            new RTCSessionDescription({
-              type: message.type,
-              sdp: message.sdp,
-            }),
-          );
-          sendAnswer(pcListMap.current.get(key)!, key);
-        },
-      );
-
-      stompClient.current.subscribe(
-        `/topic/peer/answer/${myKey.current}/${roomId.current}`,
-        async (answer: any) => {
-          try {
-            const key = JSON.parse(answer.body).key;
-            const message = JSON.parse(answer.body).body;
-            const pc = pcListMap.current.get(key);
-
-            // 안전 장치 추가
-            if (pc && pc.signalingState === 'have-local-offer') {
-              await pc.setRemoteDescription(new RTCSessionDescription(message));
-            } else {
-              console.warn('Unexpected signaling state:', pc?.signalingState);
-              // 잘못된 상태일 때는 그냥 무시 (기존 연결 유지)
-            }
-          } catch (error) {
-            console.debug('Error setting remote description:', error);
-            // 에러가 발생해도 기존 연결은 유지
-          }
-        },
-      );
-
-      stompClient.current.subscribe(`/topic/call/key`, () => {
-        stompClient.current.send(
-          `/app/send/key`,
-          {},
-          JSON.stringify(myKey.current),
+        stompClient.current.subscribe(
+          `/topic/peer/iceCandidate/${myKey.current}/${roomId.current}`,
+          (candidate: any) => {
+            const key = JSON.parse(candidate.body).key;
+            const message = JSON.parse(candidate.body).body;
+            pcListMap.current.get(key)?.addIceCandidate(
+              new RTCIceCandidate({
+                candidate: message.candidate,
+                sdpMLineIndex: message.sdpMLineIndex,
+                sdpMid: message.sdpMid,
+              }),
+            );
+          },
         );
-      });
 
-      stompClient.current.subscribe(`/topic/send/key`, (message: any) => {
-        const key = JSON.parse(message.body);
-        if (
-          myKey.current !== key &&
-          otherKeyList.current.find(mapKey => mapKey === myKey.current) ===
-            undefined
-        ) {
-          otherKeyList.current.push(key);
-        }
-      });
-    });
+        stompClient.current.subscribe(
+          `/topic/peer/offer/${myKey.current}/${roomId.current}`,
+          (offer: any) => {
+            const key = JSON.parse(offer.body).key;
+            const message = JSON.parse(offer.body).body;
+
+            pcListMap.current.set(key, createPeerConnection(key));
+            pcListMap.current.get(key)?.setRemoteDescription(
+              new RTCSessionDescription({
+                type: message.type,
+                sdp: message.sdp,
+              }),
+            );
+            sendAnswer(pcListMap.current.get(key)!, key);
+          },
+        );
+
+        stompClient.current.subscribe(
+          `/topic/peer/answer/${myKey.current}/${roomId.current}`,
+          async (answer: any) => {
+            try {
+              const key = JSON.parse(answer.body).key;
+              const message = JSON.parse(answer.body).body;
+              const pc = pcListMap.current.get(key);
+
+              // 안전 장치 추가
+              if (pc && pc.signalingState === 'have-local-offer') {
+                await pc.setRemoteDescription(
+                  new RTCSessionDescription(message),
+                );
+              } else {
+                console.warn('Unexpected signaling state:', pc?.signalingState);
+                // 잘못된 상태일 때는 그냥 무시 (기존 연결 유지)
+              }
+            } catch (error) {
+              console.debug('Error setting remote description:', error);
+              // 에러가 발생해도 기존 연결은 유지
+            }
+          },
+        );
+
+        stompClient.current.subscribe(`/topic/call/key`, () => {
+          stompClient.current.send(
+            `/app/send/key`,
+            {},
+            JSON.stringify(myKey.current),
+          );
+        });
+
+        stompClient.current.subscribe(`/topic/send/key`, (message: any) => {
+          const key = JSON.parse(message.body);
+          if (
+            myKey.current !== key &&
+            otherKeyList.current.find(mapKey => mapKey === myKey.current) ===
+              undefined
+          ) {
+            otherKeyList.current.push(key);
+          }
+        });
+      },
+    );
   };
 
   const startStreaming = async () => {
@@ -433,29 +449,63 @@ export default function VideoRoom() {
     }
   };
 
+  const handleDisconnectClick = () => {
+    setShowExitModal(true); // 모달 표시
+  };
+
+  const confirmDisconnect = async () => {
+    try {
+      if (stompClient.current?.connected) {
+        // 1. 서버에 알림
+        await stompClient.current.send(
+          `/app/send/end/${roomId.current}/${myKey.current}`,
+          {},
+          {},
+        );
+
+        // 2. 미디어 트랙 정리
+        localStream.current?.getTracks().forEach(track => {
+          console.log('Stopping track:', track.kind);
+          track.stop();
+        });
+
+        // 3. 피어 연결 정리
+        pcListMap.current.forEach((pc, key) => {
+          console.log('Closing peer connection:', key);
+          pc.close();
+          removeParticipant(key);
+        });
+
+        // 4. STOMP 연결 종료
+        stompClient.current.disconnect(() => {
+          console.log('WebSocket 연결이 정상적으로 종료되었습니다.');
+          window.location.href = '/';
+        });
+      }
+    } catch (error) {
+      console.error('연결 종료 중 오류 발생:', error);
+      window.location.href = '/';
+    }
+  };
+
   useEffect(() => {
-    // 컴포넌트 마운트 시 초기화 및 정리
     const init = async () => {
       await startCam();
       await connectSocket();
     };
     init();
 
-    // 컴포넌트 언마운트 시 정리 작업
     return () => {
-      // 모든 미디어 트랙 중지
+      // 컴포넌트 언마운트 시 정리 작업만 수행
       localStream.current?.getTracks().forEach(track => track.stop());
-      // 모든 피어 연결 종료
       pcListMap.current.forEach((pc, key) => {
         pc.close();
         removeParticipant(key);
       });
       pcListMap.current.clear();
-
       if (stompClient.current?.connected) {
         stompClient.current.disconnect();
       }
-
       otherKeyList.current = [];
     };
   }, []);
@@ -469,7 +519,6 @@ export default function VideoRoom() {
           id="startStreamBtn"
           onClick={startStreaming}
           className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
-          style={{ display: 'none' }}
         >
           스터디룸 입장
         </button>
@@ -485,7 +534,6 @@ export default function VideoRoom() {
               playsInline
               controls
               muted
-              style={{ display: 'none' }}
               className="absolute inset-0 w-full h-full object-cover"
             />
             <span className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-sm">
@@ -531,7 +579,38 @@ export default function VideoRoom() {
         >
           {isScreenSharing ? '화면 공유 중지' : '화면 공유'}
         </button>
+        <button
+          onClick={handleDisconnectClick}
+          className="px-4 py-2 rounded transition-colors bg-red-500 hover:bg-red-600 text-white"
+        >
+          나가기
+        </button>
       </div>
+
+      {/* 모달 수정 */}
+      {showExitModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
+            <h3 className="text-lg font-semibold mb-4 text-white">
+              스터디룸을 나가시겠습니까?
+            </h3>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowExitModal(false)}
+                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={confirmDisconnect}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+              >
+                나가기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
