@@ -123,7 +123,7 @@ export const useGroupChat = (chatRoomId: string) => {
     }
   }, [chatRoomId]);
 
-  // 기존 메시지 로드 함수
+  // 이전 메시지 로드 함수
   const loadPreviousMessages = useCallback(async () => {
     try {
       const response = await axios.get(
@@ -156,19 +156,15 @@ export const useGroupChat = (chatRoomId: string) => {
       formData.append('file', file);
 
       try {
-        const response = await fetch('/photo', {
-          method: 'POST',
+        const response = await axios.post('/photo', formData, {
           headers: {
-            Authorization: 'Bearer ' + token.current,
+            Authorization: 'Bearer' + token.current,
+            'Content-Type': 'multipart/form-data',
           },
-          body: formData,
         });
-        // 응답 상태 확인
-        if (!response.ok) {
-          throw new Error('파일 업로드에 실패했습니다.');
-        }
 
-        imgUrl = await response.text();
+        imgUrl = response.data;
+        // 응답 상태 확인
       } catch (error) {
         console.error('File upload failed:', error);
         throw error; // 에러를 상위로 전파
