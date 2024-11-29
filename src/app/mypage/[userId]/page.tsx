@@ -11,7 +11,7 @@ const studies = [
 
 const MyPage = () => {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const [, setIsLoading] = useState(false);
 
   const handleChatRoomOpen = async (studyId: string) => {
     setIsLoading(true);
