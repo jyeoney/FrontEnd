@@ -13,7 +13,7 @@ export default function Header() {
   return (
     <header className="navbar bg-base-100 shadow-md">
       <div className="navbar-start">
-        <Link href="/" className="btn btn-ghost text-xl">
+        <Link href="/" className="btn btn-ghost text-xl text-white">
           DevOff
         </Link>
       </div>
@@ -52,8 +52,14 @@ export default function Header() {
         </div>
       </div>
       <div className="navbar-end">
-        <Link href="/mypage/1" className="btn btn-ghost">
+        <Link href="/mypage/1" className="btn btn-ghost text-white">
           마이페이지
+        </Link>
+        <Link href="/signin" className="btn btn-ghost text-white">
+          로그인
+        </Link>
+        <Link href="/signup" className="btn btn-ghost text-white">
+          회원가입
         </Link>
       </div>
     </header>

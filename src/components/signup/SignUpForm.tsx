@@ -76,16 +76,21 @@ const SignUpForm = () => {
         const { status, data } = error.response;
         const errorCode = data?.errorCode;
 
-        if (status === 400 && errorCode === 'EMAIL_ALREADY_REGISTERED') {
-          setEmailMessage('이미 사용 중인 이메일입니다.');
-          setEmailMessageType('error');
+        if (status === 400) {
+          if (errorCode === 'EMAIL_ALREADY_REGISTERED') {
+            setEmailMessage('이미 사용 중인 이메일입니다.');
+            setEmailMessageType('error');
+          } else {
+            setEmailMessage('잘못된 요청입니다. 다시 시도해주세요.');
+            setEmailMessageType('error');
+          }
         } else {
-          setEmailMessage('잘못된 요청입니다. 다시 시도해주세요.');
+          setEmailMessage('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
           setEmailMessageType('error');
         }
       } else {
         setEmailMessage(
-          '서버에 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+          '서버에 연결할 수 없습니다. 네트워크 상태를 확인해 주세요.',
         );
         setEmailMessageType('error');
       }
@@ -109,14 +114,18 @@ const SignUpForm = () => {
         const { status, data } = error.response;
         const errorCode = data?.errorCode;
 
-        if (status === 400 && errorCode === 'EMAIL_VERIFICATION_FAILED') {
-          setAuthCodeError('인증 코드가 만료되었습니다.');
+        if (status === 400) {
+          if (errorCode === 'EMAIL_VERIFICATION_FAILED') {
+            setAuthCodeError('인증 코드가 만료되었습니다.');
+          } else {
+            setAuthCodeError('잘못된 요청입니다. 다시 시도해주세요.');
+          }
         } else {
-          setAuthCodeError('잘못된 요청입니다. 다시 시도해주세요.');
+          setAuthCodeError('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
         }
       } else {
         setAuthCodeError(
-          '서버에 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+          '서버에 연결할 수 없습니다. 네트워크 상태를 확인해 주세요.',
         );
       }
     }
@@ -141,16 +150,21 @@ const SignUpForm = () => {
         const { status, data } = error.response;
         const errorCode = data?.errorCode;
 
-        if (status === 400 && errorCode === 'NICKNAME_ALREADY_REGISTERED') {
-          setNickNameMessage('이미 사용 중인 닉네임입니다.');
-          setNickNameMessageType('error');
+        if (status === 400) {
+          if (errorCode === 'NICKNAME_ALREADY_REGISTERED') {
+            setNickNameMessage('이미 사용 중인 닉네임입니다.');
+            setNickNameMessageType('error');
+          } else {
+            setNickNameMessage('잘못된 요청입니다. 다시 시도해주세요.');
+            setNickNameMessageType('error');
+          }
         } else {
-          setNickNameMessage('잘못된 요청입니다. 다시 시도해주세요.');
+          setNickNameMessage('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
           setNickNameMessageType('error');
         }
       } else {
         setNickNameMessage(
-          '서버에 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+          '서버에 연결할 수 없습니다. 네트워크 상태를 확인해 주세요.',
         );
         setNickNameMessageType('error');
       }
