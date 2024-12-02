@@ -2,6 +2,7 @@
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
+import { FaRegEye, FaRegEyeSlash } from 'react-icons/fa';
 
 const SignUpForm = () => {
   const [email, setEmail] = useState('');
@@ -22,9 +23,20 @@ const SignUpForm = () => {
     'success' | 'error' | ''
   >('');
 
-  const [authCodeError, setAuthCodeError] = useState('');
+  const [authCodeMessage, setAuthCodeMessage] = useState('');
+  const [authCodeMessageType, setAuthCodeMessageType] = useState<
+    'success' | 'error' | ''
+  >('');
+
   const [passwordError, setPasswordError] = useState('');
-  const [passwordCheckError, setPasswordCheckError] = useState('');
+
+  const [passwordCheckMessage, setPasswordCheckMessage] = useState('');
+  const [passwordCheckMessageType, setPasswordCheckMessageType] = useState<
+    'success' | 'error' | ''
+  >('');
+
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [passwordCheckVisible, setPasswordCheckVisible] = useState(false);
 
   const router = useRouter();
 
@@ -37,6 +49,14 @@ const SignUpForm = () => {
       password,
     );
 
+  const togglePasswordVisibility = () => {
+    setPasswordVisible(!passwordVisible);
+  };
+
+  const togglePasswordCheckVisibility = () => {
+    setPasswordCheckVisible(!passwordCheckVisible);
+  };
+
   // 이메일 중복 확인 및 인증번호 요청
   const handleAuthCodeSendClick = async () => {
     // 이메일 형식 확인
@@ -48,7 +68,7 @@ const SignUpForm = () => {
     try {
       // 1. 이메일 중복 확인
       const emailCheckResponse = await axios.post(
-        '/api/auth/check-email',
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/check-email`,
         { email },
         {
           headers: { 'Content-Type': 'application/json' },
@@ -60,9 +80,12 @@ const SignUpForm = () => {
       } else {
       }
       // 2. 인증번호 메일 발송
-      const authCodeResponse = await axios.post('/api/auth/email-auth', {
-        email,
-      });
+      const authCodeResponse = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/email-auth`,
+        {
+          email,
+        },
+      );
       if (authCodeResponse.status === 200) {
         setEmailSent(true);
         setEmailMessage('인증번호가 발송되었습니다.');
@@ -100,14 +123,17 @@ const SignUpForm = () => {
   // 인증번호 확인
   const handleAuthCodeVerifyClick = async () => {
     try {
-      const response = await axios.post('/api/auth/email-auth/code', {
-        email,
-        code: authCode,
-      });
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/email-auth/code`,
+        {
+          email,
+          code: authCode,
+        },
+      );
       if (response.status === 200) {
-        alert('인증되었습니다!');
-        setAuthCodeError('');
         setAuthCodeVerified(true);
+        setAuthCodeMessage('인증되었습니다.');
+        setAuthCodeMessageType('success');
       }
     } catch (error: any) {
       if (error.response) {
@@ -116,17 +142,24 @@ const SignUpForm = () => {
 
         if (status === 400) {
           if (errorCode === 'EMAIL_VERIFICATION_FAILED') {
-            setAuthCodeError('인증 코드가 만료되었습니다.');
+            setAuthCodeMessage('인증 코드가 만료되었습니다.');
+            setAuthCodeMessageType('error');
+          } else if (errorCode === 'VALIDATION_FAILED') {
+            setAuthCodeMessage('인증 코드가 일치하지 않습니다.');
+            setAuthCodeMessageType('error');
           } else {
-            setAuthCodeError('잘못된 요청입니다. 다시 시도해주세요.');
+            setAuthCodeMessage('잘못된 요청입니다. 다시 시도해주세요.');
+            setAuthCodeMessageType('error');
           }
         } else {
-          setAuthCodeError('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+          setAuthCodeMessage('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+          setAuthCodeMessageType('error');
         }
       } else {
-        setAuthCodeError(
+        setAuthCodeMessage(
           '서버에 연결할 수 없습니다. 네트워크 상태를 확인해 주세요.',
         );
+        setAuthCodeMessageType('error');
       }
     }
   };
@@ -138,9 +171,12 @@ const SignUpForm = () => {
       setNickNameMessageType('error');
     }
     try {
-      const response = await axios.post('/api/auth/check-nickname', {
-        nickName,
-      });
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/check-nickname`,
+        {
+          nickName,
+        },
+      );
       if (response.status === 200) {
         setNickNameMessage('사용 가능한 닉네임입니다.');
         setNickNameMessageType('success');
@@ -184,9 +220,13 @@ const SignUpForm = () => {
 
   // 비밀번호 확인
   const handlePasswordCheck = (value: string) => {
-    setPasswordCheckError(
-      value !== password ? '비밀번호가 일치하지 않습니다.' : '',
-    );
+    if (value !== password) {
+      setPasswordCheckMessage('비밀번호가 일치하지 않습니다.');
+      setPasswordCheckMessageType('error');
+    } else {
+      setPasswordCheckMessage('비밀번호가 일치합니다.');
+      setPasswordCheckMessageType('success');
+    }
   };
 
   // 회원가입 제출
@@ -220,13 +260,16 @@ const SignUpForm = () => {
     }
 
     if (password !== passwordCheck) {
-      setPasswordCheckError('비밀번호가 일치하지 않습니다.');
-      return;
+      setPasswordCheckMessage('비밀번호가 일치하지 않습니다.');
+      setPasswordCheckMessageType('error');
+    } else {
+      setPasswordCheckMessage('비밀번호가 일치합니다.');
+      setPasswordCheckMessageType('success');
     }
 
     try {
       const response = await axios.post(
-        '/api/auth/sign-up',
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-up`,
         { email, password, nickName },
         { headers: { 'Content-Type': 'application/json' } },
       );
@@ -314,8 +357,16 @@ const SignUpForm = () => {
                 {authCodeVerified ? '완료' : '확인'}
               </button>
             </div>
-            {authCodeError && (
-              <p className="text-red-500 mt-2">{authCodeError}</p>
+            {authCodeMessage && (
+              <p
+                className={`mt-2 ${
+                  authCodeMessageType === 'success'
+                    ? 'text-green-500'
+                    : 'text-red-500'
+                }`}
+              >
+                {authCodeMessage}
+              </p>
             )}
           </div>
         )}
@@ -367,18 +418,31 @@ const SignUpForm = () => {
           <label htmlFor="password" className="block mb-2 font-semibold">
             비밀번호
           </label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={e => {
-              setPassword(e.target.value);
-              handlePasswordValidate(e.target.value);
-            }}
-            placeholder="비밀번호를 입력해 주세요."
-            required
-            className="w-full px-4 py-2 rounded border bg-white focus:outline-indigo-500"
-          />
+          <div className="relative">
+            <input
+              id="password"
+              type={passwordVisible ? 'text' : 'password'}
+              value={password}
+              onChange={e => {
+                setPassword(e.target.value);
+                handlePasswordValidate(e.target.value);
+              }}
+              placeholder="비밀번호를 입력해 주세요."
+              required
+              className="w-full px-4 py-2 rounded border bg-white focus:outline-indigo-500"
+            />
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2"
+            >
+              {passwordVisible ? (
+                <FaRegEye size={20} />
+              ) : (
+                <FaRegEyeSlash size={20} />
+              )}
+            </button>
+          </div>
           <p className="text-red-500 mt-2">{passwordError}</p>
         </div>
 
@@ -387,20 +451,41 @@ const SignUpForm = () => {
           <label htmlFor="passwordCheck" className="block mb-2 font-semibold">
             비밀번호 확인
           </label>
-          <input
-            id="passwordCheck"
-            type="password"
-            value={passwordCheck}
-            onChange={e => {
-              setPasswordCheck(e.target.value);
-              handlePasswordCheck(e.target.value);
-            }}
-            placeholder="비밀번호를 한 번 더 입력해 주세요."
-            required
-            className="w-full px-4 py-2 rounded border bg-white focus:outline-indigo-500"
-          />
-          {passwordCheckError && (
-            <p className="text-red-500 mt-2">{passwordCheckError}</p>
+          <div className="relative">
+            <input
+              id="passwordCheck"
+              type={passwordCheckVisible ? 'text' : 'password'}
+              value={passwordCheck}
+              onChange={e => {
+                setPasswordCheck(e.target.value);
+                handlePasswordCheck(e.target.value);
+              }}
+              placeholder="비밀번호를 한 번 더 입력해 주세요."
+              required
+              className="w-full px-4 py-2 rounded border bg-white focus:outline-indigo-500"
+            />
+            <button
+              type="button"
+              onClick={togglePasswordCheckVisibility}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2"
+            >
+              {passwordCheckVisible ? (
+                <FaRegEye size={20} />
+              ) : (
+                <FaRegEyeSlash size={20} />
+              )}
+            </button>
+          </div>
+          {passwordCheckMessage && (
+            <p
+              className={`mt-2 ${
+                passwordCheckMessageType === 'success'
+                  ? 'text-green-500'
+                  : 'text-red-500'
+              }`}
+            >
+              {passwordCheckMessage}
+            </p>
           )}
         </div>
 
