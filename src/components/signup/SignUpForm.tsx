@@ -48,7 +48,7 @@ const SignUpForm = () => {
     try {
       // 1. 이메일 중복 확인
       const emailCheckResponse = await axios.post(
-        '/api/auth/chek-email',
+        '/api/auth/check-email',
         { email },
         {
           headers: { 'Content-Type': 'application/json' },
