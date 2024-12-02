@@ -17,6 +17,7 @@
     "axios": "^1.7.7",
     "daisyui": "^4.12.14",
     "dayjs": "^1.11.13",
+    "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
     "next": "15.0.3",
     "next-auth": "^4.24.10",
@@ -31,6 +32,7 @@
     "zustand": "^5.0.1"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.7",
     "@types/lodash": "^4.17.13",
     "@types/node": "^20.17.7",
     "@types/react": "^18",
