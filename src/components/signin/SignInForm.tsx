@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { SiNaver } from 'react-icons/si';
+import { FaRegEye, FaRegEyeSlash } from 'react-icons/fa';
 import { RiKakaoTalkFill } from 'react-icons/ri';
 
 const SingInPage = () => {
@@ -10,8 +11,13 @@ const SingInPage = () => {
   const [password, setPassword] = useState('');
 
   const [error, setError] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
 
   const router = useRouter();
+
+  const togglePasswordVisibility = () => {
+    setPasswordVisible(!passwordVisible);
+  };
 
   const handleSignInSubmit = async (e: FormEvent<HTMLFormElement>) => {
     try {
@@ -88,14 +94,27 @@ const SingInPage = () => {
           <label htmlFor="password" className="block mb-2 font-semibold">
             비밀번호
           </label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder="비밀번호를 입력해 주세요."
-            className="w-full px-4 py-2 rounded border bg-white focus:outline-indigo-500"
-          />
+          <div className="relative">
+            <input
+              id="password"
+              type={passwordVisible ? 'text' : 'password'}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="비밀번호를 입력해 주세요."
+              className="w-full px-4 py-2 rounded border bg-white focus:outline-indigo-500"
+            />
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2"
+            >
+              {passwordVisible ? (
+                <FaRegEye size={20} />
+              ) : (
+                <FaRegEyeSlash size={20} />
+              )}
+            </button>
+          </div>
         </div>
         {error && <p className="text-red-500 mt-2">{error}</p>}
         <button
