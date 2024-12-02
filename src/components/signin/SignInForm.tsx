@@ -17,26 +17,34 @@ const SingInPage = () => {
     try {
       e.preventDefault();
 
+      setError('');
+
+      if (!email || !password) {
+        setError('이메일과 비밀번호를 입력해주세요.');
+        return;
+      }
+
       const response = await axios.post(
-        '/api/auth/sign-in',
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/signin`, // Next.js API Route로 수정
         {
           email,
           password,
         },
         {
           headers: { 'Content-Type': 'application/json' },
-          withCredentials: true, // 쿠키를 포함해 요청
+          // withCredentials: true, // 쿠키를 포함해 요청
         },
       );
 
       if (response.status === 200) {
-        const { accessToken, refreshToken } = response.data;
         router.push('/community/study');
       }
     } catch (error: any) {
       if (error.response) {
         const { status, data } = error.response;
         const errorCode = data?.errorCode;
+        const message =
+          data?.message || '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
 
         if (status === 401) {
           setError(
@@ -57,7 +65,6 @@ const SingInPage = () => {
 
   return (
     <div className="flex flex-col items-center justify-center p-6 max-w-lg mx-auto">
-      <h1 className="text-3xl font-bold mb-6">로그인</h1>
       <form onSubmit={handleSignInSubmit} className="w-full">
         <div className="mb-4">
           <label htmlFor="email" className="block mb-2 font-semibold">
@@ -72,7 +79,6 @@ const SingInPage = () => {
               onChange={e => {
                 setEmail(e.target.value);
               }}
-              required
               className="flex-grow px-4 py-2 rounded border bg-white focus:outline-indigo-500"
             />
           </div>
@@ -88,11 +94,10 @@ const SingInPage = () => {
             value={password}
             onChange={e => setPassword(e.target.value)}
             placeholder="비밀번호를 입력해 주세요."
-            required
             className="w-full px-4 py-2 rounded border bg-white focus:outline-indigo-500"
           />
         </div>
-
+        {error && <p className="text-red-500 mt-2">{error}</p>}
         <button
           type="submit"
           className="w-full bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600"
