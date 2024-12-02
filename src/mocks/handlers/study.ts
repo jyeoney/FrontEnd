@@ -1,21 +1,19 @@
 import { rest } from 'msw';
-import { StudyPost } from '@/types/post';
+import { StudyMeetingType, StudyPost } from '@/types/post';
 
 const mockStudies = Array.from({ length: 30 }, (_, index) => ({
   id: index + 1,
   title: `스터디 모집합니다 ${index + 1}`,
+  content: `<p>스터디 상세 내용 ${index + 1}</p>`,
   subject: [
-    '프로젝트',
-    '알고리즘',
-    '코딩테스트',
-    '개념 학습',
-    '코딩테스트',
-    '챌린지',
-    '자격증/시험',
-    '취업/코테',
-    '기타',
-  ][index % 8] as StudyPost['subject'],
-  difficulty: ['상', '중', '하'][index % 3] as StudyPost['difficulty'],
+    'CONCEPT_LEARNING',
+    'PROJECT',
+    'CHALLENGE',
+    'CERTIFICATION',
+    'JOB_PREPARATION',
+    'ETC',
+  ][index % 6] as StudyPost['subject'],
+  difficulty: ['HIGH', 'MEDIUM', 'LOW'][index % 3] as StudyPost['difficulty'],
   thumbnail: '',
   recruitmentStartDate: '2024-01-01',
   recruitmentEndDate: '2024-02-01',
@@ -24,11 +22,14 @@ const mockStudies = Array.from({ length: 30 }, (_, index) => ({
   currentMembers: Math.floor(Math.random() * 3) + 1,
   maxMembers: 4,
   meetingTime: '20:00',
-  status: ['모집 중', '모집 완료', '진행 중', '종료'][
-    index % 4
+  status: ['RECRUITING', 'IN_PROGRESS', 'CANCELED'][
+    index % 3
   ] as StudyPost['status'],
-  meeting_type: index % 2 === 0 ? 'Online' : '오프라인',
+  meeting_type: index % 2 === 0 ? 'ONLINE' : ('HYBRID' as StudyMeetingType),
   days: ['월', '수', '금'],
+  createdAt: new Date(
+    Date.now() - Math.random() * 10 * 24 * 60 * 60 * 1000,
+  ).toISOString(),
 }));
 
 export const studyHandlers = [
@@ -91,5 +92,20 @@ export const studyHandlers = [
         total_pages: Math.ceil(filteredData.length / size),
       }),
     );
+  }),
+  rest.get('/api/study-posts/:id', (req, res, ctx) => {
+    const { id } = req.params;
+    const study = mockStudies.find(
+      study => study.id === parseInt(id as string),
+    );
+
+    if (!study) {
+      return res(
+        ctx.status(404),
+        ctx.json({ message: '스터디를 찾을 수 없습니다.' }),
+      );
+    }
+
+    return res(ctx.status(200), ctx.json(study));
   }),
 ];

@@ -3,6 +3,11 @@
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 import { StudyPost } from '@/types/post';
+import {
+  SUBJECT_OPTIONS,
+  DIFFICULTY_OPTIONS,
+  STATUS_OPTIONS,
+} from '@/types/study';
 
 interface StudyCardProps {
   post: StudyPost;
@@ -11,13 +16,13 @@ interface StudyCardProps {
 export function StudyCard({ post }: StudyCardProps) {
   const router = useRouter();
 
-  const getStatusBadgeStyle = (status: string) => {
+  const getStatusBadgeStyle = (status: StudyPost['status']) => {
     const baseStyle =
       'absolute top-4 right-4 rounded-full px-3 py-1 text-sm font-semibold';
     switch (status) {
-      case '모집 중':
+      case 'RECRUITING':
         return `${baseStyle} bg-success text-success-content`;
-      case '진행 중':
+      case 'IN_PROGRESS':
         return `${baseStyle} bg-warning text-warning-content`;
       default:
         return `${baseStyle} bg-neutral text-neutral-content`;
@@ -33,11 +38,17 @@ export function StudyCard({ post }: StudyCardProps) {
           className="rounded-xl h-48 w-full object-cover"
         />
       </figure>
-      <div className={getStatusBadgeStyle(post.status)}>{post.status}</div>
+      <div className={getStatusBadgeStyle(post.status)}>
+        {STATUS_OPTIONS[post.status]}
+      </div>
       <div className="card-body">
         <div className="flex gap-2 mb-2">
-          <span className="badge badge-outline">{post.subject}</span>
-          <span className="badge badge-outline">난이도: {post.difficulty}</span>
+          <span className="badge badge-outline">
+            {SUBJECT_OPTIONS[post.subject]}
+          </span>
+          <span className="badge badge-outline">
+            {DIFFICULTY_OPTIONS[post.difficulty]}
+          </span>
           <span className="badge badge-outline">{post.meetingTime}</span>
         </div>
         <h2 className="card-title">{post.title}</h2>

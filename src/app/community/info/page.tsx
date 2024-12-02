@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { InfoPost, PostResponse } from '@/types/post';
 import { PostList } from '../components/PostList';
+import { useRouter } from 'next/navigation';
 
 export default function InfoListPage() {
+  const router = useRouter();
   const [posts, setPosts] = useState<PostResponse<InfoPost> | null>(null);
   const [page, setPage] = useState(0);
   const [searchTitle, setSearchTitle] = useState('');
@@ -56,6 +58,14 @@ export default function InfoListPage() {
             <p className="text-base-content/70">
               {post.content.slice(0, 100)}...
             </p>
+            <div className="card-actions justify-end mt-4">
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => router.push(`/community/info/${post.id}`)}
+              >
+                상세보기
+              </button>
+            </div>
           </div>
         </div>
       )}
