@@ -38,23 +38,24 @@ export function PostList<T extends BasePost>({
   );
 
   return (
-    <div className="container mx-auto p-4">
-      {/* 검색 및 버튼 영역 */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">{title}</h1>
-        <div className="flex gap-4">
-          <form className="flex gap-2" onSubmit={e => e.preventDefault()}>
-            <input
-              type="text"
-              onChange={e => handleSearchInput(e.target.value)}
-              placeholder="검색..."
-              className="input input-bordered w-full max-w-xs"
-            />
-            <button type="submit" className="btn btn-primary">
-              검색
-            </button>
-          </form>
-        </div>
+    <div className="w-full">
+      {title && <h1 className="text-2xl font-bold mb-6">{title}</h1>}
+
+      <div className="mb-6">
+        <form
+          className="flex gap-2 justify-end"
+          onSubmit={e => e.preventDefault()}
+        >
+          <input
+            type="text"
+            onChange={e => handleSearchInput(e.target.value)}
+            placeholder="검색..."
+            className="input input-bordered w-full max-w-xs"
+          />
+          <button type="submit" className="btn btn-primary">
+            검색
+          </button>
+        </form>
       </div>
 
       {/* 필터 영역 */}

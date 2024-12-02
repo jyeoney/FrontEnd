@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import axios from 'axios';
 import { StudyPost, StudyResponse } from '@/types/post';
 import { StudyFilter } from './components/StudyFilter';
@@ -72,25 +73,33 @@ export default function StudyListPage() {
   };
 
   return (
-    <PostList<StudyPost>
-      title="스터디 모집"
-      posts={posts?.data || []}
-      totalPages={posts?.total_pages || 0}
-      currentPage={page}
-      isLoading={isLoading}
-      onPageChange={setPage}
-      onSearch={setSearchTitle}
-      renderPostCard={post => <StudyCard key={post.id} post={post} />}
-      showFilters={true}
-      filterComponent={
-        <StudyFilter
-          selectedSubjects={selectedSubjects}
-          selectedStatus={selectedStatus}
-          selectedDifficulty={selectedDifficulty}
-          selectedDays={selectedDays}
-          onFilterChange={handleFilterChange}
-        />
-      }
-    />
+    <div className="container mx-auto p-4">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">스터디 모집</h1>
+        <Link href="/community/study/write" className="btn btn-primary">
+          스터디 모집하기
+        </Link>
+      </div>
+      <PostList<StudyPost>
+        title=""
+        posts={posts?.data || []}
+        totalPages={posts?.total_pages || 0}
+        currentPage={page}
+        isLoading={isLoading}
+        onPageChange={setPage}
+        onSearch={setSearchTitle}
+        renderPostCard={post => <StudyCard key={post.id} post={post} />}
+        showFilters={true}
+        filterComponent={
+          <StudyFilter
+            selectedSubjects={selectedSubjects}
+            selectedStatus={selectedStatus}
+            selectedDifficulty={selectedDifficulty}
+            selectedDays={selectedDays}
+            onFilterChange={handleFilterChange}
+          />
+        }
+      />
+    </div>
   );
 }

@@ -1,5 +1,12 @@
 'use client';
 
+import {
+  SUBJECT_OPTIONS,
+  DIFFICULTY_OPTIONS,
+  STATUS_OPTIONS,
+  DAY_KOREAN,
+} from '@/types/study';
+
 interface StudyFilterProps {
   selectedSubjects: string[];
   selectedStatus: string[];
@@ -10,21 +17,6 @@ interface StudyFilterProps {
     value: string,
   ) => void;
 }
-
-const subjects = [
-  '개념 학습',
-  '프로젝트',
-  '알고리즘',
-  '코딩테스트',
-  '챌린지',
-  '자격증/시험',
-  '취업/코테',
-  '기타',
-] as const;
-
-const statuses = ['모집 중', '모집 완료', '진행 중', '종료'] as const;
-const difficulties = ['상', '중', '하'] as const;
-const days = ['월', '화', '수', '목', '금', '토', '일'] as const;
 
 export function StudyFilter({
   selectedSubjects,
@@ -39,17 +31,15 @@ export function StudyFilter({
         <div>
           <h3 className="font-semibold mb-2">주제</h3>
           <div className="flex flex-wrap gap-2">
-            {subjects.map(subject => (
+            {Object.entries(SUBJECT_OPTIONS).map(([key, value]) => (
               <button
-                key={subject}
-                onClick={() => onFilterChange('subjects', subject)}
+                key={key}
+                onClick={() => onFilterChange('subjects', key)}
                 className={`btn btn-sm ${
-                  selectedSubjects.includes(subject)
-                    ? 'btn-primary'
-                    : 'btn-outline'
+                  selectedSubjects.includes(key) ? 'btn-primary' : 'btn-outline'
                 }`}
               >
-                {subject}
+                {value}
               </button>
             ))}
           </div>
@@ -58,7 +48,7 @@ export function StudyFilter({
         <div>
           <h3 className="font-semibold mb-2">상태</h3>
           <div className="flex flex-wrap gap-2">
-            {statuses.map(status => (
+            {Object.values(STATUS_OPTIONS).map(status => (
               <button
                 key={status}
                 onClick={() => onFilterChange('status', status)}
@@ -77,7 +67,7 @@ export function StudyFilter({
         <div>
           <h3 className="font-semibold mb-2">난이도</h3>
           <div className="flex flex-wrap gap-2">
-            {difficulties.map(difficulty => (
+            {Object.values(DIFFICULTY_OPTIONS).map(difficulty => (
               <button
                 key={difficulty}
                 onClick={() => onFilterChange('difficulty', difficulty)}
@@ -96,7 +86,7 @@ export function StudyFilter({
         <div>
           <h3 className="font-semibold mb-2">요일</h3>
           <div className="flex flex-wrap gap-2">
-            {days.map(day => (
+            {Object.values(DAY_KOREAN).map(day => (
               <button
                 key={day}
                 onClick={() => onFilterChange('days', day)}

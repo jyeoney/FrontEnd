@@ -1,11 +1,12 @@
 import { rest } from 'msw';
-import { InfoPost } from '@/types/post';
 
-const mockInfos = Array.from({ length: 30 }, (_, index) => ({
+const mockInfoPosts = Array.from({ length: 30 }, (_, index) => ({
   id: index + 1,
-  title: `정보공유 제목 ${index + 1}`,
-  content: `정보공유 내용 ${index + 1}입니다. 이것은 테스트를 위한 긴 내용입니다...`,
-  thumbnail: '/default-info-thumbnail.png',
+  title: `정보공유 게시글 ${index + 1}`,
+  content: `<p>정보공유 내용 ${index + 1}</p>`,
+  createdAt: new Date(
+    Date.now() - Math.random() * 10 * 24 * 60 * 60 * 1000,
+  ).toISOString(),
 }));
 
 export const infoHandlers = [
@@ -14,17 +15,16 @@ export const infoHandlers = [
     const size = parseInt(req.url.searchParams.get('size') || '12');
     const searchTitle = req.url.searchParams.get('searchTitle') || '';
 
-    let filteredData = [...mockInfos];
+    let filteredData = [...mockInfoPosts];
 
     if (searchTitle) {
-      filteredData = filteredData.filter(info =>
-        info.title.toLowerCase().includes(searchTitle.toLowerCase()),
+      filteredData = filteredData.filter(post =>
+        post.title.toLowerCase().includes(searchTitle.toLowerCase()),
       );
     }
 
     const start = page * size;
-    const end = start + size;
-    const paginatedData = filteredData.slice(start, end);
+    const paginatedData = filteredData.slice(start, start + size);
 
     return res(
       ctx.status(200),
@@ -35,5 +35,19 @@ export const infoHandlers = [
         total_pages: Math.ceil(filteredData.length / size),
       }),
     );
+  }),
+
+  rest.get('/api/info-posts/:id', (req, res, ctx) => {
+    const { id } = req.params;
+    const post = mockInfoPosts.find(post => post.id === parseInt(id as string));
+
+    if (!post) {
+      return res(
+        ctx.status(404),
+        ctx.json({ message: '게시글을 찾을 수 없습니다.' }),
+      );
+    }
+
+    return res(ctx.status(200), ctx.json(post));
   }),
 ];
