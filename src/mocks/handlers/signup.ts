@@ -84,9 +84,9 @@ export const signUpHandlers = [
 
   // 닉네임 중복 확인
   rest.post('/api/auth/check-nickname', async (req, res, ctx) => {
-    const { nickName } = await req.json();
+    const { nickname } = await req.json();
 
-    if (!nickName || !nickName.trim()) {
+    if (!nickname || !nickname.trim()) {
       return res(
         ctx.status(400),
         ctx.json({
@@ -96,7 +96,7 @@ export const signUpHandlers = [
       );
     }
 
-    if (nickName === 'testNickName') {
+    if (nickname === 'testNickname') {
       return res(
         ctx.status(400),
         ctx.json({
@@ -114,7 +114,7 @@ export const signUpHandlers = [
 
   // 회원가입 폼 제출
   rest.post('/api/auth/sign-up', async (req, res, ctx) => {
-    const { email, password, nickName } = await req.json();
+    const { email, password, nickname } = await req.json();
 
     if (!email || !email.trim()) {
       return res(
@@ -141,7 +141,7 @@ export const signUpHandlers = [
       );
     }
 
-    if (!nickName || !nickName.trim()) {
+    if (!nickname || !nickname.trim()) {
       return res(
         ctx.status(400),
         ctx.json({
