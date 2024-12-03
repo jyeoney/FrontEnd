@@ -14,8 +14,8 @@ const SingInPage = () => {
   const [error, setError] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
 
+  const { setIsSignedIn } = useAuthStore();
   const router = useRouter();
-  const { signin } = useAuthStore();
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
@@ -45,6 +45,7 @@ const SingInPage = () => {
       );
 
       if (response.status === 200) {
+        setIsSignedIn(true);
         router.push('/community/study');
       }
     } catch (error: any) {

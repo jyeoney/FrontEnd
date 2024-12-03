@@ -11,15 +11,15 @@ const SignUpForm = () => {
   const [authCodeVerified, setAuthCodeVerified] = useState(false);
   const [password, setPassword] = useState('');
   const [passwordCheck, setPasswordCheck] = useState('');
-  const [nickName, setNickName] = useState('');
-  const [nickNameAvailable, setNickNameAvailable] = useState(false);
+  const [nickname, setNickname] = useState('');
+  const [nicknameAvailable, setNicknameAvailable] = useState(false);
 
   const [emailMessage, setEmailMessage] = useState('');
   const [emailMessageType, setEmailMessageType] = useState<
     'success' | 'error' | ''
   >('');
-  const [nickNameMessage, setNickNameMessage] = useState('');
-  const [nickNameMessageType, setNickNameMessageType] = useState<
+  const [nicknameMessage, setNicknameMessage] = useState('');
+  const [nicknameMessageType, setNicknameMessageType] = useState<
     'success' | 'error' | ''
   >('');
 
@@ -165,21 +165,21 @@ const SignUpForm = () => {
   };
 
   // 닉네임 중복 확인
-  const handleNickNameAvailabilityCheckClick = async () => {
-    if (!nickName.trim()) {
-      setNickNameMessage('닉네임을 입력하세요.');
-      setNickNameMessageType('error');
+  const handleNicknameAvailabilityCheckClick = async () => {
+    if (!nickname.trim()) {
+      setNicknameMessage('닉네임을 입력하세요.');
+      setNicknameMessageType('error');
     }
     try {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/auth/check-nickname`,
         {
-          nickName,
+          nickname,
         },
       );
       if (response.status === 200) {
-        setNickNameMessage('사용 가능한 닉네임입니다.');
-        setNickNameMessageType('success');
+        setNicknameMessage('사용 가능한 닉네임입니다.');
+        setNicknameMessageType('success');
       }
     } catch (error: any) {
       if (error.response) {
@@ -188,21 +188,21 @@ const SignUpForm = () => {
 
         if (status === 400) {
           if (errorCode === 'NICKNAME_ALREADY_REGISTERED') {
-            setNickNameMessage('이미 사용 중인 닉네임입니다.');
-            setNickNameMessageType('error');
+            setNicknameMessage('이미 사용 중인 닉네임입니다.');
+            setNicknameMessageType('error');
           } else {
-            setNickNameMessage('잘못된 요청입니다. 다시 시도해주세요.');
-            setNickNameMessageType('error');
+            setNicknameMessage('잘못된 요청입니다. 다시 시도해주세요.');
+            setNicknameMessageType('error');
           }
         } else {
-          setNickNameMessage('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
-          setNickNameMessageType('error');
+          setNicknameMessage('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+          setNicknameMessageType('error');
         }
       } else {
-        setNickNameMessage(
+        setNicknameMessage(
           '서버에 연결할 수 없습니다. 네트워크 상태를 확인해 주세요.',
         );
-        setNickNameMessageType('error');
+        setNicknameMessageType('error');
       }
     }
   };
@@ -245,12 +245,12 @@ const SignUpForm = () => {
       return;
     }
 
-    if (!nickName.trim()) {
-      setNickNameMessage('닉네임을 입력해 주세요.');
-      setNickNameMessageType('error');
-    } else if (!nickNameAvailable) {
-      setNickNameMessage('닉네임 중복 확인을 완료해 주세요.');
-      setNickNameMessageType('error');
+    if (!nickname.trim()) {
+      setNicknameMessage('닉네임을 입력해 주세요.');
+      setNicknameMessageType('error');
+    } else if (!nicknameAvailable) {
+      setNicknameMessage('닉네임 중복 확인을 완료해 주세요.');
+      setNicknameMessageType('error');
       return;
     }
     if (!isValidPassword(password)) {
@@ -270,7 +270,7 @@ const SignUpForm = () => {
     try {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-up`,
-        { email, password, nickName },
+        { email, password, nickname },
         { headers: { 'Content-Type': 'application/json' } },
       );
       if (response.status === 201) {
@@ -373,19 +373,19 @@ const SignUpForm = () => {
 
         {/* 닉네임 입력 */}
         <div className="mb-4">
-          <label htmlFor="nickName" className="block mb-2 font-semibold">
+          <label htmlFor="nickname" className="block mb-2 font-semibold">
             닉네임
           </label>
           <div className="flex items-center">
             <input
-              id="nickName"
+              id="nickname"
               type="text"
-              value={nickName}
+              value={nickname}
               onChange={e => {
-                setNickName(e.target.value);
-                setNickNameAvailable(false); // 닉네임 수정 시 중복 확인 초기화
-                setNickNameMessage('');
-                setNickNameMessageType('');
+                setNickname(e.target.value);
+                setNicknameAvailable(false); // 닉네임 수정 시 중복 확인 초기화
+                setNicknameMessage('');
+                setNicknameMessageType('');
               }}
               placeholder="닉네임을 입력해 주세요."
               required
@@ -393,22 +393,22 @@ const SignUpForm = () => {
             />
             <button
               type="button"
-              onClick={handleNickNameAvailabilityCheckClick}
-              disabled={nickNameAvailable}
+              onClick={handleNicknameAvailabilityCheckClick}
+              disabled={nicknameAvailable}
               className="ml-2 px-4 py-2 rounded bg-indigo-500 text-white"
             >
               중복 확인
             </button>
           </div>
-          {nickNameMessage && (
+          {nicknameMessage && (
             <p
               className={`mt-2 ${
-                nickNameMessageType === 'success'
+                nicknameMessageType === 'success'
                   ? 'text-green-500'
                   : 'text-red-500'
               }`}
             >
-              {nickNameMessage}
+              {nicknameMessage}
             </p>
           )}
         </div>
