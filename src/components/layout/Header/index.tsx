@@ -1,9 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import { useAuthStore } from '@/store/authStore';
 import { usePathname } from 'next/navigation';
 
-export default function Header() {
+const Header = () => {
+  const { isSignedIn, signout } = useAuthStore();
+
   const pathname = usePathname();
 
   const isActive = (path: string) => {
@@ -52,16 +55,28 @@ export default function Header() {
         </div>
       </div>
       <div className="navbar-end">
-        <Link href="/mypage/1" className="btn btn-ghost text-white">
-          마이페이지
-        </Link>
-        <Link href="/signin" className="btn btn-ghost text-white">
-          로그인
-        </Link>
-        <Link href="/signup" className="btn btn-ghost text-white">
-          회원가입
-        </Link>
+        {isSignedIn ? (
+          <>
+            <Link href="/mypage/1" className="btn btn-ghost text-white">
+              마이페이지
+            </Link>
+            <button onClick={signout} className="btn btn-ghost text-white">
+              로그아웃
+            </button>
+          </>
+        ) : (
+          <>
+            <Link href="/signin" className="btn btn-ghost text-white">
+              로그인
+            </Link>
+            <Link href="/signup" className="btn btn-ghost text-white">
+              회원가입
+            </Link>
+          </>
+        )}
       </div>
     </header>
   );
-}
+};
+
+export default Header;
