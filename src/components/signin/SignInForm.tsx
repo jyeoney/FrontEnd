@@ -1,4 +1,5 @@
 'use client';
+import { useAuthStore } from '@/store/authStore';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
@@ -14,6 +15,7 @@ const SingInPage = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
 
   const router = useRouter();
+  const { signin } = useAuthStore();
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
@@ -31,7 +33,7 @@ const SingInPage = () => {
       }
 
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/signin`, // Next.js API Route로 수정
+        `${process.env.NEXT_PUBLIC_API_URL}/mock/auth/signin`, // Next.js API Route로 수정
         {
           email,
           password,
