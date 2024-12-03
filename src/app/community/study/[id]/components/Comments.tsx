@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthStore } from '@/store/authStore';
 import { Comment } from '@/types/comments';
 import dayjs from 'dayjs';
 
@@ -10,7 +10,7 @@ interface CommentsProps {
 }
 
 export default function Comments({ studyId }: CommentsProps) {
-  const { isLoggedIn, getAuthHeader } = useAuth();
+  const { isSignedIn, getAuthHeader } = useAuthStore();
   const [comments, setComments] = useState<Comment[]>([]);
   const [content, setContent] = useState('');
   const [replyTo, setReplyTo] = useState<string | null>(null);
@@ -33,7 +33,7 @@ export default function Comments({ studyId }: CommentsProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim() || !isLoggedIn) return;
+    if (!content.trim() || !isSignedIn) return;
 
     try {
       const response = await fetch('/api/comments', {
@@ -78,7 +78,7 @@ export default function Comments({ studyId }: CommentsProps) {
           </span>
         </div>
         <p className="mb-2">{comment.content}</p>
-        {isLoggedIn && (
+        {isSignedIn && (
           <button
             onClick={() => setReplyTo(comment.id)}
             className="text-sm text-primary hover:underline"
@@ -101,7 +101,7 @@ export default function Comments({ studyId }: CommentsProps) {
     <div className="mt-8">
       <h3 className="text-xl font-bold mb-4">댓글</h3>
 
-      {isLoggedIn ? (
+      {isSignedIn ? (
         <form onSubmit={handleSubmit} className="mb-6">
           <textarea
             value={content}

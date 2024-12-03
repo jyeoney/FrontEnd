@@ -19,13 +19,11 @@ const DIFFICULTY_DISPLAY = {
 const SUBJECT_DISPLAY = {
   CONCEPT_LEARNING: '개념 학습',
   PROJECT: '프로젝트',
-  ALGORITHM: '알고리즘',
-  CODING_TEST: '코딩테스트',
   CHALLENGE: '챌린지',
   CERTIFICATION: '자격증/시험',
   JOB_PREPARATION: '취업/코테',
   ETC: '기타',
-};
+} as const;
 
 interface StudyFilterProps {
   selectedSubjects: string[];

@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { StudyPost } from '@/types/post';
-import { useAuth } from '@/hooks/useAuth';
+import { StudyPost } from '@/types/study';
+import { useAuthStore } from '@/store/authStore';
 import dayjs from 'dayjs';
 import Comments from './Comments';
 import { StudyApplication } from './StudyApplication';
 import StudyLocation from './StudyLocation';
+import { useRouter } from 'next/navigation';
 
 interface StudyDetailContentProps {
   studyId: string;
@@ -15,9 +16,10 @@ interface StudyDetailContentProps {
 export default function StudyDetailContent({
   studyId,
 }: StudyDetailContentProps) {
-  const { user } = useAuth();
+  const isSignedIn = useAuthStore(state => state.isSignedIn);
   const [study, setStudy] = useState<StudyPost | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchStudy = async () => {
@@ -41,14 +43,25 @@ export default function StudyDetailContent({
   if (isLoading) return <div>Loading...</div>;
   if (!study) return <div>스터디를 찾을 수 없습니다.</div>;
 
-  const isAuthor = user?.id === study.authorId;
+  const isAuthor = isSignedIn && study.authorId === user?.id;
+
+  const handleEdit = () => {
+    router.push(`/community/study/edit/${studyId}`);
+  };
 
   return (
     <div className="max-w-4xl mx-auto p-4">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">{study.title}</h1>
+        {isAuthor && (
+          <button onClick={handleEdit} className="btn btn-primary">
+            수정하기
+          </button>
+        )}
+      </div>
       <div className="bg-base-100 shadow-xl rounded-lg p-6">
         {/* 스터디 기본 정보 */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold mb-4">{study.title}</h1>
           <div className="grid grid-cols-2 gap-4 text-sm text-base-content/70">
             <p>
               모집 기한: {dayjs(study.recruitmentEndDate).format('YYYY.MM.DD')}
@@ -61,6 +74,7 @@ export default function StudyDetailContent({
               스터디 기간: {dayjs(study.studyStartDate).format('YYYY.MM.DD')} ~
               {dayjs(study.studyEndDate).format('YYYY.MM.DD')}
             </p>
+            <p>스터디 요일: {study.dayType.join(', ')}</p>
           </div>
         </div>
 
@@ -79,9 +93,15 @@ export default function StudyDetailContent({
           setStudy={setStudy}
         />
       </div>
-      {study.meeting_type === 'HYBRID' && study.location && (
+      {study.meeting_type === 'HYBRID' && (
         <div className="mt-8">
-          <StudyLocation post={study} />
+          <StudyLocation
+            post={{
+              latitude: study.latitude,
+              longitude: study.longitude,
+              address: study.address,
+            }}
+          />
         </div>
       )}
     </div>

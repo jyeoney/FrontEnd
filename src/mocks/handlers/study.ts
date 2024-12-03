@@ -1,5 +1,5 @@
 import { rest } from 'msw';
-import { StudyMeetingType, StudyPost } from '@/types/post';
+import { DayType, StudyMeetingType, StudyPost } from '@/types/study';
 
 // 온라인 전용 스터디
 const mockOnlineStudies = Array.from({ length: 15 }, (_, index) => ({
@@ -27,7 +27,7 @@ const mockOnlineStudies = Array.from({ length: 15 }, (_, index) => ({
     index % 3
   ] as StudyPost['status'],
   meeting_type: 'ONLINE' as StudyMeetingType,
-  days: ['월', '수', '금'],
+  dayType: ['월', '수', '금'] as DayType[],
   createdAt: new Date(
     Date.now() - Math.random() * 10 * 24 * 60 * 60 * 1000,
   ).toISOString(),
@@ -60,7 +60,7 @@ const mockHybridStudies = Array.from({ length: 15 }, (_, index) => ({
     index % 3
   ] as StudyPost['status'],
   meeting_type: 'HYBRID' as StudyMeetingType,
-  days: ['화', '목', '토'],
+  dayType: ['화', '목', '토'] as DayType[],
   createdAt: new Date(
     Date.now() - Math.random() * 10 * 24 * 60 * 60 * 1000,
   ).toISOString(),
@@ -118,7 +118,7 @@ export const studyHandlers = [
     // 요일 필터
     if (days.length > 0) {
       filteredData = filteredData.filter(study =>
-        study.days.some(day => days.includes(day)),
+        study.dayType.some(day => days.includes(day)),
       );
     }
 
@@ -157,5 +157,32 @@ export const studyHandlers = [
     }
 
     return res(ctx.status(200), ctx.json(study));
+  }),
+  rest.put('/api/study-posts/:id', (req, res, ctx) => {
+    const { id } = req.params;
+    const updatedStudy = req.body as Partial<StudyPost>;
+
+    // 스터디 찾기
+    const studyIndex = mockStudies.findIndex(
+      study => study.id === parseInt(id as string),
+    );
+
+    if (studyIndex === -1) {
+      return res(
+        ctx.status(404),
+        ctx.json({ message: '스터디를 찾을 수 없습니다.' }),
+      );
+    }
+
+    // 스터디 업데이트
+    mockStudies[studyIndex] = {
+      ...mockStudies[studyIndex],
+      ...updatedStudy,
+    };
+
+    return res(
+      ctx.status(200),
+      ctx.json({ message: '스터디 모집 글이 업데이트되었습니다.' }),
+    );
   }),
 ];

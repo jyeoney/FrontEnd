@@ -1,8 +1,8 @@
 'use client';
 
-import { StudyPost } from '@/types/post';
+import { StudyPost } from '@/types/study';
 import { Application } from '@/types/application';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthStore } from '@/store/authStore';
 import { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
 import axios from 'axios';
@@ -16,7 +16,7 @@ export function StudyApplication({
   isAuthor: boolean;
   setStudy: React.Dispatch<React.SetStateAction<StudyPost | null>>;
 }) {
-  const { user, isLoggedIn, getAuthHeader } = useAuth();
+  const { user, isSignedIn, getAuthHeader } = useAuthStore();
   const [applications, setApplications] = useState<Application[]>([]);
   const [myApplication, setMyApplication] = useState<Application | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,7 +25,7 @@ export function StudyApplication({
   // 신청 목록 조회
   useEffect(() => {
     const fetchApplications = async () => {
-      if (!isLoggedIn) return;
+      if (!isSignedIn) return;
 
       try {
         const response = await fetch(
@@ -54,11 +54,11 @@ export function StudyApplication({
     };
 
     fetchApplications();
-  }, [study.id, isLoggedIn, isAuthor, user?.id, getAuthHeader]);
+  }, [study.id, isSignedIn, isAuthor, user?.id, getAuthHeader]);
 
   // 신청하기
   const handleApply = async () => {
-    if (!isLoggedIn || !user) return;
+    if (!isSignedIn || !user) return;
     setIsLoading(true);
 
     try {

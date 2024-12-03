@@ -1,3 +1,5 @@
+import { BasePost } from './post';
+
 export type StudySubject =
   | 'CONCEPT_LEARNING'
   | 'PROJECT'
@@ -9,27 +11,31 @@ export type StudySubject =
 export type StudyDifficulty = 'HIGH' | 'MEDIUM' | 'LOW';
 export type StudyMeetingType = 'ONLINE' | 'HYBRID';
 export type StudyStatus = 'RECRUITING' | 'IN_PROGRESS' | 'CANCELED';
+export type DayType = '월' | '화' | '수' | '목' | '금' | '토' | '일';
 
-export interface StudyFormData {
-  title: string;
-  studyName: string;
-  content: string;
+export interface StudyPost extends BasePost {
   subject: StudySubject;
   difficulty: StudyDifficulty;
   recruitmentStartDate: string;
   recruitmentEndDate: string;
   studyStartDate: string;
   studyEndDate: string;
+  currentMembers: number;
   maxMembers: number;
-  startTime: string;
-  endTime: string;
+  meetingTime: string;
   status: StudyStatus;
-  meetingType: StudyMeetingType;
-  dayType: number;
-  thumbnail?: string;
+  meeting_type: StudyMeetingType;
+  dayType: DayType[];
   latitude?: number;
   longitude?: number;
   address?: string;
+}
+
+export interface StudyResponse {
+  data: StudyPost[];
+  page: number;
+  size: number;
+  total_pages: number;
 }
 
 export const SUBJECT_OPTIONS = {
