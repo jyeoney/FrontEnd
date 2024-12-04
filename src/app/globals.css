@@ -2,14 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family:
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    'Helvetica Neue',
-    Arial,
-    sans-serif;
+/* 기본 텍스트 색상 설정 */
+@layer base {
+  html {
+    @apply text-base-content;
+  }
 }

@@ -76,7 +76,7 @@ const Header = ({ initialSignedIn }: HeaderProps) => {
   return (
     <header className="navbar bg-base-100 shadow-md">
       <div className="navbar-start">
-        <Link href="/" className="btn btn-ghost text-xl text-white">
+        <Link href="/" className="btn btn-ghost text-xl text-base-content">
           DevOff
         </Link>
       </div>
@@ -117,11 +117,11 @@ const Header = ({ initialSignedIn }: HeaderProps) => {
       <div className="navbar-end">
         {isSignedIn ? (
           <>
-            <Link href="/mypage/1" className="btn btn-ghost text-white">
+            <Link href="/mypage/1" className="btn btn-ghost text-base-content">
               마이페이지
             </Link>
             <button
-              className="btn btn-ghost text-white"
+              className="btn btn-ghost text-base-content"
               onClick={handleSignOutClick}
             >
               로그아웃
@@ -129,10 +129,10 @@ const Header = ({ initialSignedIn }: HeaderProps) => {
           </>
         ) : (
           <>
-            <Link href="/signin" className="btn btn-ghost text-white">
+            <Link href="/signin" className="btn btn-ghost text-base-content">
               로그인
             </Link>
-            <Link href="/signup" className="btn btn-ghost text-white">
+            <Link href="/signup" className="btn btn-ghost text-base-content">
               회원가입
             </Link>
           </>
