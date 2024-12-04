@@ -1,18 +1,32 @@
-import jwt from 'jsonwebtoken';
+import axios from 'axios';
+// import { cookies } from 'next/headers';
 
-export async function getAuthStatus(cookies: string | null) {
-  if (!cookies) return false; // 쿠키가 없으면 로그인하지 않은 상태
-
-  // 쿠키에서 accessToken을 추출
-  const accessToken = cookies.match(/accessToken=([^;]+)/)?.[1];
-
-  if (!accessToken) return false; // 액세스토큰이 없으면 로그인하지 않은 상태
-
+export const reissueAccessToken = async (email: string) => {
   try {
-    // JWT 검증 (JWT_SECRET은 환경변수에 저장)
-    jwt.verify(accessToken, process.env.JWT_SECRET!);
-    return true; // 인증된 사용자
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_API_URL}/mock/auth/refresh`,
+      { email },
+    );
+
+    if (response.status === 200) {
+      const { accessToken } = response.data;
+      return accessToken;
+    } else {
+      throw new Error('액세스 토큰 재발급 실패');
+    }
   } catch (error) {
-    return false; // 인증 실패
+    console.error('액세스 토큰 재발급 실패:', error);
+    throw new Error('엑세스 토큰 재발급 실패');
   }
-}
+};
+
+// export const getAccessToken = async () => {
+//   const cookieStore = await cookies();
+//   const accessToken = cookieStore.get('accessToken')?.value;
+
+//   if (!accessToken) {
+//     throw new Error('Access token is missing');
+//   }
+
+//   return accessToken;
+// };
