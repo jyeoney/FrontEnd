@@ -16,7 +16,7 @@ export default {
     },
   },
   daisyui: {
-    themes: ['business'],
+    themes: ['pastel'],
   },
   plugins: [daisyui],
 } satisfies Config;

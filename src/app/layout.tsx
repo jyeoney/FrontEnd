@@ -25,7 +25,7 @@ const RootLayout = async ({
   console.log(isSignedIn);
 
   return (
-    <html lang="ko" data-theme="business">
+    <html lang="ko" data-theme="pastel">
       <body className="min-h-screen bg-base-100 text-base-content">
         {process.env.NEXT_PUBLIC_API_MOCKING === 'enabled' && <MSWProvider />}
         <div className="flex flex-col min-h-screen">
