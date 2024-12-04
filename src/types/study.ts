@@ -26,9 +26,9 @@ export interface StudyPost extends BasePost {
   status: StudyStatus;
   meeting_type: StudyMeetingType;
   dayType: DayType[];
-  latitude?: number;
-  longitude?: number;
-  address?: string;
+  latitude: number;
+  longitude: number;
+  address: string;
 }
 
 export interface StudyResponse {
