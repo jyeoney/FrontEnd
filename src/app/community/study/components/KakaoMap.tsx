@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { StudyPost } from '@/types/post';
 
 interface KakaoMapProps {
-  studies: StudyPost[];
-  userLocation: {
+  studies: Array<{
     latitude: number;
     longitude: number;
-  } | null;
+    address: string;
+  }>;
+  userLocation: { latitude: number; longitude: number } | null;
 }
 
 export default function KakaoMap({ studies, userLocation }: KakaoMapProps) {
@@ -67,10 +67,10 @@ export default function KakaoMap({ studies, userLocation }: KakaoMapProps) {
           if (!mapRef.current) return;
 
           let centerLocation;
-          if (studies.length === 1 && studies[0].location) {
+          if (studies.length === 1) {
             centerLocation = {
-              latitude: studies[0].location.latitude,
-              longitude: studies[0].location.longitude,
+              latitude: studies[0].latitude,
+              longitude: studies[0].longitude,
             };
           } else if (userLocation) {
             centerLocation = userLocation;
@@ -126,11 +126,9 @@ export default function KakaoMap({ studies, userLocation }: KakaoMapProps) {
     const newMarkers: any[] = [];
 
     studies.forEach(study => {
-      if (!study.location) return;
-
       const position = new window.kakao.maps.LatLng(
-        study.location.latitude,
-        study.location.longitude,
+        study.latitude,
+        study.longitude,
       );
 
       const marker = new window.kakao.maps.Marker({

@@ -1,19 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import LocationSearch from './LocationSearch';
-import { SUBJECT_OPTIONS, DIFFICULTY_OPTIONS, DAY_KOREAN } from '@/types/study';
+import {
+  SUBJECT_OPTIONS,
+  DIFFICULTY_OPTIONS,
+  DAY_KOREAN,
+  StudyPost,
+} from '@/types/study';
 import { convertDaysToBitFlag } from '@/utils/study';
-interface Location {
-  latitude: number;
-  longitude: number;
-  address: string;
+
+interface HybridFormProps {
+  initialData?: StudyPost;
+  isEdit?: boolean;
 }
 
-export default function HybridForm() {
+export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
   const router = useRouter();
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
@@ -21,6 +26,20 @@ export default function HybridForm() {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [thumbnailPreview, setThumbnailPreview] = useState<string>('');
+
+  useEffect(() => {
+    if (initialData && isEdit) {
+      setSelectedDays(initialData.dayType);
+      setSelectedLocation({
+        latitude: initialData.latitude,
+        longitude: initialData.longitude,
+        address: initialData.address,
+      });
+      if (initialData.thumbnail) {
+        setThumbnailPreview(initialData.thumbnail);
+      }
+    }
+  }, [initialData, isEdit]);
 
   const handleDayToggle = (day: string) => {
     setSelectedDays(prev =>
@@ -77,10 +96,18 @@ export default function HybridForm() {
         thumbnail: thumbnailUrl || '/default-study-thumbnail.png',
       };
 
-      await axios.post('/api/study-posts', studyData);
+      if (isEdit && initialData) {
+        await axios.put(`/api/study-posts/${initialData.id}`, studyData);
+      } else {
+        await axios.post('/api/study-posts', studyData);
+      }
+
       router.push('/community/study');
     } catch (error) {
-      console.error('스터디 글 작성 실패:', error);
+      console.error(
+        isEdit ? '스터디 글 수정 실패:' : '스터디 글 작성 실패:',
+        error,
+      );
     } finally {
       setIsLoading(false);
     }
@@ -116,6 +143,7 @@ export default function HybridForm() {
         <input
           type="text"
           name="title"
+          defaultValue={initialData?.title}
           required
           className="input input-bordered"
           placeholder="모집 글의 제목을 입력하세요"
@@ -129,6 +157,7 @@ export default function HybridForm() {
         <input
           type="text"
           name="studyName"
+          defaultValue={initialData?.studyName}
           required
           className="input input-bordered"
           placeholder="스터디명을 입력하세요"
@@ -139,7 +168,12 @@ export default function HybridForm() {
         <label className="label">
           <span className="label-text">스터디 주제</span>
         </label>
-        <select name="subject" required className="select select-bordered">
+        <select
+          name="subject"
+          required
+          className="select select-bordered"
+          defaultValue={initialData?.subject || ''}
+        >
           <option value="">주제 선택</option>
           {Object.entries(SUBJECT_OPTIONS).map(([key, value]) => (
             <option key={key} value={key}>
@@ -153,7 +187,12 @@ export default function HybridForm() {
         <label className="label">
           <span className="label-text">난이도</span>
         </label>
-        <select name="difficulty" required className="select select-bordered">
+        <select
+          name="difficulty"
+          required
+          className="select select-bordered"
+          defaultValue={initialData?.difficulty || ''}
+        >
           <option value="">난이도 선택</option>
           {Object.entries(DIFFICULTY_OPTIONS).map(([key, value]) => (
             <option key={key} value={key}>
@@ -165,11 +204,12 @@ export default function HybridForm() {
 
       <div className="form-control">
         <label className="label">
-          <span className="label-text">모집 기간</span>
+          <span className="label-text">모집 마감일</span>
         </label>
         <input
           type="date"
           name="recruitmentEndDate"
+          defaultValue={initialData?.recruitmentEndDate}
           required
           className="input input-bordered"
           min={dayjs().format('YYYY-MM-DD')}
@@ -184,6 +224,7 @@ export default function HybridForm() {
           <input
             type="date"
             name="studyStartDate"
+            defaultValue={initialData?.studyStartDate}
             required
             className="input input-bordered flex-1"
             min={dayjs().format('YYYY-MM-DD')}
@@ -192,6 +233,7 @@ export default function HybridForm() {
           <input
             type="date"
             name="studyEndDate"
+            defaultValue={initialData?.studyEndDate}
             required
             className="input input-bordered flex-1"
             min={dayjs().format('YYYY-MM-DD')}
@@ -209,7 +251,7 @@ export default function HybridForm() {
           required
           min={2}
           max={10}
-          defaultValue={2}
+          defaultValue={initialData?.maxMembers || 2}
           step={1}
           className="input input-bordered"
           placeholder="2~10명 사이로 입력하세요"
@@ -229,6 +271,7 @@ export default function HybridForm() {
           <input
             type="time"
             name="meetingStartTime"
+            defaultValue={initialData?.startTime}
             required
             className="input input-bordered flex-1"
           />
@@ -236,6 +279,7 @@ export default function HybridForm() {
           <input
             type="time"
             name="meetingEndTime"
+            defaultValue={initialData?.endTime}
             required
             className="input input-bordered flex-1"
           />
@@ -280,6 +324,7 @@ export default function HybridForm() {
         </label>
         <textarea
           name="content"
+          defaultValue={initialData?.content}
           required
           className="textarea textarea-bordered h-32"
           placeholder="스터디에 대해 자세히 설명해주세요"
@@ -291,7 +336,13 @@ export default function HybridForm() {
         className="btn btn-primary w-full"
         disabled={isLoading || !selectedLocation}
       >
-        {isLoading ? '작성 중...' : '작성 완료'}
+        {isLoading
+          ? isEdit
+            ? '수정 중...'
+            : '작성 중...'
+          : isEdit
+            ? '수정 완료'
+            : '작성 완료'}
       </button>
     </form>
   );

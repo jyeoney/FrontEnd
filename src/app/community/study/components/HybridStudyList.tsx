@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { StudyResponse } from '@/types/post';
+import { StudyResponse, StudyPost } from '@/types/study';
 import { StudyFilter } from './StudyFilter';
 import { StudyCard } from './StudyCard';
 import KakaoMap from './KakaoMap';
@@ -115,7 +115,18 @@ export default function HybridStudyList() {
           />
         </div>
         <div className="bg-base-200 p-4 rounded-lg">
-          <KakaoMap studies={posts?.data || []} userLocation={userLocation} />
+          <KakaoMap
+            studies={
+              posts?.data
+                .filter(post => post.latitude && post.longitude && post.address)
+                .map(post => ({
+                  latitude: post.latitude!,
+                  longitude: post.longitude!,
+                  address: post.address!,
+                })) || []
+            }
+            userLocation={userLocation}
+          />
         </div>
       </div>
 
@@ -123,7 +134,9 @@ export default function HybridStudyList() {
         {isLoading ? (
           <div>로딩 중...</div>
         ) : (
-          posts?.data.map(post => <StudyCard key={post.id} post={post} />)
+          posts?.data.map((post: StudyPost) => (
+            <StudyCard key={post.id} post={post} />
+          ))
         )}
       </div>
 

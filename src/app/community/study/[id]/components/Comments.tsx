@@ -1,16 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthStore } from '@/store/authStore';
 import { Comment } from '@/types/comments';
 import dayjs from 'dayjs';
+import axios from 'axios';
 
 interface CommentsProps {
   studyId: string;
 }
 
 export default function Comments({ studyId }: CommentsProps) {
-  const { isLoggedIn, getAuthHeader } = useAuth();
+  const { isSignedIn } = useAuthStore();
   const [comments, setComments] = useState<Comment[]>([]);
   const [content, setContent] = useState('');
   const [replyTo, setReplyTo] = useState<string | null>(null);
@@ -33,24 +34,17 @@ export default function Comments({ studyId }: CommentsProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim() || !isLoggedIn) return;
+    if (!content.trim() || !isSignedIn) return;
 
     try {
-      const response = await fetch('/api/comments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeader(),
-        },
-        body: JSON.stringify({
-          studyId,
-          content,
-          parentId: replyTo,
-        }),
+      const response = await axios.post('/api/comments', {
+        studyId,
+        content,
+        parentId: replyTo,
       });
 
-      if (response.ok) {
-        const newComment = await response.json();
+      if (response.status === 200) {
+        const newComment = response.data;
         setComments(prev =>
           replyTo
             ? prev.map(comment =>
@@ -78,7 +72,7 @@ export default function Comments({ studyId }: CommentsProps) {
           </span>
         </div>
         <p className="mb-2">{comment.content}</p>
-        {isLoggedIn && (
+        {isSignedIn && (
           <button
             onClick={() => setReplyTo(comment.id)}
             className="text-sm text-primary hover:underline"
@@ -101,7 +95,7 @@ export default function Comments({ studyId }: CommentsProps) {
     <div className="mt-8">
       <h3 className="text-xl font-bold mb-4">댓글</h3>
 
-      {isLoggedIn ? (
+      {isSignedIn ? (
         <form onSubmit={handleSubmit} className="mb-6">
           <textarea
             value={content}
