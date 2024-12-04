@@ -26,7 +26,7 @@ const RootLayout = async ({
 
   return (
     <html lang="ko" data-theme="business">
-      <body className="antialiased">
+      <body className="min-h-screen bg-base-100 text-base-content">
         {process.env.NEXT_PUBLIC_API_MOCKING === 'enabled' && <MSWProvider />}
         <div className="flex flex-col min-h-screen">
           <Header initialSignedIn={isSignedIn} />
