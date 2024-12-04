@@ -70,7 +70,7 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
         endTime: formData.get('meetingEndTime') as string,
         status: 'RECRUITING',
         meetingType: 'ONLINE',
-        dayType: convertDaysToBitFlag(selectedDays),
+        dayType: selectedDays,
         thumbnail: thumbnailUrl || '/default-study-thumbnail.png',
       };
 

@@ -29,6 +29,9 @@ export interface StudyPost extends BasePost {
   latitude: number;
   longitude: number;
   address: string;
+  studyName: string;
+  startTime: string;
+  endTime: string;
 }
 
 export interface StudyResponse {
@@ -62,16 +65,6 @@ export const STATUS_OPTIONS = {
   RECRUITING: '모집 중',
   IN_PROGRESS: '진행 중',
   CANCELED: '모집 취소',
-} as const;
-
-export const DAY_TYPE_FLAGS = {
-  MONDAY: 1, // 2^0
-  TUESDAY: 2, // 2^1
-  WEDNESDAY: 4, // 2^2
-  THURSDAY: 8, // 2^3
-  FRIDAY: 16, // 2^4
-  SATURDAY: 32, // 2^5
-  SUNDAY: 64, // 2^6
 } as const;
 
 export const DAY_KOREAN = {
