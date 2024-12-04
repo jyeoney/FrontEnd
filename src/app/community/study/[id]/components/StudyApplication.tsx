@@ -16,7 +16,7 @@ export function StudyApplication({
   isAuthor: boolean;
   setStudy: React.Dispatch<React.SetStateAction<StudyPost | null>>;
 }) {
-  const { user, isSignedIn, getAuthHeader } = useAuthStore();
+  const { userInfo, isSignedIn } = useAuthStore();
   const [applications, setApplications] = useState<Application[]>([]);
   const [myApplication, setMyApplication] = useState<Application | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -28,23 +28,18 @@ export function StudyApplication({
       if (!isSignedIn) return;
 
       try {
-        const response = await fetch(
+        const response = await axios.get(
           `/api/study-signup?studyPostId=${study.id}${
             isAuthor ? '' : '&status=PENDING'
           }`,
-          {
-            headers: {
-              ...getAuthHeader(),
-            },
-          },
         );
-        const data = await response.json();
+        const data = response.data;
 
         if (isAuthor) {
           setApplications(data);
         } else {
           const myApp = data.find(
-            (app: Application) => app.userId === user?.id,
+            (app: Application) => app.userId === userInfo?.id,
           );
           setMyApplication(myApp || null);
         }
@@ -54,24 +49,18 @@ export function StudyApplication({
     };
 
     fetchApplications();
-  }, [study.id, isSignedIn, isAuthor, user?.id, getAuthHeader]);
+  }, [study.id, isSignedIn, isAuthor, userInfo?.id]);
 
   // 신청하기
   const handleApply = async () => {
-    if (!isSignedIn || !user) return;
+    if (!isSignedIn || !userInfo) return;
     setIsLoading(true);
 
     try {
-      const response = await axios.post(
-        '/api/study-sign-up',
-        {
-          studyPostId: study.id,
-          userId: user.id,
-        },
-        {
-          headers: getAuthHeader() as Record<string, string>,
-        },
-      );
+      const response = await axios.post('/api/study-sign-up', {
+        studyPostId: study.id,
+        userId: userInfo.id,
+      });
 
       if (response.status === 200) {
         setMyApplication(response.data);
@@ -90,38 +79,24 @@ export function StudyApplication({
     newStatus: 'ACCEPTED' | 'REJECTED',
   ) => {
     try {
-      const response = await fetch(
+      const response = await axios.put(
         `/api/study-signup/${applicationId}?status=${newStatus}`,
-        {
-          method: 'PUT',
-          headers: {
-            ...getAuthHeader(),
-          },
-        },
       );
 
-      if (response.ok) {
+      if (response.status === 200) {
         setApplications(prev =>
           prev.map(app =>
             app.id === applicationId ? { ...app, status: newStatus } : app,
           ),
         );
 
-        // 상태가 ACCEPTED로 변경되면 참가자 목록에 추가
         if (newStatus === 'ACCEPTED') {
           const acceptedApplication = applications.find(
             app => app.id === applicationId,
           );
           if (acceptedApplication) {
-            await fetch(`/api/study-posts/${study.id}/participants`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                ...getAuthHeader(),
-              },
-              body: JSON.stringify({
-                participantId: acceptedApplication.userId,
-              }),
+            await axios.post(`/api/study-posts/${study.id}/participants`, {
+              participantId: acceptedApplication.userId,
             });
           }
         }
@@ -134,17 +109,11 @@ export function StudyApplication({
   // 신청 취소 기능
   const handleCancelApplication = async (applicationId: number) => {
     try {
-      const response = await fetch(
-        `/api/study-sign-up/${applicationId}?userId=${user?.id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            ...getAuthHeader(),
-          },
-        },
+      const response = await axios.delete(
+        `/api/study-sign-up/${applicationId}?userId=${userInfo?.id}`,
       );
 
-      if (response.ok) {
+      if (response.status === 200) {
         setMyApplication(null);
       }
     } catch (error) {
@@ -155,14 +124,8 @@ export function StudyApplication({
   // 스터디 마감 기능
   const handleCloseRecruitment = async () => {
     try {
-      const response = await fetch(`/api/study-posts/${study.id}/close`, {
-        method: 'PUT',
-        headers: {
-          ...getAuthHeader(),
-        },
-      });
-
-      if (response.ok) {
+      const response = await axios.put(`/api/study-posts/${study.id}/close`);
+      if (response.status === 200) {
         // 스터디 상태 업데이트
         setStudy(prev => {
           if (!prev) return prev;
@@ -176,14 +139,22 @@ export function StudyApplication({
         const acceptedApplications = applications.filter(
           app => app.status === 'ACCEPTED',
         );
-        // 참가자 목록 업데이트 로직 추가
+
+        // 승인된 신청자들을 참가자로 추가
+        await Promise.all(
+          acceptedApplications.map(app =>
+            axios.post(`/api/study-posts/${study.id}/participants`, {
+              participantId: app.userId,
+            }),
+          ),
+        );
       }
     } catch (error) {
       console.error('스터디 마감 실패:', error);
     }
   };
 
-  if (!isLoggedIn) {
+  if (!isSignedIn) {
     return (
       <div className="alert alert-info">
         <span>스터디 신청은 로그인 후 가능합니다.</span>
@@ -194,7 +165,17 @@ export function StudyApplication({
   if (isAuthor) {
     return (
       <div className="mt-4">
-        <h3 className="text-lg font-bold mb-2">신청 현황</h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold">신청 현황</h3>
+          {study.status === 'RECRUITING' && (
+            <button
+              onClick={handleCloseRecruitment}
+              className="btn btn-secondary"
+            >
+              모집 마감하기
+            </button>
+          )}
+        </div>
         <div className="overflow-x-auto">
           <table className="table w-full">
             <thead>
@@ -241,11 +222,21 @@ export function StudyApplication({
   if (myApplication) {
     return (
       <div className="alert">
-        <span>
-          신청 상태: {myApplication.status === 'PENDING' && '검토 중'}
-          {myApplication.status === 'ACCEPTED' && '수락됨'}
-          {myApplication.status === 'REJECTED' && '거절됨'}
-        </span>
+        <div className="flex justify-between items-center w-full">
+          <span>
+            신청 상태: {myApplication.status === 'PENDING' && '검토 중'}
+            {myApplication.status === 'ACCEPTED' && '수락됨'}
+            {myApplication.status === 'REJECTED' && '거절됨'}
+          </span>
+          {myApplication.status === 'PENDING' && (
+            <button
+              onClick={() => handleCancelApplication(myApplication.id)}
+              className="btn btn-error btn-sm"
+            >
+              신청 취소
+            </button>
+          )}
+        </div>
       </div>
     );
   }

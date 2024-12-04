@@ -8,6 +8,8 @@ import Comments from './Comments';
 import { StudyApplication } from './StudyApplication';
 import StudyLocation from './StudyLocation';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
+import StudyParticipants from './StudyParticipants';
 
 interface StudyDetailContentProps {
   studyId: string;
@@ -16,7 +18,7 @@ interface StudyDetailContentProps {
 export default function StudyDetailContent({
   studyId,
 }: StudyDetailContentProps) {
-  const isSignedIn = useAuthStore(state => state.isSignedIn);
+  const { isSignedIn, userInfo } = useAuthStore();
   const [study, setStudy] = useState<StudyPost | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -43,20 +45,45 @@ export default function StudyDetailContent({
   if (isLoading) return <div>Loading...</div>;
   if (!study) return <div>스터디를 찾을 수 없습니다.</div>;
 
-  const isAuthor = isSignedIn && study.authorId === user?.id;
+  const isAuthor = isSignedIn && userInfo?.id === study.authorId;
 
   const handleEdit = () => {
     router.push(`/community/study/edit/${studyId}`);
+  };
+
+  const handleCancel = async () => {
+    if (!window.confirm('정말로 이 스터디 모집을 취소하시겠습니까?')) return;
+
+    try {
+      const response = await axios.put(`/api/study-posts/${studyId}/close`);
+      if (response.status === 200) {
+        setStudy(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            status: 'CANCELED',
+          };
+        });
+      }
+    } catch (error) {
+      console.error('스터디 모집 취소 실패:', error);
+      alert('스터디 모집 취소에 실패했습니다. 다시 시도해주세요.');
+    }
   };
 
   return (
     <div className="max-w-4xl mx-auto p-4">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">{study.title}</h1>
-        {isAuthor && (
-          <button onClick={handleEdit} className="btn btn-primary">
-            수정하기
-          </button>
+        {isAuthor && study.status === 'RECRUITING' && (
+          <div className="flex gap-2">
+            <button onClick={handleEdit} className="btn btn-primary">
+              수정하기
+            </button>
+            <button onClick={handleCancel} className="btn btn-error">
+              모집 취소
+            </button>
+          </div>
         )}
       </div>
       <div className="bg-base-100 shadow-xl rounded-lg p-6">
@@ -83,6 +110,9 @@ export default function StudyDetailContent({
           <div dangerouslySetInnerHTML={{ __html: study.content }} />
         </div>
 
+        {/* 참여자 목록 */}
+        <StudyParticipants studyId={studyId} />
+
         {/* 댓글 섹션 */}
         <Comments studyId={studyId} />
 
@@ -93,17 +123,20 @@ export default function StudyDetailContent({
           setStudy={setStudy}
         />
       </div>
-      {study.meeting_type === 'HYBRID' && (
-        <div className="mt-8">
-          <StudyLocation
-            post={{
-              latitude: study.latitude,
-              longitude: study.longitude,
-              address: study.address,
-            }}
-          />
-        </div>
-      )}
+      {study.meeting_type === 'HYBRID' &&
+        study.latitude &&
+        study.longitude &&
+        study.address && (
+          <div className="mt-8">
+            <StudyLocation
+              post={{
+                latitude: study.latitude,
+                longitude: study.longitude,
+                address: study.address,
+              }}
+            />
+          </div>
+        )}
     </div>
   );
 }

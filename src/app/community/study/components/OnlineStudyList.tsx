@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
-import { StudyResponse } from '@/types/post';
+import { StudyResponse, StudyPost } from '@/types/study';
 import { StudyFilter } from './StudyFilter';
 import { StudyCard } from './StudyCard';
 
@@ -92,7 +92,9 @@ export default function OnlineStudyList() {
         {isLoading ? (
           <div>로딩 중...</div>
         ) : (
-          posts?.data.map(post => <StudyCard key={post.id} post={post} />)
+          posts?.data.map((post: StudyPost) => (
+            <StudyCard key={post.id} post={post} />
+          ))
         )}
       </div>
 
