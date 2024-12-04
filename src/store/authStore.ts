@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+
 type UserInfo = {
   id: number;
   nickname: string;
@@ -10,7 +11,7 @@ type AuthState = {
   isSignedIn: boolean;
   setIsSignedIn: (status: boolean) => void;
   userInfo: UserInfo | null;
-  setUserInfo: (info: UserInfo) => void;
+  setUserInfo: (info: UserInfo | null) => void;
 };
 
 export const useAuthStore = create<AuthState>(set => ({
