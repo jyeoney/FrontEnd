@@ -14,7 +14,7 @@ const SingInPage = () => {
   const [error, setError] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
 
-  const { setIsSignedIn } = useAuthStore();
+  const { setIsSignedIn, setUserInfo } = useAuthStore();
   const router = useRouter();
 
   const togglePasswordVisibility = () => {
@@ -44,8 +44,13 @@ const SingInPage = () => {
         },
       );
 
-      if (response.status === 200) {
+      if (response.status === 200 && response.data.userInfo) {
         setIsSignedIn(true);
+        setUserInfo(response.data.userInfo); // 실제로는 Next.js API Route에서 처리 예정
+
+        console.log('현재 사용자 정보: ', response.data.userInfo);
+        console.log('현재 로그인 상태: ', true);
+
         router.push('/community/study');
       }
     } catch (error: any) {
@@ -87,6 +92,7 @@ const SingInPage = () => {
               placeholder="이메일을 입력해 주세요."
               onChange={e => {
                 setEmail(e.target.value);
+                setError('');
               }}
               className="flex-grow px-4 py-2 rounded border bg-white focus:outline-indigo-500"
             />
@@ -102,7 +108,10 @@ const SingInPage = () => {
               id="password"
               type={passwordVisible ? 'text' : 'password'}
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={e => {
+                setPassword(e.target.value);
+                setError('');
+              }}
               placeholder="비밀번호를 입력해 주세요."
               className="w-full px-4 py-2 rounded border bg-white focus:outline-indigo-500"
             />
@@ -137,7 +146,7 @@ const SingInPage = () => {
         </button>
         <button
           name="Kakao"
-          className="mt-4 flex items-center justify-center w-full px-4 py-2 text-yellow-950 bg-yellow-300 border border-gray-300 rounded-md hover:bg-yellow-400 hover:"
+          className="mt-4 flex items-center justify-center w-full px-4 py-2 text-yellow-950 bg-yellow-300 border border-gray-300 rounded-md hover:bg-yellow-400"
         >
           <RiKakaoTalkFill className="mr-2 text-yellow-950" size={24} />
           <span className="font-medium">Kakao</span> 로그인
