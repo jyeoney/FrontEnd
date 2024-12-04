@@ -64,11 +64,9 @@ const mockHybridStudies = Array.from({ length: 15 }, (_, index) => ({
   createdAt: new Date(
     Date.now() - Math.random() * 10 * 24 * 60 * 60 * 1000,
   ).toISOString(),
-  location: {
-    latitude: 37.5665 + (Math.random() * 0.02 - 0.01),
-    longitude: 126.978 + (Math.random() * 0.02 - 0.01),
-    address: `서울시 중구 테스트동 ${index + 1}번지`,
-  },
+  latitude: 37.5665 + (Math.random() * 0.02 - 0.01),
+  longitude: 126.978 + (Math.random() * 0.02 - 0.01),
+  address: `서울시 중구 테스트동 ${index + 1}번지`,
 }));
 
 // 두 배열 합치기
