@@ -11,15 +11,30 @@ type HeaderProps = {
   initialSignedIn: boolean;
 };
 const Header = ({ initialSignedIn }: HeaderProps) => {
-  const { isSignedIn, setIsSignedIn } = useAuthStore();
+  const { isSignedIn, setIsSignedIn, setUserInfo, userInfo } = useAuthStore();
 
   const pathname = usePathname();
   const router = useRouter();
-
   // 초기 로그인 상태를 클라이언트 상태로 설정
   useEffect(() => {
     setIsSignedIn(initialSignedIn);
-  }, [initialSignedIn, setIsSignedIn]);
+
+    // if (initialSignedIn) {
+    //   const mockUserInfo = {
+    //     id: 1,
+    //     nickname: 'testuser',
+    //     email: 'test@example.com',
+    //     profileImageUrl: 'https://via.placeholder.com/150',
+    //   };
+    //   setUserInfo(mockUserInfo);
+    // } else {
+    //   setUserInfo(null);
+    // }
+  }, [initialSignedIn, setIsSignedIn, setUserInfo]);
+
+  useEffect(() => {
+    console.log(`userInfo는: ${userInfo?.id}`);
+  }, [userInfo]);
 
   const isActive = (path: string) => {
     return pathname === path ? 'btn-active' : '';

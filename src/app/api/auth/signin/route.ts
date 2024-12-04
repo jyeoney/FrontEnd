@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
+import { useAuthStore } from '@/store/authStore';
 
 export const POST = async (req: NextRequest) => {
   const { email, password } = await req.json();
 
   try {
+    // 1. 로그인 요청
     const response = await axios.post(
       `${process.env.API_BASE_URL}/auth/sign-in`, // 실제 백엔드 API 경로
       { email, password },
@@ -18,11 +20,29 @@ export const POST = async (req: NextRequest) => {
     if (response.status === 200) {
       const { accessToken, refreshToken } = response.data;
 
+      // 2. 회원 정보 요청
+      const userResponse = await axios.get(
+        `${process.env.API_BASE_URL}/users/detail`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+      const userInfo = userResponse.data;
+
+      // 3. 전역 상태에 저장
+      const { setIsSignedIn, setUserInfo } = useAuthStore();
+      setIsSignedIn(true);
+      setUserInfo(userInfo);
+
+      // 4. 쿠키 설정
+      const res = NextResponse.json({ message: '로그인 성공', userInfo });
+
       const decodedAccessToken = jwt.decode(accessToken) as { exp: number };
       if (!decodedAccessToken || !decodedAccessToken.exp) {
         throw new Error('액세스토큰 exp 클레임이 없습니다.');
       }
-
       const currentTime = Math.trunc(Date.now() / 1000);
       const accessTokenMaxAge = decodedAccessToken.exp - currentTime;
 
@@ -30,10 +50,7 @@ export const POST = async (req: NextRequest) => {
       if (!decodedRefreshToken || !decodedRefreshToken.exp) {
         throw new Error('리프레시토큰 exp 클레임이 없습니다.');
       }
-
       const refreshTokenMaxAge = decodedRefreshToken.exp - currentTime;
-
-      const res = NextResponse.json({ message: '로그인 성공' });
 
       const cookies = res.cookies;
       cookies.set('accessToken', accessToken, {
