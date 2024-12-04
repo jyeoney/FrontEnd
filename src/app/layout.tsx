@@ -5,8 +5,6 @@ import Footer from '@/components/layout/Footer';
 import { MSWProvider } from '@/mocks/compoenets/MSWProvider';
 import './globals.css';
 import { cookies } from 'next/headers';
-import { getAuthStatus } from '@/utils/auth';
-import { useAuthStore } from '@/store/authStore';
 
 export const metadata: Metadata = {
   title: 'DevOnOff',
