@@ -4,7 +4,8 @@ export interface BasePost {
   content: string;
   thumbnail?: string;
   createdAt: string;
-  authorId?: number;
+  updatedAt: string;
+  userId: number;
 }
 
 export type InfoPost = BasePost;
