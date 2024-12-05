@@ -11,7 +11,7 @@ import {
   DAY_KOREAN,
   StudyPost,
 } from '@/types/study';
-import { convertDaysToBitFlag } from '@/utils/study';
+import { Location } from '@/types/location';
 
 interface HybridFormProps {
   initialData?: StudyPost;
@@ -89,7 +89,7 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
         endTime: formData.get('meetingEndTime') as string,
         status: 'RECRUITING',
         meetingType: 'HYBRID',
-        dayType: convertDaysToBitFlag(selectedDays),
+        dayType: selectedDays,
         latitude: selectedLocation?.latitude,
         longitude: selectedLocation?.longitude,
         address: selectedLocation?.address,

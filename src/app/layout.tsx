@@ -9,6 +9,8 @@ import { cookies } from 'next/headers';
 export const metadata: Metadata = {
   title: 'DevOnOff',
   description: '개발자 온오프라인 스터디 플랫폼',
+  title: 'DevOnOff',
+  description: '개발자 온오프라인 스터디 플랫폼',
 };
 
 const RootLayout = async ({

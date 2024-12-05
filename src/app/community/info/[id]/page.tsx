@@ -2,17 +2,21 @@
 
 import { useEffect, useState } from 'react';
 import { InfoPost } from '@/types/post';
+import { useAuthStore } from '@/store/authStore';
+import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
+import axios from 'axios';
 
 export default function InfoDetailPage({ params }: { params: { id: string } }) {
   const [post, setPost] = useState<InfoPost | null>(null);
+  const { isSignedIn, userInfo } = useAuthStore();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const response = await fetch(`/api/info-posts/${params.id}`);
-        const data = await response.json();
-        setPost(data);
+        const response = await axios.get(`/api/info-posts/${params.id}`);
+        setPost(response.data);
       } catch (error) {
         console.error('게시글 조회 실패:', error);
       }
@@ -20,6 +24,23 @@ export default function InfoDetailPage({ params }: { params: { id: string } }) {
 
     fetchPost();
   }, [params.id]);
+
+  const isAuthor = isSignedIn && userInfo?.id === post?.userId;
+
+  const handleEdit = () => {
+    router.push(`/community/info/edit/${params.id}`);
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm('정말로 이 게시글을 삭제하시겠습니까?')) return;
+
+    try {
+      await axios.delete(`/api/info-posts/${params.id}`);
+      router.push('/community/info');
+    } catch (error) {
+      console.error('게시글 삭제 실패:', error);
+    }
+  };
 
   if (!post) return <div>Loading...</div>;
 
@@ -35,6 +56,17 @@ export default function InfoDetailPage({ params }: { params: { id: string } }) {
         <div className="prose max-w-none">
           <div dangerouslySetInnerHTML={{ __html: post.content }} />
         </div>
+
+        {isAuthor && (
+          <div className="flex gap-2 mt-4">
+            <button onClick={handleEdit} className="btn btn-primary">
+              수정
+            </button>
+            <button onClick={handleDelete} className="btn btn-error">
+              삭제
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
