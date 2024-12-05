@@ -7,6 +7,10 @@ export const POST = async () => {
     path: '/',
     maxAge: 0,
   });
+  response.cookies.set('refreshToken', '', {
+    path: '/',
+    maxAge: 0, // 쿠키 삭제
+  });
 
   return response;
 };

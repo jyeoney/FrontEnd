@@ -11,7 +11,8 @@ type HeaderProps = {
   initialSignedIn: boolean;
 };
 const Header = ({ initialSignedIn }: HeaderProps) => {
-  const { isSignedIn, setIsSignedIn, setUserInfo, userInfo } = useAuthStore();
+  const { isSignedIn, setIsSignedIn, setUserInfo, userInfo, resetStore } =
+    useAuthStore();
 
   const pathname = usePathname();
   const router = useRouter();
@@ -51,7 +52,7 @@ const Header = ({ initialSignedIn }: HeaderProps) => {
       );
       if (response.status === 200) {
         // 로그아웃 후 상태 변경
-        setIsSignedIn(false);
+        resetStore();
         router.push('/');
       }
     } catch (error: any) {
@@ -117,7 +118,7 @@ const Header = ({ initialSignedIn }: HeaderProps) => {
       <div className="navbar-end">
         {isSignedIn ? (
           <>
-            <Link href="/mypage/1" className="btn btn-ghost text-base-content">
+            <Link href={`/mypage/${userInfo?.id}`} className="btn btn-ghost">
               마이페이지
             </Link>
             <button

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { cookies } from 'next/headers';
-import MyPageView from '../components/myPageView';
+import MyPageView from '../components/MyPageView';
+import UserInfoView from '../components/UserInfoView';
 // const fetchStudies = async (accessToken: string) => {
 //   const response = await axios.get(
 //     `${process.env.NEXT_PUBLIC_API_URL}/studies`,
@@ -35,7 +36,12 @@ const MyPage = async () => {
 
   try {
     // const studies = await fetchStudies(accessToken);
-    return <MyPageView studies={studies} />;
+    return (
+      <>
+        <UserInfoView />
+        <MyPageView studies={studies} />
+      </>
+    );
   } catch (error) {
     console.error('내가 속한 스터디 목록 가져오기 실패');
     return (
