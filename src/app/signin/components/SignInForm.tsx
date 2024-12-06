@@ -33,20 +33,19 @@ const SingInPage = () => {
       }
 
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-in`, // Next.js API Route로 수정
+        `${process.env.API_ROUTE_URL}/auth/sign-in`,
         {
           email,
           password,
         },
         {
           headers: { 'Content-Type': 'application/json' },
-          // withCredentials: true, // 쿠키를 포함해 요청
         },
       );
 
       if (response.status === 200 && response.data.userInfo) {
         setIsSignedIn(true);
-        setUserInfo(response.data.userInfo); // 실제로는 Next.js API Route에서 처리 예정
+        setUserInfo(response.data.userInfo);
 
         console.log('현재 사용자 정보: ', response.data.userInfo);
         console.log('현재 로그인 상태: ', true);

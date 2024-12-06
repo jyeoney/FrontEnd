@@ -46,7 +46,7 @@ const Header = ({ initialSignedIn }: HeaderProps) => {
     if (isConfirmed) {
       try {
         const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-out`,
+          `${process.env.API_ROUTE_URL}/auth/sign-out`,
           {},
           {
             headers: { 'Content-Type': 'application/json' },
