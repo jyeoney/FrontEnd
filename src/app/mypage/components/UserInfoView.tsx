@@ -1,5 +1,5 @@
 'use client';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { UserInfo, useAuthStore } from '@/store/authStore';
 import axios from 'axios';
 
@@ -7,26 +7,38 @@ const UserInfoView = () => {
   const { userInfo, setUserInfo } = useAuthStore();
   const [nickname, setNickname] = useState(userInfo?.nickname || '');
   const [profileImageUrl, setProfileImageUrl] = useState(
-    userInfo?.profileImageUrl || '/public/file.svg',
+    userInfo?.profileImageUrl || '/default-profile-image.png',
   );
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+
+  useEffect(() => {
+    if (userInfo) {
+      setNickname(userInfo?.nickname || '');
+      setProfileImageUrl(
+        userInfo?.profileImageUrl || '/default-profile-image.png',
+      );
+    }
+  }, [userInfo]);
 
   const handleImageDeleteButtonClick = async () => {
     const isConfirmed = window.confirm('프로필 이미지를 삭제하시겠습니까?');
     if (isConfirmed) {
       try {
-        const response = await axios.patch(
-          `${process.env.NEXT_PUBLIC_API_URL}/users/delete-profile-image`,
+        const response = await axios.delete(
+          `${process.env.API_ROUTE_URL}/users/${userInfo?.id}/profile-image`,
           {
-            profileImageUrl: '',
-          },
-          {
-            headers: { 'Content-Type': 'multipart/form-data' },
+            headers: { 'Content-Type': 'application/json' },
           },
         );
 
-        if (response.status === 200 && response.data.userInfo) {
-          setUserInfo(response.data.userInfo);
+        if (response.status === 200 && response.data.profileImageUrl) {
+          const { profileImageUrl } = response.data;
+          setUserInfo({
+            ...userInfo,
+            profileImageUrl,
+          } as UserInfo);
+          setProfileImageUrl(profileImageUrl);
+          setSelectedImage(null);
           alert('프로필 이미지가 삭제되었습니다.');
         }
       } catch (error: any) {
@@ -65,8 +77,8 @@ const UserInfoView = () => {
           console.log('FormData:', formData);
         }
 
-        const response = await axios.patch(
-          `${process.env.NEXT_PUBLIC_API_URL}/users/update-profile-image`,
+        const response = await axios.post(
+          `${process.env.API_ROUTE_URL}/users/${userInfo?.id}/profile-image`,
 
           formData,
 
@@ -80,9 +92,9 @@ const UserInfoView = () => {
         if (response.status === 200 && response.data.profileImageUrl) {
           const { profileImageUrl } = response.data;
           setUserInfo({
-            profileImageUrl: profileImageUrl,
+            ...userInfo,
+            profileImageUrl,
           } as UserInfo);
-
           setProfileImageUrl(profileImageUrl);
           setSelectedImage(null);
           alert('프로필 이미지가 변경되었습니다.');
@@ -136,16 +148,20 @@ const UserInfoView = () => {
           return;
         }
 
-        const response = await axios.patch(
-          `${process.env.NEXT_PUBLIC_API_URL}/users/update`,
+        const response = await axios.put(
+          `${process.env.API_ROUTE_URL}/users/${userInfo?.id}`,
           { nickname },
           {
             headers: { 'Content-Type': 'application/json' },
           },
         );
 
-        if (response.status === 200 && response.data.userInfo) {
-          setUserInfo(response.data.userInfo);
+        if (response.status === 200 && response.data.nickname) {
+          const { nickname } = response.data;
+          setUserInfo({
+            ...userInfo,
+            nickname,
+          } as UserInfo);
           alert('닉네임이 변경되었습니다.');
         }
       } catch (error: any) {
