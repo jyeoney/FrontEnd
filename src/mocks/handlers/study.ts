@@ -184,102 +184,36 @@ export const studyHandlers = [
     );
   }),
   rest.post('/api/study-posts', (req, res, ctx) => {
-    // 인증 헤더 확인
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res(ctx.status(401), ctx.json({ message: '인증이 필요합니다.' }));
-    }
-
-    // Content-Type 확인
-    const contentType = req.headers.get('Content-Type');
-    if (contentType !== 'application/json') {
-      return res(
-        ctx.status(400),
-        ctx.json({ message: '잘못된 요청 형식입니다.' }),
-      );
-    }
-
     const studyPost = req.body as {
       title: string;
       studyName: string;
-      subject:
-        | 'CONCEPT_LEARNING'
-        | 'PROJECT'
-        | 'CHALLENGE'
-        | 'CERTIFICATION'
-        | 'JOB_PREPARATION'
-        | 'ETC';
-      difficulty: 'HIGH' | 'MEDIUM' | 'LOW';
-      dayType: Array<'월' | '화' | '수' | '목' | '금' | '토' | '일'>;
+      subject: StudySubject;
+      difficulty: StudyDifficulty;
+      dayType: DayType[];
       startDate: string;
       endDate: string;
       startTime: string;
       endTime: string;
-      meetingType: 'ONLINE' | 'HYBRID';
+      meetingType: StudyMeetingType;
       recruitmentPeriod: string;
       description: string;
+      maxParticipants: number;
       latitude?: number;
       longitude?: number;
-      maxParticipants: number;
       userId: number;
     };
 
-    // 필수 필드 검증
-    const requiredFields = [
-      'title',
-      'studyName',
-      'subject',
-      'difficulty',
-      'dayType',
-      'startDate',
-      'endDate',
-      'startTime',
-      'endTime',
-      'meetingType',
-      'recruitmentPeriod',
-      'description',
-      'maxParticipants',
-      'userId',
-    ] as const;
-
-    const missingFields = requiredFields.filter(field => !studyPost[field]);
-    if (missingFields.length > 0) {
-      return res(
-        ctx.status(400),
-        ctx.json({
-          message: '필수 항목이 누락되었습니다.',
-          missingFields,
-        }),
-      );
-    }
-
-    // HYBRID 타입일 경우 위치 정보 필수
-    if (
-      studyPost.meetingType === 'HYBRID' &&
-      (!studyPost.latitude || !studyPost.longitude)
-    ) {
-      return res(
-        ctx.status(400),
-        ctx.json({
-          message: '위치 정보가 필요합니다.',
-        }),
-      );
-    }
-
-    // 새 스터디 게시글 생성
-    const now = new Date().toISOString();
     const newStudy = {
       id: mockStudies.length + 1,
       ...studyPost,
       status: 'RECRUITING' as const,
+      currentParticipants: 1,
       thumbnailImgUrl: null,
-      currentParticipants: 0,
-      createdAt: now,
-      updatedAt: now,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     mockStudies.push(newStudy);
-
     return res(ctx.status(200), ctx.json(newStudy));
   }),
 ];

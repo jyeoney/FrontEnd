@@ -208,8 +208,8 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
         </label>
         <input
           type="date"
-          name="recruitmentEndDate"
-          defaultValue={initialData?.recruitmentEndDate}
+          name="recruitmentPeriod"
+          defaultValue={initialData?.recruitmentPeriod}
           required
           className="input input-bordered"
           min={dayjs().format('YYYY-MM-DD')}
@@ -224,7 +224,7 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
           <input
             type="date"
             name="studyStartDate"
-            defaultValue={initialData?.studyStartDate}
+            defaultValue={initialData?.startDate}
             required
             className="input input-bordered flex-1"
             min={dayjs().format('YYYY-MM-DD')}
@@ -233,7 +233,7 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
           <input
             type="date"
             name="studyEndDate"
-            defaultValue={initialData?.studyEndDate}
+            defaultValue={initialData?.endDate}
             required
             className="input input-bordered flex-1"
             min={dayjs().format('YYYY-MM-DD')}
@@ -251,7 +251,7 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
           required
           min={2}
           max={10}
-          defaultValue={initialData?.maxMembers || 2}
+          defaultValue={initialData?.maxParticipants || 2}
           step={1}
           className="input input-bordered"
           placeholder="2~10명 사이로 입력하세요"

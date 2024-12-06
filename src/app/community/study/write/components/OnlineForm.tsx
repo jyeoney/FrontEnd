@@ -58,20 +58,19 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
       const studyData = {
         title: formData.get('title'),
         studyName: formData.get('studyName'),
-        content: formData.get('content'),
+        description: formData.get('content'),
         subject: formData.get('subject') as StudySubject,
         difficulty: convertDifficulty(formData.get('difficulty') as string),
-        recruitmentStartDate: dayjs().format('YYYY-MM-DD'),
-        recruitmentEndDate: formData.get('recruitmentEndDate'),
-        studyStartDate: formData.get('studyStartDate'),
-        studyEndDate: formData.get('studyEndDate'),
-        maxMembers: parseInt(formData.get('maxMembers') as string),
-        startTime: formData.get('meetingStartTime') as string,
-        endTime: formData.get('meetingEndTime') as string,
-        status: 'RECRUITING',
+        startDate: formData.get('studyStartDate'),
+        endDate: formData.get('studyEndDate'),
+        startTime: formData.get('meetingStartTime'),
+        endTime: formData.get('meetingEndTime'),
         meetingType: 'ONLINE',
+        recruitmentPeriod: formData.get('recruitmentEndDate'),
+        maxParticipants: parseInt(formData.get('maxMembers') as string),
         dayType: selectedDays,
-        thumbnail: thumbnailUrl || '/default-study-thumbnail.png',
+        thumbnailImgUrl: thumbnailUrl || '/default-study-thumbnail.png',
+        userId: 1,
       };
 
       if (isEdit && initialData) {
@@ -198,7 +197,7 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
         <input
           type="date"
           name="recruitmentEndDate"
-          defaultValue={initialData?.recruitmentEndDate}
+          defaultValue={initialData?.recruitmentPeriod}
           required
           className="input input-bordered"
           min={dayjs().format('YYYY-MM-DD')}
@@ -213,7 +212,7 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
           <input
             type="date"
             name="studyStartDate"
-            defaultValue={initialData?.studyStartDate}
+            defaultValue={initialData?.startDate}
             required
             className="input input-bordered flex-1"
             min={dayjs().format('YYYY-MM-DD')}
@@ -222,7 +221,7 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
           <input
             type="date"
             name="studyEndDate"
-            defaultValue={initialData?.studyEndDate}
+            defaultValue={initialData?.endDate}
             required
             className="input input-bordered flex-1"
             min={dayjs().format('YYYY-MM-DD')}
@@ -240,7 +239,7 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
           required
           min={2}
           max={10}
-          defaultValue={initialData?.maxMembers || 2}
+          defaultValue={initialData?.maxParticipants || 2}
           step={1}
           className="input input-bordered"
           placeholder="2~10명 사이로 입력하세요"

@@ -50,7 +50,7 @@ export default function HybridStudyList() {
         page: page.toString(),
         size: '12',
         searchTitle,
-        meeting_type: 'HYBRID',
+        meetingType: 'HYBRID',
       });
 
       if (userLocation) {
@@ -65,7 +65,10 @@ export default function HybridStudyList() {
       );
       selectedDays.forEach(day => params.append('days[]', day));
 
-      const response = await axios.get('/api/study-posts/search', { params });
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/study-posts/search`,
+        { params },
+      );
       setPosts(response.data);
     } catch (error) {
       console.error('스터디 목록 조회 실패:', error);
@@ -133,10 +136,12 @@ export default function HybridStudyList() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {isLoading ? (
           <div>로딩 중...</div>
-        ) : (
-          posts?.data.map((post: StudyPost) => (
+        ) : posts?.data ? (
+          posts.data.map((post: StudyPost) => (
             <StudyCard key={post.id} post={post} />
           ))
+        ) : (
+          <div>데이터가 없습니다.</div>
         )}
       </div>
 

@@ -14,24 +14,24 @@ export type StudyStatus = 'RECRUITING' | 'IN_PROGRESS' | 'CANCELED';
 export type DayType = '월' | '화' | '수' | '목' | '금' | '토' | '일';
 
 export interface StudyPost extends BasePost {
+  studyName: string;
   subject: StudySubject;
   difficulty: StudyDifficulty;
-  recruitmentStartDate: string;
-  recruitmentEndDate: string;
-  studyStartDate: string;
-  studyEndDate: string;
-  currentMembers: number;
-  maxMembers: number;
-  meetingTime: string;
-  status: StudyStatus;
-  meeting_type: StudyMeetingType;
   dayType: DayType[];
-  latitude: number;
-  longitude: number;
-  address: string;
-  studyName: string;
+  startDate: string;
+  endDate: string;
   startTime: string;
   endTime: string;
+  meetingType: StudyMeetingType;
+  recruitmentPeriod: string;
+  description: string;
+  maxParticipants: number;
+  currentParticipants: number;
+  status: StudyStatus;
+  latitude?: number;
+  longitude?: number;
+  thumbnailImgUrl?: string;
+  userId: number;
 }
 
 export interface StudyResponse {

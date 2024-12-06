@@ -5,23 +5,23 @@ import Link from 'next/link';
 import OnlineStudyList from './components/OnlineStudyList';
 import HybridStudyList from './components/HybridStudyList';
 import { MEETING_TYPE } from '@/types/study';
-import { useAuthStore } from '@/store/authStore';
+// import { useAuthStore } from '@/store/authStore';
 
 type StudyType = 'ONLINE' | 'HYBRID';
 
 export default function StudyListPage() {
-  const { isSignedIn } = useAuthStore();
+  // const { isSignedIn } = useAuthStore();
   const [studyType, setStudyType] = useState<StudyType>('ONLINE');
 
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">스터디 모집</h1>
-        {isSignedIn && (
-          <Link href="/community/study/write" className="btn btn-primary">
-            스터디 모집하기
-          </Link>
-        )}
+        {/* {isSignedIn && ( */}
+        <Link href="/community/study/write" className="btn btn-primary">
+          스터디 모집하기
+        </Link>
+        {/* )} */}
       </div>
 
       <div className="tabs tabs-boxed mb-6">

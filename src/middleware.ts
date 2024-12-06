@@ -35,5 +35,11 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/api/:path*'],
+  matcher: [
+    // '/api/:path*',
+    // '/api/study-posts',
+    // '/api/study-posts/:path*',
+    '/api/info-posts/:path*',
+    '/api/qna-posts/:path*',
+  ],
 };

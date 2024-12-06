@@ -24,18 +24,21 @@ export default function OnlineStudyList() {
       const params = new URLSearchParams({
         page: page.toString(),
         size: '12',
-        searchTitle,
-        meeting_type: 'ONLINE',
+        title: searchTitle,
+        meetingType: 'ONLINE',
       });
 
-      selectedSubjects.forEach(subject => params.append('subjects[]', subject));
-      selectedStatus.forEach(status => params.append('status[]', status));
+      selectedSubjects.forEach(subject => params.append('subjects', subject));
+      selectedStatus.forEach(status => params.append('status', status));
       selectedDifficulty.forEach(difficulty =>
-        params.append('difficulty[]', difficulty),
+        params.append('difficulty', difficulty),
       );
-      selectedDays.forEach(day => params.append('days[]', day));
+      selectedDays.forEach(day => params.append('days', day));
 
-      const response = await axios.get('/api/study-posts/search', { params });
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/study-posts/search`,
+        { params },
+      );
       setPosts(response.data);
     } catch (error) {
       console.error('스터디 목록 조회 실패:', error);
@@ -91,10 +94,12 @@ export default function OnlineStudyList() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {isLoading ? (
           <div>로딩 중...</div>
-        ) : (
-          posts?.data.map((post: StudyPost) => (
+        ) : posts?.data ? (
+          posts.data.map((post: StudyPost) => (
             <StudyCard key={post.id} post={post} />
           ))
+        ) : (
+          <div>데이터가 없습니다.</div>
         )}
       </div>
 
