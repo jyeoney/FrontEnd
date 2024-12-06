@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 
-const mockUserData = {
+export const mockUserInfo = {
   id: 1,
   email: 'test@example.com',
-  nickname: 'testuser',
+  nickname: 'testUser',
   profileImageUrl: 'https://via.placeholder.com/150',
 };
 
 export const POST = async (req: NextRequest) => {
   const { email, password } = await req.json();
 
-  if (email === mockUserData.email && password === 'test1234!!') {
+  if (email === mockUserInfo.email && password === 'test1234!!') {
     // mock 엑세스 토큰과 리프레시 토큰 생성
     const accessToken = jwt.sign(
       { email },
@@ -34,10 +34,10 @@ export const POST = async (req: NextRequest) => {
     const res = NextResponse.json({
       message: '로그인 성공',
       userInfo: {
-        id: mockUserData.id,
-        nickname: mockUserData.nickname,
-        email: mockUserData.email,
-        profileImageUrl: mockUserData.profileImageUrl,
+        id: mockUserInfo.id,
+        nickname: mockUserInfo.nickname,
+        email: mockUserInfo.email,
+        profileImageUrl: mockUserInfo.profileImageUrl,
       },
     });
 

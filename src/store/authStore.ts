@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
-type UserInfo = {
+export type UserInfo = {
   id: number;
   nickname: string;
   email: string;

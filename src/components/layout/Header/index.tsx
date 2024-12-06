@@ -34,7 +34,7 @@ const Header = ({ initialSignedIn }: HeaderProps) => {
   }, [initialSignedIn, setIsSignedIn, setUserInfo]);
 
   useEffect(() => {
-    console.log(`userInfo는: ${userInfo?.id}`);
+    console.log(`userInfo는: ${userInfo?.nickname}`);
   }, [userInfo]);
 
   const isActive = (path: string) => {
@@ -42,35 +42,41 @@ const Header = ({ initialSignedIn }: HeaderProps) => {
   };
 
   const handleSignOutClick = async () => {
-    try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/mock/auth/signout`,
-        {},
-        {
-          headers: { 'Content-Type': 'application/json' },
-        },
-      );
-      if (response.status === 200) {
-        // 로그아웃 후 상태 변경
-        resetStore();
-        router.push('/');
-      }
-    } catch (error: any) {
-      const { status, data } = error.response;
-      const errorCode = data?.errorCode;
-      const message =
-        data?.message || '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-      if (error.response) {
-        if (status === 400) {
-          alert('로그아웃에 실패했습니다. 다시 시도해 주세요.');
-        } else if (status === 403) {
-          alert('사용자를 찾을 수 없습니다.');
-        } else {
-          alert('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    const isConfirmed = window.confirm('로그아웃 하시겠습니까?');
+    if (isConfirmed) {
+      try {
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-out`,
+          {},
+          {
+            headers: { 'Content-Type': 'application/json' },
+          },
+        );
+        if (response.status === 200) {
+          // 로그아웃 후 상태 변경
+          resetStore();
+          router.push('/');
+          alert('로그아웃이 완료되었습니다.');
         }
-      } else {
-        alert('서버에 연결할 수 없습니다. 네트워크 상태를 확인해 주세요.');
+      } catch (error: any) {
+        const { status, data } = error.response;
+        const errorCode = data?.errorCode;
+        const message =
+          data?.message || '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+        if (error.response) {
+          if (status === 400) {
+            alert('로그아웃에 실패했습니다. 다시 시도해 주세요.');
+          } else if (status === 403) {
+            alert('사용자를 찾을 수 없습니다.');
+          } else {
+            alert('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+          }
+        } else {
+          alert('서버에 연결할 수 없습니다. 네트워크 상태를 확인해 주세요.');
+        }
       }
+    } else {
+      alert('로그아웃이 취소되었습니다.'); // 사용자가 취소할 경우 알림
     }
   };
 

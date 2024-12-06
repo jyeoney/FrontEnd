@@ -34,7 +34,11 @@ export const POST = async (req: NextRequest) => {
       }
 
       const currentTime = Math.trunc(Date.now() / 1000);
-      const accessTokenMaxAge = decodedAccessToken.exp - currentTime;
+      const bufferTime = 10;
+      const accessTokenMaxAge = Math.max(
+        decodedAccessToken.exp - currentTime - bufferTime,
+        0,
+      );
 
       const res = NextResponse.json({ message: '토큰 갱신 성공' });
 

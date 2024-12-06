@@ -33,7 +33,7 @@ const SingInPage = () => {
       }
 
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/mock/auth/signin`, // Next.js API Route로 수정
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-in`, // Next.js API Route로 수정
         {
           email,
           password,
@@ -67,7 +67,7 @@ const SingInPage = () => {
         } else if (status === 403) {
           setError('탈퇴한 계정입니다.');
         } else if (status === 404) {
-          setError('해당 이메일로 가입된 계정이 없습니다.');
+          setError('사용자를 찾을 수 없습니다.');
         } else {
           setError('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
         }

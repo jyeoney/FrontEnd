@@ -44,13 +44,20 @@ export const POST = async (req: NextRequest) => {
         throw new Error('액세스토큰 exp 클레임이 없습니다.');
       }
       const currentTime = Math.trunc(Date.now() / 1000);
-      const accessTokenMaxAge = decodedAccessToken.exp - currentTime;
+      const bufferTime = 10;
+      const accessTokenMaxAge = Math.max(
+        decodedAccessToken.exp - currentTime - bufferTime,
+        0,
+      );
 
       const decodedRefreshToken = jwt.decode(refreshToken) as { exp: number };
       if (!decodedRefreshToken || !decodedRefreshToken.exp) {
         throw new Error('리프레시토큰 exp 클레임이 없습니다.');
       }
-      const refreshTokenMaxAge = decodedRefreshToken.exp - currentTime;
+      const refreshTokenMaxAge = Math.max(
+        decodedRefreshToken.exp - currentTime - bufferTime,
+        0,
+      );
 
       const cookies = res.cookies;
       cookies.set('accessToken', accessToken, {
