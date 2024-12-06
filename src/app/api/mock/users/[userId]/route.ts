@@ -4,10 +4,10 @@ let mockUserInfo = {
   id: 1,
   email: 'test@example.com',
   nickname: 'testUser',
-  profileImageUrl: 'https://via.placeholder.com/150',
+  profileImageUrl: '/default-profile-image.png',
 };
 
-export const PATCH = async (req: NextRequest) => {
+export const PUT = async (req: NextRequest) => {
   const { nickname } = await req.json();
 
   if (nickname && typeof nickname === 'string' && nickname.trim()) {
@@ -18,6 +18,6 @@ export const PATCH = async (req: NextRequest) => {
   }
   return NextResponse.json({
     message: '닉네임이 수정되었습니다.',
-    userInfo: mockUserInfo,
+    nickname: mockUserInfo.nickname,
   });
 };

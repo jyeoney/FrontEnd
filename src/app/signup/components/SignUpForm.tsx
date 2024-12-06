@@ -74,6 +74,7 @@ const SignUpForm = () => {
           headers: { 'Content-Type': 'application/json' },
         },
       );
+
       if (emailCheckResponse.status === 200) {
         setEmailMessage('사용 가능한 이메일입니다.');
         setEmailMessageType('success');
@@ -81,11 +82,15 @@ const SignUpForm = () => {
       }
       // 2. 인증번호 메일 발송
       const authCodeResponse = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/email-auth`,
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/email-send`,
         {
           email,
         },
+        {
+          headers: { 'Content-Type': 'application/json' },
+        },
       );
+
       if (authCodeResponse.status === 200) {
         setEmailSent(true);
         setEmailMessage('인증번호가 발송되었습니다.');
@@ -124,7 +129,7 @@ const SignUpForm = () => {
   const handleAuthCodeVerifyClick = async () => {
     try {
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/email-auth/code`,
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/email-certification`,
         {
           email,
           code: authCode,
@@ -269,11 +274,11 @@ const SignUpForm = () => {
 
     try {
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-up`,
+        `${process.env.NEXT_PUBLIC_API_URL}auth/sign-up`,
         { email, password, nickname },
         { headers: { 'Content-Type': 'application/json' } },
       );
-      if (response.status === 201) {
+      if (response.status === 200) {
         alert('회원가입이 성공적으로 완료되었습니다!');
         router.push('/signin');
       } else {

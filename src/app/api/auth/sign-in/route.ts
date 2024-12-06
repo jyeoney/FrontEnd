@@ -9,7 +9,7 @@ export const POST = async (req: NextRequest) => {
   try {
     // 1. 로그인 요청
     const response = await axios.post(
-      `${process.env.API_BASE_URL}/auth/sign-in`, // 실제 백엔드 API 경로
+      `${process.env.API_URL}/auth/sign-in`, // 실제 백엔드 API 경로
       { email, password },
       {
         headers: { 'Content-Type': 'application/json' },
@@ -20,9 +20,17 @@ export const POST = async (req: NextRequest) => {
     if (response.status === 200) {
       const { accessToken, refreshToken } = response.data;
 
-      // 2. 회원 정보 요청
+      // 2. JWT payload에서 userId(sub) 추출
+      const decodedAccessToken = jwt.decode(accessToken) as jwt.JwtPayload;
+      if (!decodedAccessToken || !decodedAccessToken.sub) {
+        throw new Error('액세스토큰에서 userId(sub)를 추출할 수 없습니다.');
+      }
+
+      const userId = decodedAccessToken.sub;
+
+      // 3. 회원 정보 조회 요청
       const userResponse = await axios.get(
-        `${process.env.API_BASE_URL}/users/detail`,
+        `${process.env.API_URL}/users/${userId}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -31,26 +39,27 @@ export const POST = async (req: NextRequest) => {
       );
       const userInfo = userResponse.data;
 
-      // 3. 전역 상태에 저장
+      // 4. 전역 상태에 저장
       const { setIsSignedIn, setUserInfo } = useAuthStore();
       setIsSignedIn(true);
       setUserInfo(userInfo);
 
-      // 4. 쿠키 설정
+      // 5. 쿠키 설정
       const res = NextResponse.json({ message: '로그인 성공', userInfo });
 
-      const decodedAccessToken = jwt.decode(accessToken) as { exp: number };
-      if (!decodedAccessToken || !decodedAccessToken.exp) {
-        throw new Error('액세스토큰 exp 클레임이 없습니다.');
-      }
       const currentTime = Math.trunc(Date.now() / 1000);
       const bufferTime = 10;
+
+      if (!decodedAccessToken.exp) {
+        throw new Error('액세스토큰 exp 클레임이 없습니다.');
+      }
+
       const accessTokenMaxAge = Math.max(
         decodedAccessToken.exp - currentTime - bufferTime,
         0,
       );
 
-      const decodedRefreshToken = jwt.decode(refreshToken) as { exp: number };
+      const decodedRefreshToken = jwt.decode(refreshToken) as jwt.JwtPayload;
       if (!decodedRefreshToken || !decodedRefreshToken.exp) {
         throw new Error('리프레시토큰 exp 클레임이 없습니다.');
       }
@@ -80,11 +89,14 @@ export const POST = async (req: NextRequest) => {
 
     return NextResponse.json(response.data, { status: response.status });
   } catch (error: any) {
-    if (axios.isAxiosError(error) && error.response) {
-      return NextResponse.json(error.response.data, {
-        status: error.response.status,
-      });
+    if (error.response) {
+      const { status, data } = error.response;
+      return NextResponse.json(data, { status });
     }
-    return NextResponse.json({ message: '서버 오류' }, { status: 500 });
+
+    return NextResponse.json(
+      { message: '네트워크 오류가 발생했습니다.' },
+      { status: 500 },
+    );
   }
 };

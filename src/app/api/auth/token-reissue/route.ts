@@ -18,7 +18,7 @@ export const POST = async (req: NextRequest) => {
 
   try {
     const response = await axios.post(
-      `${process.env.API_BASE_URL}/auth/token-reissue`, // 백엔드 API 실제 경로
+      `${process.env.API_URL}/auth/token-reissue`, // 백엔드 API 실제 경로
       { email, refreshToken },
       {
         headers: { 'Content-Type': 'application/json' },

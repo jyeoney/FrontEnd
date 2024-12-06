@@ -1,8 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
-export async function PATCH(request: Request) {
+export const PUT = async (
+  request: NextRequest,
+  { params }: { params: { userId: string } },
+) => {
   const { nickname } = await request.json();
+  const { userId } = params;
 
   if (!nickname || nickname.trim().length === 0) {
     return NextResponse.json(
@@ -12,8 +16,8 @@ export async function PATCH(request: Request) {
   }
 
   try {
-    const response = await axios.patch(
-      `${process.env.API_BASE_URL}/users/update`, // 백엔드 서버 URL
+    const response = await axios.put(
+      `${process.env.API_URL}/users/${userId}`, // 백엔드 서버 URL
       { nickname },
       {
         headers: {
@@ -22,7 +26,11 @@ export async function PATCH(request: Request) {
       },
     );
 
-    return NextResponse.json(response.data, { status: response.status });
+    if (response.status === 200) {
+      const { nickname } = response.data;
+    }
+
+    return NextResponse.json({ nickname }, { status: response.status });
   } catch (error: any) {
     if (error.response) {
       const { status, data } = error.response;
@@ -35,4 +43,4 @@ export async function PATCH(request: Request) {
       { status: 500 },
     );
   }
-}
+};
