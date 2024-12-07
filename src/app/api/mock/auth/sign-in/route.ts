@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
+import { setCookie } from '@/utils/cookies';
 
 export const mockUserInfo = {
   id: 1,
   email: 'test@example.com',
   nickname: 'testUser',
-  profileImageUrl: 'https://via.placeholder.com/150',
+  profileImageUrl: null,
 };
 
 export const POST = async (req: NextRequest) => {
@@ -41,22 +42,8 @@ export const POST = async (req: NextRequest) => {
       },
     });
 
-    const cookies = res.cookies;
-    cookies.set('accessToken', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
-      sameSite: 'strict',
-      maxAge: accessTokenMaxAge,
-    });
-
-    cookies.set('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
-      sameSite: 'strict',
-      maxAge: refreshTokenMaxAge,
-    });
+    setCookie(res, 'accessToken', accessToken, accessTokenMaxAge);
+    setCookie(res, 'refreshToken', refreshToken, refreshTokenMaxAge);
 
     return res;
   }

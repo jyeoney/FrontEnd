@@ -74,25 +74,34 @@ const SignUpForm = () => {
           headers: { 'Content-Type': 'application/json' },
         },
       );
+
       if (emailCheckResponse.status === 200) {
         setEmailMessage('사용 가능한 이메일입니다.');
         setEmailMessageType('success');
+        // 2. 인증번호 메일 발송
+        const authCodeResponse = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/auth/email-send`,
+          {
+            email,
+          },
+          {
+            headers: { 'Content-Type': 'application/json' },
+          },
+        );
+
+        if (authCodeResponse.status === 200) {
+          setEmailSent(true);
+          setEmailMessage('인증번호가 발송되었습니다.');
+          setEmailMessageType('success');
+        } else {
+          setEmailMessage('인증번호 전송에 실패했습니다.');
+          setEmailMessageType('error');
+        }
       } else {
-      }
-      // 2. 인증번호 메일 발송
-      const authCodeResponse = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/email-auth`,
-        {
-          email,
-        },
-      );
-      if (authCodeResponse.status === 200) {
-        setEmailSent(true);
-        setEmailMessage('인증번호가 발송되었습니다.');
-        setEmailMessageType('success');
-      } else {
-        setEmailMessage('인증번호 전송에 실패했습니다.');
+        // 이메일 중복이 있는 경우 처리
+        setEmailMessage('이미 사용 중인 이메일입니다.');
         setEmailMessageType('error');
+        return;
       }
     } catch (error: any) {
       if (error.response) {
@@ -124,10 +133,13 @@ const SignUpForm = () => {
   const handleAuthCodeVerifyClick = async () => {
     try {
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/email-auth/code`,
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/email-certification`,
         {
           email,
-          code: certificationNumber,
+          certificationNumber: authCode,
+        },
+        {
+          headers: { 'Content-Type': 'application/json' },
         },
       );
       if (response.status === 200) {
@@ -180,6 +192,7 @@ const SignUpForm = () => {
       if (response.status === 200) {
         setNicknameMessage('사용 가능한 닉네임입니다.');
         setNicknameMessageType('success');
+        setNicknameAvailable(true);
       }
     } catch (error: any) {
       if (error.response) {
@@ -190,6 +203,7 @@ const SignUpForm = () => {
           if (errorCode === 'NICKNAME_ALREADY_REGISTERED') {
             setNicknameMessage('이미 사용 중인 닉네임입니다.');
             setNicknameMessageType('error');
+            setNicknameAvailable(false);
           } else {
             setNicknameMessage('잘못된 요청입니다. 다시 시도해주세요.');
             setNicknameMessageType('error');
@@ -270,10 +284,10 @@ const SignUpForm = () => {
     try {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-up`,
-        { email, password, nickname },
+        { nickname, email, password },
         { headers: { 'Content-Type': 'application/json' } },
       );
-      if (response.status === 201) {
+      if (response.status === 200) {
         alert('회원가입이 성공적으로 완료되었습니다!');
         router.push('/signin');
       } else {
@@ -290,7 +304,10 @@ const SignUpForm = () => {
       <form onSubmit={handleSignUpSubmit} className="w-full">
         {/* 이메일 입력 */}
         <div className="mb-4">
-          <label htmlFor="email" className="block mb-2 font-semibold">
+          <label
+            htmlFor="email"
+            className="block mb-2 font-semibold text-sm sm:text-base"
+          >
             이메일
           </label>
           <div className="flex items-center">
@@ -306,31 +323,35 @@ const SignUpForm = () => {
                 setEmailMessageType('');
               }}
               required
-              className="flex-grow px-4 py-2 rounded border bg-white focus:outline-indigo-500"
+              className="w-full flex-grow input input-bordered px-4 py-2 focus:outline-indigo-500 text-sm sm:text-base"
             />
             <button
               type="button"
               onClick={handleAuthCodeSendClick}
-              className={`ml-2 px-4 py-2 rounded ${
+              className={`ml-2 px-4 py-2 ${
                 isValidEmail(email)
-                  ? 'bg-indigo-500 text-white'
-                  : 'bg-gray-400 text-white'
+                  ? 'btn btn-secondary text-white text-sm sm:text-base'
+                  : 'btn bg-gray-400 text-white hover:bg-gray-500 text-sm sm:text-base'
               }`}
             >
               {emailSent ? '재발송' : '인증번호 전송'}
             </button>
           </div>
-          {emailMessage && (
-            <p
-              className={`mt-2 ${
-                emailMessageType === 'success'
-                  ? 'text-green-500'
-                  : 'text-red-500'
-              }`}
-            >
-              {emailMessage}
-            </p>
-          )}
+          <div className="mt-2 min-h-[20px]">
+            {' '}
+            {/* 고정 높이로 메시지 공간 확보 */}
+            {emailMessage && (
+              <p
+                className={`text-sm sm:text-base ${
+                  emailMessageType === 'success'
+                    ? 'text-green-500'
+                    : 'text-red-500'
+                }`}
+              >
+                {emailMessage}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* 인증번호 입력 */}
@@ -344,7 +365,7 @@ const SignUpForm = () => {
                 id="authCode"
                 type="text"
                 value={authCode}
-                onChange={e => setAuthCode(e.target.value)}
+                onChange={e => setAuthCode(e.target.value.trim())}
                 required
                 className="flex-grow px-4 py-2 rounded border bg-white focus:outline-indigo-500"
               />
@@ -373,7 +394,10 @@ const SignUpForm = () => {
 
         {/* 닉네임 입력 */}
         <div className="mb-4">
-          <label htmlFor="nickname" className="block mb-2 font-semibold">
+          <label
+            htmlFor="nickname"
+            className="block mb-2 font-semibold text-sm sm:text-base"
+          >
             닉네임
           </label>
           <div className="flex items-center">
@@ -389,33 +413,37 @@ const SignUpForm = () => {
               }}
               placeholder="닉네임을 입력해 주세요."
               required
-              className="flex-grow px-4 py-2 rounded border bg-white focus:outline-indigo-500"
+              className="w-full flex-grow input input-bordered px-4 py-2 focus:outline-indigo-500 text-sm sm:text-base"
             />
             <button
               type="button"
               onClick={handleNicknameAvailabilityCheckClick}
               disabled={nicknameAvailable}
-              className="ml-2 px-4 py-2 rounded bg-indigo-500 text-white"
+              className="ml-2 px-4 py-2 btn btn-secondary hover:text-white text-sm sm:text-base"
             >
               중복 확인
             </button>
           </div>
-          {nicknameMessage && (
-            <p
-              className={`mt-2 ${
-                nicknameMessageType === 'success'
-                  ? 'text-green-500'
-                  : 'text-red-500'
-              }`}
-            >
-              {nicknameMessage}
-            </p>
-          )}
+          <div className="mt-2 min-h-[20px]">
+            {nicknameMessage && (
+              <p
+                className={`text-sm sm:text-base ${
+                  nicknameMessageType === 'success'
+                    ? 'text-green-500'
+                    : 'text-red-500'
+                }`}
+              >
+                {nicknameMessage}
+              </p>
+            )}
+          </div>
         </div>
-
         {/* 비밀번호 입력 */}
         <div className="mb-4">
-          <label htmlFor="password" className="block mb-2 font-semibold">
+          <label
+            htmlFor="password"
+            className="block mb-2 font-semibold text-sm sm:text-base"
+          >
             비밀번호
           </label>
           <div className="relative">
@@ -429,12 +457,12 @@ const SignUpForm = () => {
               }}
               placeholder="비밀번호를 입력해 주세요."
               required
-              className="w-full px-4 py-2 rounded border bg-white focus:outline-indigo-500"
+              className="w-full input input-bordered px-4 py-2 focus:outline-indigo-500 text-sm sm:text-base"
             />
             <button
               type="button"
               onClick={togglePasswordVisibility}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 mr-2"
             >
               {passwordVisible ? (
                 <FaRegEye size={20} />
@@ -443,12 +471,17 @@ const SignUpForm = () => {
               )}
             </button>
           </div>
-          <p className="text-red-500 mt-2">{passwordError}</p>
+          <p className="text-red-500 mt-2 text-sm sm:text-base">
+            {passwordError}
+          </p>
         </div>
 
         {/* 비밀번호 확인 */}
         <div className="mb-6">
-          <label htmlFor="passwordCheck" className="block mb-2 font-semibold">
+          <label
+            htmlFor="passwordCheck"
+            className="block mb-2 font-semibold text-sm sm:text-base"
+          >
             비밀번호 확인
           </label>
           <div className="relative">
@@ -462,12 +495,12 @@ const SignUpForm = () => {
               }}
               placeholder="비밀번호를 한 번 더 입력해 주세요."
               required
-              className="w-full px-4 py-2 rounded border bg-white focus:outline-indigo-500"
+              className="w-full input input-bordered px-4 py-2 focus:outline-indigo-500 text-sm sm:text-base"
             />
             <button
               type="button"
               onClick={togglePasswordCheckVisibility}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-sm sm:text-base"
             >
               {passwordCheckVisible ? (
                 <FaRegEye size={20} />
@@ -478,7 +511,7 @@ const SignUpForm = () => {
           </div>
           {passwordCheckMessage && (
             <p
-              className={`mt-2 ${
+              className={`mt-2 text-sm sm:text-base ${
                 passwordCheckMessageType === 'success'
                   ? 'text-green-500'
                   : 'text-red-500'
@@ -492,7 +525,7 @@ const SignUpForm = () => {
         {/* 회원가입 버튼 */}
         <button
           type="submit"
-          className="w-full bg-indigo-500 text-white px-4 py-2 rounded"
+          className="w-full btn btn-secondary hover:text-white text-sm sm:text-base"
         >
           회원가입
         </button>

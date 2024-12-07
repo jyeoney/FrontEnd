@@ -7,7 +7,7 @@ let mockUserInfo = {
   id: 1,
   email: 'test@example.com',
   nickname: 'testUser',
-  profileImageUrl: 'https://via.placeholder.com/150',
+  profileImageUrl: null,
 };
 
 // 파일을 서버의 임시 디렉토리에 저장하고 URL 반환
@@ -29,7 +29,7 @@ const saveMockFile = async (file: File) => {
   return `/uploads/${fileName}`;
 };
 
-export const PATCH = async (req: NextRequest) => {
+export const POST = async (req: NextRequest) => {
   const formData = await req.formData();
   const profileImage = formData.get('profileImage');
 
@@ -52,4 +52,14 @@ export const PATCH = async (req: NextRequest) => {
       { status: 500 },
     );
   }
+};
+
+export const DELETE = async (req: NextRequest) => {
+  mockUserInfo = {
+    ...mockUserInfo,
+    profileImageUrl: null,
+  };
+  return NextResponse.json({
+    message: '프로필 이미지가 삭제되었습니다.',
+  });
 };

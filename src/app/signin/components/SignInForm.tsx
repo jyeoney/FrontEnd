@@ -33,20 +33,19 @@ const SingInPage = () => {
       }
 
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-in`, // Next.js API Route로 수정
+        `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/auth/sign-in`,
         {
           email,
           password,
         },
         {
           headers: { 'Content-Type': 'application/json' },
-          // withCredentials: true, // 쿠키를 포함해 요청
         },
       );
 
       if (response.status === 200 && response.data.userInfo) {
         setIsSignedIn(true);
-        setUserInfo(response.data.userInfo); // 실제로는 Next.js API Route에서 처리 예정
+        setUserInfo(response.data.userInfo);
 
         console.log('현재 사용자 정보: ', response.data.userInfo);
         console.log('현재 로그인 상태: ', true);
@@ -77,11 +76,23 @@ const SingInPage = () => {
     }
   };
 
+  const handleKakaoButtonClick = async () => {
+    try {
+      // 카카오 로그인 페이지로 리디렉션
+      window.location.href = '/api/auth/sign-in/kakao';
+    } catch (error) {
+      console.error('카카오 로그인 오류:', error);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center p-6 max-w-lg mx-auto">
       <form onSubmit={handleSignInSubmit} className="w-full">
         <div className="mb-4">
-          <label htmlFor="email" className="block mb-2 font-semibold">
+          <label
+            htmlFor="email"
+            className="block mb-2 font-semibold text-sm sm:text-base"
+          >
             이메일
           </label>
           <div className="flex items-center">
@@ -94,13 +105,16 @@ const SingInPage = () => {
                 setEmail(e.target.value);
                 setError('');
               }}
-              className="flex-grow px-4 py-2 rounded border bg-white focus:outline-indigo-500"
+              className="w-full flex-grow input input-bordered px-4 py-2 focus:outline-indigo-500 text-sm sm:text-base"
             />
           </div>
         </div>
 
         <div className="mb-4">
-          <label htmlFor="password" className="block mb-2 font-semibold">
+          <label
+            htmlFor="password"
+            className="block mb-2 font-semibold text-sm sm:text-base"
+          >
             비밀번호
           </label>
           <div className="relative">
@@ -113,12 +127,12 @@ const SingInPage = () => {
                 setError('');
               }}
               placeholder="비밀번호를 입력해 주세요."
-              className="w-full px-4 py-2 rounded border bg-white focus:outline-indigo-500"
+              className="w-full input input-bordered px-4 py-2 focus:outline-indigo-500 text-sm sm:text-base"
             />
             <button
               type="button"
               onClick={togglePasswordVisibility}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 mr-2"
             >
               {passwordVisible ? (
                 <FaRegEye size={20} />
@@ -128,25 +142,28 @@ const SingInPage = () => {
             </button>
           </div>
         </div>
-        {error && <p className="text-red-500 mt-2">{error}</p>}
+        {error && (
+          <p className="text-red-500 mt-2 text-sm sm:text-base">{error}</p>
+        )}
         <button
           type="submit"
-          className="w-full bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600"
+          className="w-full btn btn-secondary hover:text-white text-sm sm:text-base"
         >
           로그인
         </button>
       </form>
-      <div className="mt-4 w-full">
+      <div className="mt-4 w-full space-y-4">
         <button
-          name="Google"
-          className="flex items-center justify-center w-full px-4 py-2 text-white bg-green-500 border border-gray-300 rounded-md hover:bg-green-600"
+          name="Naver"
+          className="flex items-center justify-center w-full btn bg-green-500 hover:bg-green-600 hover:text-white text-sm sm:text-base"
+          onClick={handleKakaoButtonClick}
         >
           <SiNaver className="mr-2 text-white" size={16} />
-          <span className="font-midium">Naver</span> 로그인
+          <span className="font-medium">Naver</span> 로그인
         </button>
         <button
           name="Kakao"
-          className="mt-4 flex items-center justify-center w-full px-4 py-2 text-yellow-950 bg-yellow-300 border border-gray-300 rounded-md hover:bg-yellow-400"
+          className="flex items-center justify-center w-full btn text-yellow-950 bg-yellow-300 hover:bg-yellow-500 hover:text-white text-sm sm:text-base"
         >
           <RiKakaoTalkFill className="mr-2 text-yellow-950" size={24} />
           <span className="font-medium">Kakao</span> 로그인

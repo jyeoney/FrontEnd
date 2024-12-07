@@ -43,9 +43,9 @@ export const signUpHandlers = [
     }
 
     // 인증번호 임의로 생성
-    const authCode = '123456';
+    const certificationNumber = '123456';
 
-    console.log(`이메일로 인증 코드 발송: ${authCode} (${email})`);
+    console.log(`이메일로 인증 코드 발송: ${certificationNumber} (${email})`);
 
     return res(
       ctx.status(200),
@@ -55,8 +55,8 @@ export const signUpHandlers = [
 
   // 인증번호 확인
   rest.post('/api/auth/email-auth/code', async (req, res, ctx) => {
-    const { email, code } = await req.json();
-    if (!code) {
+    const { email, certificationNumber } = await req.json();
+    if (!certificationNumber) {
       return res(
         ctx.status(400),
         ctx.json({
@@ -65,7 +65,7 @@ export const signUpHandlers = [
         }),
       );
     }
-    if (code !== '123456') {
+    if (certificationNumber !== '123456') {
       return res(
         ctx.status(400),
         ctx.json({

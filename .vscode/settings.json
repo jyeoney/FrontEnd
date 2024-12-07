@@ -4,5 +4,14 @@
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "always"
-  }
+  },
+  "cSpell.words": [
+    "kakao",
+    "mypage",
+    "Naver",
+    "signin",
+    "signup",
+    "studyroom",
+    "zustand"
+  ]
 }
