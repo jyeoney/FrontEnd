@@ -1,5 +1,5 @@
 'use client';
-import { FormEvent, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { UserInfo, useAuthStore } from '@/store/authStore';
 import axios from 'axios';
 
@@ -25,19 +25,18 @@ const UserInfoView = () => {
     if (isConfirmed) {
       try {
         const response = await axios.delete(
-          `${process.env.API_ROUTE_URL}/users/${userInfo?.id}/profile-image`,
+          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/users/${userInfo?.id}/profile-image`,
           {
             headers: { 'Content-Type': 'application/json' },
           },
         );
 
-        if (response.status === 200 && response.data.profileImageUrl) {
-          const { profileImageUrl } = response.data;
+        if (response.status === 200) {
           setUserInfo({
             ...userInfo,
-            profileImageUrl,
+            profileImageUrl: null,
           } as UserInfo);
-          setProfileImageUrl(profileImageUrl);
+          setProfileImageUrl('/default-profile-image.png');
           setSelectedImage(null);
           alert('프로필 이미지가 삭제되었습니다.');
         }
@@ -78,7 +77,7 @@ const UserInfoView = () => {
         }
 
         const response = await axios.post(
-          `${process.env.API_ROUTE_URL}/users/${userInfo?.id}/profile-image`,
+          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/users/${userInfo?.id}/profile-image`,
 
           formData,
 
@@ -134,9 +133,11 @@ const UserInfoView = () => {
     }
   };
 
-  const handleImageChangeButtonClick = () => {
+  const handleImageChangeCancelButtonClick = () => {
     setSelectedImage(null);
-    setProfileImageUrl(userInfo?.profileImageUrl || '/public/file.svg'); // 초기 상태로 되돌리기
+    setProfileImageUrl(
+      userInfo?.profileImageUrl || '/default-profile-image.png',
+    );
   };
 
   const handleNicknameButtonClick = async () => {
@@ -149,7 +150,7 @@ const UserInfoView = () => {
         }
 
         const response = await axios.put(
-          `${process.env.API_ROUTE_URL}/users/${userInfo?.id}`,
+          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/users/${userInfo?.id}`,
           { nickname },
           {
             headers: { 'Content-Type': 'application/json' },
@@ -225,7 +226,7 @@ const UserInfoView = () => {
           {selectedImage && (
             <div className="flex gap-2 mt-2 w-full justify-between">
               <button
-                onClick={handleImageChangeButtonClick}
+                onClick={handleImageChangeCancelButtonClick}
                 className="btn btn-accent w-1/2"
               >
                 취소

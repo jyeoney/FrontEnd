@@ -60,11 +60,7 @@ export const DELETE = async (
     );
 
     if (response.status === 200) {
-      const { profileImageUrl } = response.data;
-      return NextResponse.json(
-        { profileImageUrl },
-        { status: response.status },
-      );
+      return NextResponse.json({}, { status: response.status });
     }
   } catch (error: any) {
     if (error.response) {

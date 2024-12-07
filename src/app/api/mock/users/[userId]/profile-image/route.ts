@@ -7,7 +7,7 @@ let mockUserInfo = {
   id: 1,
   email: 'test@example.com',
   nickname: 'testUser',
-  profileImageUrl: '/default-profile-image.png',
+  profileImageUrl: null,
 };
 
 // 파일을 서버의 임시 디렉토리에 저장하고 URL 반환
@@ -57,10 +57,9 @@ export const POST = async (req: NextRequest) => {
 export const DELETE = async (req: NextRequest) => {
   mockUserInfo = {
     ...mockUserInfo,
-    profileImageUrl: '/default-profile-image.png',
+    profileImageUrl: null,
   };
   return NextResponse.json({
     message: '프로필 이미지가 삭제되었습니다.',
-    profileImageUrl: mockUserInfo.profileImageUrl,
   });
 };
