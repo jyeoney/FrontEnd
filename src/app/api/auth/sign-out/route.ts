@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
+import { deleteCookie } from '@/utils/cookies';
 
 export const POST = async (req: NextRequest) => {
   const res = NextResponse.json({ message: '로그아웃 성공' });
@@ -15,14 +16,10 @@ export const POST = async (req: NextRequest) => {
       },
     );
     const res = NextResponse.json({ message: '로그아웃 성공' });
-    res.cookies.set('accessToken', '', {
-      path: '/',
-      maxAge: 0,
-    });
-    res.cookies.set('refreshToken', '', {
-      path: '/',
-      maxAge: 0,
-    });
+
+    deleteCookie(res, 'accessToken');
+    deleteCookie(res, 'refreshToken');
+
     return res;
   } catch (error: any) {
     if (error.response) {
