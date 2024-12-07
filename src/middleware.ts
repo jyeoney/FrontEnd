@@ -3,14 +3,15 @@ import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
   // 미들웨어 실행하지 않는 경우
-  if (
-    // request.nextUrl.pathname === '/signin' ||
-    request.nextUrl.pathname === '/api/mock/auth/sign-in'
-  ) {
+
+  const { pathname } = request.nextUrl;
+  const method = request.method;
+  if (pathname === '/api/auth/sign-in') {
+    console.log('로그인 요청 - 미들웨어 건너뜀');
     return NextResponse.next();
   }
 
-  console.log('미들웨어 실행됨:', request.nextUrl.pathname);
+  console.log('미들웨어 실행됨:', pathname);
   const accessToken = request.cookies.get('accessToken')?.value;
   const refreshToken = request.cookies.get('refreshToken')?.value;
 
@@ -29,7 +30,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.rewrite(refreshRoute);
   }
 
-  console.log('accesstoken, refreshToken 모두 없음');
+  console.log('accessToken, refreshToken 모두 없음');
   const signInUrl = new URL('/signin', request.url);
   return NextResponse.redirect(signInUrl);
 }
