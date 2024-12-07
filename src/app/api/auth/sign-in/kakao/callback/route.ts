@@ -1,18 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
+
 import { handleUserInfo } from '@/utils/authHelper';
 
 export const POST = async (req: NextRequest) => {
-  const { email, password } = await req.json();
+  const { searchParams } = new URL(req.url);
+  const code = searchParams.get('code');
+
+  if (!code) {
+    return NextResponse.json(
+      { message: '인증 코드가 없습니다.' },
+      { status: 400 },
+    );
+  }
 
   try {
-    // 1. 로그인 요청
     const response = await axios.post(
-      `${process.env.API_URL}/auth/sign-in`, // 실제 백엔드 API 경로
-      { email, password },
+      `${process.env.API_URL}/auth/sign-in/kakao`,
+      { code },
       {
-        headers: { 'Content-Type': 'application/json' },
-        // withCredentials: true // 서버에서 보낸 쿠키를 클라이언트에서 자동으로 받아서 저장
+        headers: {
+          'Content-Type': 'application/json',
+        },
       },
     );
 
@@ -37,10 +46,9 @@ export const POST = async (req: NextRequest) => {
     return NextResponse.json(response.data, { status: response.status });
   } catch (error: any) {
     if (error.response) {
-      const { status, data } = error.response;
-      return NextResponse.json(data, { status });
+      const { status } = error.response;
+      return NextResponse.json('카카오 로그인에 실패했습니다.', { status });
     }
-
     return NextResponse.json(
       { message: '네트워크 오류가 발생했습니다.' },
       { status: 500 },

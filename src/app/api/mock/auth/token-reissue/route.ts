@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
+import { setCookie } from '@/utils/cookies';
 
 export const POST = async (req: NextRequest) => {
   const cookiesList = await cookies();
@@ -29,14 +30,7 @@ export const POST = async (req: NextRequest) => {
 
     const res = NextResponse.json({ message: '토큰 갱신 성공' });
 
-    const cookies = res.cookies;
-    cookies.set('accessToken', newAccessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
-      sameSite: 'strict',
-      maxAge: accessTokenMaxAge,
-    });
+    setCookie(res, 'accessToken', newAccessToken, accessTokenMaxAge);
 
     return res;
   } catch (error) {

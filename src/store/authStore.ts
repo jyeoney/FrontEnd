@@ -5,7 +5,7 @@ export type UserInfo = {
   id: number;
   nickname: string;
   email: string;
-  profileImageUrl: string;
+  profileImageUrl: string | null;
 };
 
 type AuthState = {
