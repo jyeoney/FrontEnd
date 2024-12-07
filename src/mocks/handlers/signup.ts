@@ -30,7 +30,7 @@ export const signUpHandlers = [
   }),
 
   // 인증번호 메일 발송
-  rest.post('/api/auth/email-auth', async (req, res, ctx) => {
+  rest.post('/api/auth/email-certification', async (req, res, ctx) => {
     const { email } = await req.json();
     if (!email || !email.trim()) {
       return res(

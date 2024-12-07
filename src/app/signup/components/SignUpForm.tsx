@@ -127,7 +127,7 @@ const SignUpForm = () => {
         `${process.env.NEXT_PUBLIC_API_URL}/auth/email-auth/code`,
         {
           email,
-          code: authCode,
+          code: certificationNumber,
         },
       );
       if (response.status === 200) {
