@@ -1,5 +1,3 @@
-import axios from 'axios';
-import { cookies } from 'next/headers';
 import MyPageView from '../components/MyPageView';
 import UserInfoView from '../components/UserInfoView';
 // const fetchStudies = async (accessToken: string) => {
@@ -20,20 +18,6 @@ const studies = [
 ];
 
 const MyPage = async () => {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get('accessToken')?.value;
-
-  if (!accessToken) {
-    return (
-      <div>
-        <h1>로그인이 필요합니다.</h1>
-        <a href="/signin" className="btn btn-primary">
-          로그인하러 가기
-        </a>
-      </div>
-    );
-  }
-
   try {
     // const studies = await fetchStudies(accessToken);
     return (

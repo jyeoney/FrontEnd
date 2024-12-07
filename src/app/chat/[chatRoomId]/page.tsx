@@ -1,6 +1,6 @@
 'use client';
 
-import ChatRoom from '@/app/chat/[chatRoomId]/components/ChatRoom';
+import ChatRoom from '@/app/chat/components/ChatRoom';
 import { useParams } from 'next/navigation';
 import { useEffect } from 'react';
 
