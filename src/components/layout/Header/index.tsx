@@ -5,17 +5,20 @@ import { useAuthStore } from '@/store/authStore';
 import { usePathname } from 'next/navigation';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 type HeaderProps = {
   initialSignedIn: boolean;
 };
+
 const Header = ({ initialSignedIn }: HeaderProps) => {
   const { isSignedIn, setIsSignedIn, setUserInfo, userInfo, resetStore } =
     useAuthStore();
+  const [isNavOpen, setIsNavOpen] = useState(false);
 
   const pathname = usePathname();
   const router = useRouter();
+
   // 초기 로그인 상태를 클라이언트 상태로 설정
   useEffect(() => {
     setIsSignedIn(initialSignedIn);
@@ -46,7 +49,7 @@ const Header = ({ initialSignedIn }: HeaderProps) => {
     if (isConfirmed) {
       try {
         const response = await axios.post(
-          `${process.env.API_ROUTE_URL}/auth/sign-out`,
+          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/auth/sign-out`,
           {},
           {
             headers: { 'Content-Type': 'application/json' },
@@ -76,7 +79,7 @@ const Header = ({ initialSignedIn }: HeaderProps) => {
         }
       }
     } else {
-      alert('로그아웃이 취소되었습니다.'); // 사용자가 취소할 경우 알림
+      alert('로그아웃이 취소되었습니다.');
     }
   };
 
@@ -87,7 +90,7 @@ const Header = ({ initialSignedIn }: HeaderProps) => {
           DevOff
         </Link>
       </div>
-      <div className="navbar-center">
+      <div className="navbar-center hidden lg:flex">
         <div className="join">
           <Link
             href="/community/study"
@@ -121,7 +124,59 @@ const Header = ({ initialSignedIn }: HeaderProps) => {
           </Link>
         </div>
       </div>
-      <div className="navbar-end">
+
+      <div className="navbar-end lg:hidden">
+        <button
+          className="btn btn-ghost text-base-content"
+          onClick={() => setIsNavOpen(!isNavOpen)}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <div className={`navbar-end ${isNavOpen ? 'block' : 'hidden'} lg:hidden`}>
+        <div className="flex flex-col items-center space-y-2">
+          <Link
+            href="/community/study"
+            className={`btn ${isActive('/community/study')}`}
+          >
+            스터디
+          </Link>
+          <Link
+            href="/community/info"
+            className={`btn ${isActive('/community/info')}`}
+          >
+            정보공유
+          </Link>
+          <Link
+            href="/community/qna"
+            className={`btn ${isActive('/community/qna')}`}
+          >
+            Q&A
+          </Link>
+          <Link href="/studyroom" className={`btn ${isActive('/studyroom')}`}>
+            스터디룸
+          </Link>
+          <Link href="/chat/1" className={`btn ${isActive('/chat/1')}`}>
+            채팅
+          </Link>
+        </div>
+      </div>
+
+      <div className="navbar-end hidden lg:flex">
         {isSignedIn ? (
           <>
             <Link href={`/mypage/${userInfo?.id}`} className="btn btn-ghost">
