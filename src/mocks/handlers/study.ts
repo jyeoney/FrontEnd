@@ -1,5 +1,11 @@
 import { rest } from 'msw';
-import { DayType, StudyMeetingType, StudyPost } from '@/types/study';
+import {
+  DayType,
+  StudyDifficulty,
+  StudyMeetingType,
+  StudyPost,
+  StudySubject,
+} from '@/types/study';
 
 // 온라인 전용 스터디
 const mockOnlineStudies = Array.from({ length: 15 }, (_, index) => ({
@@ -154,7 +160,50 @@ export const studyHandlers = [
       );
     }
 
-    return res(ctx.status(200), ctx.json(study));
+    return res(
+      ctx.status(200),
+      ctx.json({
+        ...study,
+        participants: [
+          {
+            id: 1,
+            nickname: '스터디장',
+            profileImageUrl: null,
+            role: 'LEADER',
+          },
+          {
+            id: 2,
+            nickname: '참가자1',
+            profileImageUrl: null,
+            role: 'MEMBER',
+          },
+          {
+            id: 3,
+            nickname: '참가자2',
+            profileImageUrl: null,
+            role: 'MEMBER',
+          },
+        ],
+        comments: [
+          {
+            id: 1,
+            content: '첫 번째 댓글입니다.',
+            author: {
+              id: 1,
+              nickname: '댓글작성자1',
+              profileImageUrl: null,
+            },
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ],
+        author: {
+          id: 1,
+          nickname: '스터디장',
+          profileImageUrl: null,
+        },
+      }),
+    );
   }),
   rest.put('/api/study-posts/:id', (req, res, ctx) => {
     const { id } = req.params;

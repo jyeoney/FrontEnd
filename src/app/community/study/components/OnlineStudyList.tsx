@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { StudyResponse, StudyPost } from '@/types/study';
 import { StudyFilter } from './StudyFilter';
@@ -9,77 +10,75 @@ import { StudyCard } from './StudyCard';
 type FilterType = 'subjects' | 'status' | 'difficulty' | 'days';
 
 export default function OnlineStudyList() {
-  const [posts, setPosts] = useState<StudyResponse | null>(null);
-  const [page, setPage] = useState(0);
-  const [searchTitle] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
-  const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
-  const [selectedDifficulty, setSelectedDifficulty] = useState<string[]>([]);
-  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const fetchPosts = useCallback(async () => {
-    setIsLoading(true);
-    try {
+  // URL에서 상태 읽기
+  const page = Number(searchParams.get('page')) || 0;
+  const selectedSubjects = searchParams.getAll('subjects');
+  const selectedStatus = searchParams.getAll('status');
+  const selectedDifficulty = searchParams.getAll('difficulty');
+  const selectedDays = searchParams.getAll('days');
+
+  const { data: posts, isLoading } = useQuery<StudyResponse>({
+    queryKey: [
+      'studies',
+      'online',
+      {
+        page,
+        selectedSubjects,
+        selectedStatus,
+        selectedDifficulty,
+        selectedDays,
+      },
+    ],
+    queryFn: async () => {
       const params = new URLSearchParams({
         page: page.toString(),
         size: '12',
-        title: searchTitle,
         meetingType: 'ONLINE',
       });
 
-      selectedSubjects.forEach(subject => params.append('subjects', subject));
-      selectedStatus.forEach(status => params.append('status', status));
+      selectedSubjects.forEach(subject => params.append('subjects[]', subject));
+      selectedStatus.forEach(status => params.append('status[]', status));
       selectedDifficulty.forEach(difficulty =>
-        params.append('difficulty', difficulty),
+        params.append('difficulty[]', difficulty),
       );
-      selectedDays.forEach(day => params.append('days', day));
+      selectedDays.forEach(day => params.append('days[]', day));
 
       const response = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/study-posts/search`,
         { params },
       );
-      setPosts(response.data);
-    } catch (error) {
-      console.error('스터디 목록 조회 실패:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [
-    page,
-    searchTitle,
-    selectedSubjects,
-    selectedStatus,
-    selectedDifficulty,
-    selectedDays,
-  ]);
-
-  useEffect(() => {
-    fetchPosts();
-  }, [
-    page,
-    searchTitle,
-    selectedSubjects,
-    selectedStatus,
-    selectedDifficulty,
-    selectedDays,
-    fetchPosts,
-  ]);
+      return response.data;
+    },
+  });
 
   const handleFilterChange = (type: FilterType, value: string) => {
-    const setters = {
-      subjects: setSelectedSubjects,
-      status: setSelectedStatus,
-      difficulty: setSelectedDifficulty,
-      days: setSelectedDays,
-    };
+    const newSearchParams = new URLSearchParams(searchParams);
+    const currentValues = searchParams.getAll(type);
 
-    setters[type](prev =>
-      prev.includes(value)
-        ? prev.filter(item => item !== value)
-        : [...prev, value],
-    );
-    setPage(0);
+    if (currentValues.includes(value)) {
+      // 값이 이미 있으면 제거
+      newSearchParams.delete(type);
+      currentValues
+        .filter(v => v !== value)
+        .forEach(v => newSearchParams.append(type, v));
+    } else {
+      // 값이 없으면 추가
+      newSearchParams.append(type, value);
+    }
+
+    // 페이지 초기화
+    newSearchParams.set('page', '0');
+
+    router.push(`?${newSearchParams.toString()}`);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set('page', newPage.toString());
+    router.push(`?${newSearchParams.toString()}`);
   };
 
   return (
@@ -109,7 +108,7 @@ export default function OnlineStudyList() {
             <button
               key={i}
               className={`join-item btn ${page === i ? 'btn-active' : ''}`}
-              onClick={() => setPage(i)}
+              onClick={() => handlePageChange(i)}
             >
               {i + 1}
             </button>

@@ -15,7 +15,9 @@ export default function StudyParticipants({ studyId }: StudyParticipantsProps) {
   useEffect(() => {
     const fetchParticipants = async () => {
       try {
-        const response = await axios.get(`/api/study/${studyId}/participants`);
+        const response = await axios.get(
+          `/api/study-posts/${studyId}/participants`,
+        );
         setParticipants(response.data);
       } catch (error) {
         console.error('참여자 목록 조회 실패:', error);

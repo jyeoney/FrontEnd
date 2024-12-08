@@ -1,4 +1,4 @@
-import { BasePost } from './post';
+import { StudyPost as BaseStudyPost } from './post';
 
 export type StudySubject =
   | 'CONCEPT_LEARNING'
@@ -8,31 +8,22 @@ export type StudySubject =
   | 'JOB_PREPARATION'
   | 'ETC';
 
-export type StudyDifficulty = 'HIGH' | 'MEDIUM' | 'LOW';
-export type StudyMeetingType = 'ONLINE' | 'HYBRID';
-export type StudyStatus = 'RECRUITING' | 'IN_PROGRESS' | 'CANCELED';
-export type DayType = '월' | '화' | '수' | '목' | '금' | '토' | '일';
-
-export interface StudyPost extends BasePost {
+export interface StudyPost extends BaseStudyPost {
   studyName: string;
-  subject: StudySubject;
-  difficulty: StudyDifficulty;
-  dayType: DayType[];
+  dayType: string[];
   startDate: string;
   endDate: string;
   startTime: string;
   endTime: string;
-  meetingType: StudyMeetingType;
   recruitmentPeriod: string;
-  description: string;
   maxParticipants: number;
-  currentParticipants: number;
-  status: StudyStatus;
+  content: string;
   latitude?: number;
   longitude?: number;
-  thumbnailImgUrl?: string;
-  userId: number;
+  address?: string;
 }
+
+export type { BaseStudyPost as StudyPostBase };
 
 export interface StudyResponse {
   data: StudyPost[];

@@ -5,7 +5,6 @@ type FilterType = 'subjects' | 'status' | 'difficulty' | 'days';
 // 영어 Enum -> 한글 표시용 매핑
 const STATUS_DISPLAY = {
   RECRUITING: '모집 중',
-  COMPLETED: '모집 완료',
   IN_PROGRESS: '진행 중',
   CANCELED: '종료',
 };

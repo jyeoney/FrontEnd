@@ -1,6 +1,8 @@
 'use client';
 
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { StudyResponse, StudyPost } from '@/types/study';
 import { StudyFilter } from './StudyFilter';
@@ -10,18 +12,19 @@ import KakaoMap from './KakaoMap';
 type FilterType = 'subjects' | 'status' | 'difficulty' | 'days';
 
 export default function HybridStudyList() {
-  const [posts, setPosts] = useState<StudyResponse | null>(null);
-  const [page, setPage] = useState(0);
-  const [searchTitle] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
-  const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
-  const [selectedDifficulty, setSelectedDifficulty] = useState<string[]>([]);
-  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
     longitude: number;
   } | null>(null);
+
+  // URL에서 상태 읽기
+  const page = Number(searchParams.get('page')) || 0;
+  const selectedSubjects = searchParams.getAll('subjects');
+  const selectedStatus = searchParams.getAll('status');
+  const selectedDifficulty = searchParams.getAll('difficulty');
+  const selectedDays = searchParams.getAll('days');
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -43,13 +46,23 @@ export default function HybridStudyList() {
     }
   }, []);
 
-  const fetchPosts = async () => {
-    setIsLoading(true);
-    try {
+  const { data: posts, isLoading } = useQuery<StudyResponse>({
+    queryKey: [
+      'studies',
+      'hybrid',
+      {
+        page,
+        selectedSubjects,
+        selectedStatus,
+        selectedDifficulty,
+        selectedDays,
+        userLocation,
+      },
+    ],
+    queryFn: async () => {
       const params = new URLSearchParams({
         page: page.toString(),
         size: '12',
-        searchTitle,
         meetingType: 'HYBRID',
       });
 
@@ -69,71 +82,64 @@ export default function HybridStudyList() {
         `${process.env.NEXT_PUBLIC_API_URL}/study-posts/search`,
         { params },
       );
-      setPosts(response.data);
-    } catch (error) {
-      console.error('스터디 목록 조회 실패:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPosts();
-  }, [
-    page,
-    searchTitle,
-    selectedSubjects,
-    selectedStatus,
-    selectedDifficulty,
-    selectedDays,
-    userLocation,
-  ]);
+      return response.data;
+    },
+    enabled: !!userLocation,
+  });
 
   const handleFilterChange = (type: FilterType, value: string) => {
-    const setters = {
-      subjects: setSelectedSubjects,
-      status: setSelectedStatus,
-      difficulty: setSelectedDifficulty,
-      days: setSelectedDays,
-    };
+    const newSearchParams = new URLSearchParams(searchParams);
+    const currentValues = searchParams.getAll(type);
 
-    setters[type](prev =>
-      prev.includes(value)
-        ? prev.filter(item => item !== value)
-        : [...prev, value],
-    );
-    setPage(0);
+    if (currentValues.includes(value)) {
+      // 값이 이미 있으면 제거
+      newSearchParams.delete(type);
+      currentValues
+        .filter(v => v !== value)
+        .forEach(v => newSearchParams.append(type, v));
+    } else {
+      // 값이 없으면 추가
+      newSearchParams.append(type, value);
+    }
+
+    // 페이지 초기화
+    newSearchParams.set('page', '0');
+
+    router.push(`?${newSearchParams.toString()}`);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set('page', newPage.toString());
+    router.push(`?${newSearchParams.toString()}`);
   };
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div>
-          <StudyFilter
-            selectedSubjects={selectedSubjects}
-            selectedStatus={selectedStatus}
-            selectedDifficulty={selectedDifficulty}
-            selectedDays={selectedDays}
-            onFilterChange={handleFilterChange}
-          />
-        </div>
-        <div className="bg-base-200 p-4 rounded-lg">
-          <KakaoMap
-            studies={
-              posts?.data
-                .filter(post => post.latitude && post.longitude && post.address)
-                .map(post => ({
-                  latitude: post.latitude!,
-                  longitude: post.longitude!,
-                  address: post.address!,
-                })) || []
-            }
-            userLocation={userLocation}
-          />
-        </div>
+      <StudyFilter
+        selectedSubjects={selectedSubjects}
+        selectedStatus={selectedStatus}
+        selectedDifficulty={selectedDifficulty}
+        selectedDays={selectedDays}
+        onFilterChange={handleFilterChange}
+      />
+      <div className="h-[400px] bg-base-200 p-4 rounded-lg">
+        <KakaoMap
+          studies={
+            posts?.data?.filter(
+              (
+                study,
+              ): study is StudyPost & {
+                latitude: number;
+                longitude: number;
+                address: string;
+              } => !!study.latitude && !!study.longitude && !!study.address,
+            ) || []
+          }
+          userLocation={userLocation}
+        />
       </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {isLoading ? (
           <div>로딩 중...</div>
         ) : posts?.data ? (
@@ -151,7 +157,7 @@ export default function HybridStudyList() {
             <button
               key={i}
               className={`join-item btn ${page === i ? 'btn-active' : ''}`}
-              onClick={() => setPage(i)}
+              onClick={() => handlePageChange(i)}
             >
               {i + 1}
             </button>
