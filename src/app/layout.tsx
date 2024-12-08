@@ -5,19 +5,18 @@ import Footer from '@/components/layout/Footer';
 import { MSWProvider } from '@/mocks/compoenets/MSWProvider';
 import './globals.css';
 import { cookies } from 'next/headers';
+import Providers from '@/providers/tanstack-query/Providers';
 
 export const metadata: Metadata = {
   title: 'DevOnOff',
   description: '개발자 온오프라인 스터디 플랫폼',
-  title: 'DevOnOff',
-  description: '개발자 온오프라인 스터디 플랫폼',
 };
 
-const RootLayout = async ({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>) => {
+}>): Promise<JSX.Element> {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
   console.log(accessToken);
@@ -29,15 +28,17 @@ const RootLayout = async ({
   return (
     <html lang="ko" data-theme="pastel">
       <body className="min-h-screen bg-base-100 text-base-content">
-        {process.env.NEXT_PUBLIC_API_MOCKING === 'enabled' && <MSWProvider />}
-        <div className="flex flex-col min-h-screen">
-          <Header initialSignedIn={isSignedIn} />
-          <main className="flex-1 container mx-auto px-4 py-8">{children}</main>
-          <Footer />
-        </div>
+        <Providers>
+          {process.env.NEXT_PUBLIC_API_MOCKING === 'enabled' && <MSWProvider />}
+          <div className="flex flex-col min-h-screen">
+            <Header initialSignedIn={isSignedIn} />
+            <main className="flex-1 container mx-auto px-4 py-8">
+              {children}
+            </main>
+            <Footer />
+          </div>
+        </Providers>
       </body>
     </html>
   );
-};
-
-export default RootLayout;
+}

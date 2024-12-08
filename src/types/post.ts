@@ -17,3 +17,24 @@ export interface PostResponse<T> {
   size: number;
   total_pages: number;
 }
+
+export interface StudyPost {
+  id: number;
+  title: string;
+  thumbnail?: string;
+  status: 'RECRUITING' | 'IN_PROGRESS' | 'CANCELED';
+  subject:
+    | 'CONCEPT_LEARNING'
+    | 'PROJECT'
+    | 'CHALLENGE'
+    | 'CERTIFICATION'
+    | 'JOB_PREPARATION'
+    | 'ETC';
+  difficulty: 'HIGH' | 'MEDIUM' | 'LOW';
+  meetingTime: string;
+  recruitmentEndDate: string;
+  currentMembers: number;
+  maxMembers: number;
+  studyStartDate: string;
+  studyEndDate: string;
+}

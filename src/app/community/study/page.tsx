@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import OnlineStudyList from './components/OnlineStudyList';
 import HybridStudyList from './components/HybridStudyList';
@@ -10,8 +10,36 @@ import { useAuthStore } from '@/store/authStore';
 type StudyType = 'ONLINE' | 'HYBRID';
 
 export default function StudyListPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const studyType = (searchParams.get('type') as StudyType) || 'ONLINE';
   const { isSignedIn } = useAuthStore();
-  const [studyType, setStudyType] = useState<StudyType>('ONLINE');
+
+  const handleTypeChange = (type: StudyType) => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    const currentFilters = {
+      page: newSearchParams.get('page'),
+      subjects: newSearchParams.getAll('subjects'),
+      status: newSearchParams.getAll('status'),
+      difficulty: newSearchParams.getAll('difficulty'),
+      days: newSearchParams.getAll('days'),
+    };
+
+    newSearchParams.set('type', type);
+    if (currentFilters.page) newSearchParams.set('page', currentFilters.page);
+    currentFilters.subjects.forEach(subject =>
+      newSearchParams.append('subjects', subject),
+    );
+    currentFilters.status.forEach(status =>
+      newSearchParams.append('status', status),
+    );
+    currentFilters.difficulty.forEach(difficulty =>
+      newSearchParams.append('difficulty', difficulty),
+    );
+    currentFilters.days.forEach(day => newSearchParams.append('days', day));
+
+    router.push(`?${newSearchParams.toString()}`);
+  };
 
   return (
     <div className="container mx-auto p-4">
@@ -27,13 +55,13 @@ export default function StudyListPage() {
       <div className="tabs tabs-boxed mb-6">
         <button
           className={`tab ${studyType === 'ONLINE' ? 'tab-active' : ''}`}
-          onClick={() => setStudyType('ONLINE')}
+          onClick={() => handleTypeChange('ONLINE')}
         >
           {MEETING_TYPE.ONLINE}
         </button>
         <button
           className={`tab ${studyType === 'HYBRID' ? 'tab-active' : ''}`}
-          onClick={() => setStudyType('HYBRID')}
+          onClick={() => handleTypeChange('HYBRID')}
         >
           {MEETING_TYPE.HYBRID}
         </button>
