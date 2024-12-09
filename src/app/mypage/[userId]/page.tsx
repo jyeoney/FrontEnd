@@ -1,5 +1,6 @@
-import MySutdyView from '../components/MySutdyView';
+import MyStudyView from '../components/MyStudyView';
 import UserInfoView from '../components/UserInfoView';
+import { cookies } from 'next/headers';
 // const fetchStudies = async (accessToken: string) => {
 //   const response = await axios.get(
 //     `${process.env.NEXT_PUBLIC_API_URL}/studies`,
@@ -23,7 +24,7 @@ const MyPage = async () => {
     return (
       <>
         <UserInfoView />
-        <MySutdyView studies={studies} />
+        <MyStudyView studies={studies} />
       </>
     );
   } catch (error) {
