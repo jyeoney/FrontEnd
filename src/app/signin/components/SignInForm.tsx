@@ -55,10 +55,6 @@ const SingInPage = () => {
     } catch (error: any) {
       if (error.response) {
         const { status, data } = error.response;
-        const errorCode = data?.errorCode;
-        const message =
-          data?.message || '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-
         if (status === 401) {
           setError(
             '이메일 혹은 비밀번호가 일치하지 않습니다. 입력한 내용을 다시 확인해 주세요.',
@@ -79,7 +75,8 @@ const SingInPage = () => {
   const handleKakaoButtonClick = async () => {
     try {
       // 카카오 로그인 페이지로 리디렉션
-      window.location.href = '/api/auth/sign-in/kakao';
+      const kakaoAuthURL = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${process.env.KAKAO_CLIENT_ID}&redirect_uri=${process.env.KAKAO_REDIRECT_URI}`;
+      window.location.href = kakaoAuthURL;
     } catch (error) {
       console.error('카카오 로그인 오류:', error);
     }
