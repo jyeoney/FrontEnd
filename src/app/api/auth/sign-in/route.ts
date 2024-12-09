@@ -19,7 +19,10 @@ export const POST = async (req: NextRequest) => {
     if (response.status === 200) {
       const { accessToken, refreshToken } = response.data;
       const res = NextResponse.json({ message: '로그인 성공' });
+
       const apiUrl = process.env.API_URL;
+      console.log('accessToken입니다: ' + accessToken);
+      console.log('refreshToken입니다: ' + refreshToken);
 
       if (!apiUrl) {
         throw new Error('API_URL 환경 변수가 설정되지 않았습니다.');
@@ -30,8 +33,19 @@ export const POST = async (req: NextRequest) => {
         refreshToken,
         apiUrl,
       );
+      console.log('accessToken:', accessToken);
+      console.log('refreshToken:', refreshToken);
 
-      return NextResponse.json({ message: '로그인 성공', userInfo });
+      // res.headers.append(
+      //   'Access-Control-Allow-Origin',
+      //   'http://localhost:3000',
+      // ); // 클라이언트 도메인
+      // res.headers.append('Access-Control-Allow-Credentials', 'true');
+
+      return NextResponse.json(
+        { message: '로그인 성공', userInfo },
+        { headers: res.headers },
+      );
     }
 
     return NextResponse.json(response.data, { status: response.status });

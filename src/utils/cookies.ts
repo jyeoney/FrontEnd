@@ -15,17 +15,24 @@ export const setCookie = (
   maxAge: number,
 ) => {
   res.cookies.set(name, value, {
+    // secure: process.env.NODE_ENV === 'production', // https 일때만 전송
     httpOnly: true, // 클라이언트 자바스크립트에서는 접근 불가(보안상의 이유)
-    secure: process.env.NODE_ENV === 'production', // https 일때만 전송
+    secure: false,
     path: '/', // 쿠키의 유효 경로
-    sameSite: 'strict', // CSRF 보호
-    maxAge, // 액세스토큰 유효기간
+    sameSite: 'strict',
+    maxAge,
   });
+
+  console.log(`쿠키 설정됨: ${name} = ${value}`);
 };
 
 export const deleteCookie = (res: NextResponse, name: string) => {
   res.cookies.set(name, '', {
+    // secure: process.env.NODE_ENV === 'production', // https 일때만 전송
+    httpOnly: true,
+    secure: false,
     path: '/', // 쿠키의 유효 경로
-    maxAge: 0, // 만료 시간을 0으로 설정하여 즉시 삭제
+    sameSite: 'strict',
+    maxAge: 0,
   });
 };
