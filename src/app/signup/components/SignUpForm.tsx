@@ -1,7 +1,8 @@
 'use client';
+import CustomAlert from '@/components/common/Alert';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { FaRegEye, FaRegEyeSlash } from 'react-icons/fa';
 
 const SignUpForm = () => {
@@ -35,10 +36,37 @@ const SignUpForm = () => {
     'success' | 'error' | ''
   >('');
 
+  const [timer, setTimer] = useState(180);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [passwordCheckVisible, setPasswordCheckVisible] = useState(false);
 
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+
   const router = useRouter();
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (emailSent && timer > 0) {
+      setIsTimerRunning(true);
+
+      interval = setInterval(() => {
+        setTimer(prev => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            setIsTimerRunning(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => clearInterval(interval);
+  }, [emailSent, timer]);
 
   // 이메일 형식 확인
   const isValidEmail = (email: string) =>
@@ -48,6 +76,12 @@ const SignUpForm = () => {
     /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
       password,
     );
+
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  };
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
@@ -106,7 +140,9 @@ const SignUpForm = () => {
     } catch (error: any) {
       if (error.response) {
         const { status, data } = error.response;
+        console.log(`status: ${status}`);
         const errorCode = data?.errorCode;
+        console.log(`errorRes: ${errorCode}`);
 
         if (status === 400) {
           if (errorCode === 'EMAIL_ALREADY_REGISTERED') {
@@ -288,14 +324,17 @@ const SignUpForm = () => {
         { headers: { 'Content-Type': 'application/json' } },
       );
       if (response.status === 200) {
-        alert('회원가입이 성공적으로 완료되었습니다!');
+        setAlertMessage('회원가입이 성공적으로 완료되었습니다!');
+        setShowAlert(true);
         router.push('/signin');
       } else {
-        alert('회원가입 중 문제가 발생했습니다. 다시 시도해 주세요.');
+        setAlertMessage('회원가입 중 문제가 발생했습니다. 다시 시도해 주세요.');
+        setShowAlert(true);
       }
     } catch (error) {
       console.error('회원가입 요청 중 오류', error);
-      alert('회원가입 요청 중 오류가 발생했습니다.');
+      setAlertMessage('회원가입 요청 중 오류가 발생했습니다.');
+      setShowAlert(true);
     }
   };
 
@@ -366,6 +405,12 @@ const SignUpForm = () => {
                 required
                 className="w-full flex-grow input input-bordered px-4 py-2 focus:outline-indigo-500 text-sm sm:text-base"
               />
+              {/* 타이머 표시 */}
+              {timer > 0 && (
+                <span className="ml-4 text-red-500 text-sm sm:text-base">
+                  {formatTime(timer)}
+                </span>
+              )}
               <button
                 type="button"
                 onClick={handleAuthCodeVerifyClick}
@@ -522,6 +567,12 @@ const SignUpForm = () => {
           회원가입
         </button>
       </form>
+      {showAlert && (
+        <CustomAlert
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
     </div>
   );
 };
