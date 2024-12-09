@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react';
 import { UserInfo, useAuthStore } from '@/store/authStore';
 import axios from 'axios';
+import CustomConfirm from '@/components/common/Confirm';
+import CustomAlert from '@/components/common/Alert';
 
 const UserInfoView = () => {
   const { userInfo, setUserInfo } = useAuthStore();
@@ -10,6 +12,13 @@ const UserInfoView = () => {
     userInfo?.profileImageUrl || '/default-profile-image.png',
   );
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const [alertMessage, setAlertMessage] = useState('');
+  const [onConfirmCallback, setOnConfirmCallback] = useState<() => void>(
+    () => () => {},
+  );
 
   useEffect(() => {
     if (userInfo) {
@@ -21,8 +30,8 @@ const UserInfoView = () => {
   }, [userInfo]);
 
   const handleImageDeleteButtonClick = async () => {
-    const isConfirmed = window.confirm('프로필 이미지를 삭제하시겠습니까?');
-    if (isConfirmed) {
+    setConfirmMessage('프로필 이미지를 삭제하시겠습니까?');
+    setOnConfirmCallback(() => async () => {
       try {
         const response = await axios.delete(
           `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/users/${userInfo?.id}/profile-image`,
@@ -38,7 +47,8 @@ const UserInfoView = () => {
           } as UserInfo);
           setProfileImageUrl('/default-profile-image.png');
           setSelectedImage(null);
-          alert('프로필 이미지가 삭제되었습니다.');
+          setAlertMessage('프로필 이미지가 삭제되었습니다.');
+          setShowAlert(true);
         }
       } catch (error: any) {
         if (error.response) {
@@ -48,26 +58,34 @@ const UserInfoView = () => {
             data?.message || '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
 
           if (status === 404) {
-            alert(message);
+            setAlertMessage(message);
+            setShowAlert(true);
           } else {
-            alert(
+            setAlertMessage(
               '프로필 이미지를 삭제하지 못했습니다. 잠시 후 다시 시도해주세요.',
             );
+            setShowAlert(true);
           }
         } else {
-          alert('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+          setAlertMessage(
+            '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+          );
+          setShowAlert(true);
         }
+      } finally {
+        setShowConfirm(false);
       }
-    }
+    });
+    setShowConfirm(true);
   };
   const handleImageChangeConfirmButtonClick = async () => {
-    const isConfirmed = window.confirm('프로필 이미지를 변경하시겠습니까?');
-    if (isConfirmed) {
-      if (!selectedImage) {
-        alert('이미지를 선택해주세요.');
-        return;
-      }
-
+    if (!selectedImage) {
+      setAlertMessage('이미지를 선택해주세요.');
+      setShowAlert(true);
+      return;
+    }
+    setConfirmMessage('프로필 이미지를 변경하시겠습니까?');
+    setOnConfirmCallback(() => async () => {
       try {
         const formData = new FormData();
 
@@ -96,7 +114,8 @@ const UserInfoView = () => {
           } as UserInfo);
           setProfileImageUrl(profileImageUrl);
           setSelectedImage(null);
-          alert('프로필 이미지가 변경되었습니다.');
+          setAlertMessage('프로필 이미지가 변경되었습니다.');
+          setShowAlert(true);
         }
       } catch (error: any) {
         console.error('Error occurred:', error);
@@ -107,17 +126,25 @@ const UserInfoView = () => {
             data?.message || '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
 
           if (status === 404) {
-            alert(message);
+            setAlertMessage(message);
+            setShowAlert(true);
           } else {
-            alert(
+            setAlertMessage(
               '프로필 이미지를 변경하지 못했습니다. 잠시 후 다시 시도해주세요.',
             );
+            setShowAlert(true);
           }
         } else {
-          alert('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+          setAlertMessage(
+            '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+          );
+          setShowAlert(true);
         }
+      } finally {
+        setShowConfirm(false);
       }
-    }
+    });
+    setShowConfirm(true);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -141,11 +168,11 @@ const UserInfoView = () => {
   };
 
   const handleNicknameButtonClick = async () => {
-    const isConfirmed = window.confirm('닉네임을 변경하시겠습니까?');
-    if (isConfirmed) {
+    setConfirmMessage('닉네임을 변경하시겠습니까?');
+    setOnConfirmCallback(() => async () => {
       try {
         if (!nickname || nickname.trim().length === 0) {
-          alert('닉네임을 입력해주세요.');
+          setAlertMessage('닉네임을 입력해주세요.');
           return;
         }
 
@@ -163,7 +190,8 @@ const UserInfoView = () => {
             ...userInfo,
             nickname,
           } as UserInfo);
-          alert('닉네임이 변경되었습니다.');
+          setAlertMessage('닉네임이 변경되었습니다.');
+          setShowAlert(true);
         }
       } catch (error: any) {
         if (error.response) {
@@ -173,22 +201,29 @@ const UserInfoView = () => {
             data?.message || '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
 
           if (status === 404) {
-            alert(message);
+            setAlertMessage(message);
+            setShowAlert(true);
           } else if (
             status === 400 &&
             errorCode === 'NICKNAME_ALREADY_REGISTERED'
           ) {
-            alert('이미 사용 중인 닉네임입니다.');
+            setAlertMessage('이미 사용 중인 닉네임입니다.');
+            setShowAlert(true);
           } else {
-            alert('닉네임 변경에 실패했습니다. 다시 시도해주세요.');
+            setAlertMessage('닉네임 변경에 실패했습니다. 다시 시도해주세요.');
+            setShowAlert(true);
           }
         } else {
-          alert('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+          setAlertMessage(
+            '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+          );
+          setShowAlert(true);
         }
+      } finally {
+        setShowConfirm(false);
       }
-    } else {
-      alert('닉네임 변경이 취소되었습니다.');
-    }
+    });
+    setShowConfirm(true);
   };
 
   return (
@@ -275,6 +310,19 @@ const UserInfoView = () => {
           </div>
         </div>
       </div>
+      {showConfirm && (
+        <CustomConfirm
+          message={confirmMessage}
+          onConfirm={onConfirmCallback}
+          onCancel={() => setShowConfirm(false)}
+        />
+      )}
+      {showAlert && (
+        <CustomAlert
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
     </div>
   );
 };
