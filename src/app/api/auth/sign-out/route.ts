@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import { deleteCookie } from '@/utils/cookies';
+import { cookies } from 'next/headers';
 
 export const POST = async (req: NextRequest) => {
-  const res = NextResponse.json({ message: '로그아웃 성공' });
-
   try {
     await axios.post(
-      `${process.env.API_URL}/auth/sign-out`, // 실제 백엔드 API 경로
+      `${process.env.API_URL}/auth/sign-out`,
       {},
       {
         headers: {
