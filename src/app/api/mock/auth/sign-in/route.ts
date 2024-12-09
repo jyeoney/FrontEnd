@@ -29,8 +29,8 @@ export const POST = async (req: NextRequest) => {
     const currentTime = Math.trunc(Date.now() / 1000);
     const accessTokenMaxAge = decodedAccessToken.exp - currentTime;
 
-    const decodeRefreshToken = jwt.decode(refreshToken) as { exp: number };
-    const refreshTokenMaxAge = decodeRefreshToken.exp - currentTime;
+    const decodedRefreshToken = jwt.decode(refreshToken) as { exp: number };
+    const refreshTokenMaxAge = decodedRefreshToken.exp - currentTime;
 
     const res = NextResponse.json({
       message: '로그인 성공',
@@ -44,6 +44,8 @@ export const POST = async (req: NextRequest) => {
 
     setCookie(res, 'accessToken', accessToken, accessTokenMaxAge);
     setCookie(res, 'refreshToken', refreshToken, refreshTokenMaxAge);
+    console.log('Decoded Access Token:', decodedAccessToken);
+    console.log('Decoded Refresh Token:', decodedRefreshToken);
 
     return res;
   }
