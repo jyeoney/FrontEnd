@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
+import { cookies } from 'next/headers';
 
 export const PUT = async (
   request: NextRequest,
   { params }: { params: { userId: string } },
 ) => {
   const { nickname } = await request.json();
-  const { userId } = params;
+  const { userId } = await params;
 
   if (!nickname || nickname.trim().length === 0) {
     return NextResponse.json(
@@ -27,13 +28,13 @@ export const PUT = async (
     );
 
     if (response.status === 200) {
-      const { nickname } = response.data;
+      const updatedUserInfo = response.data;
+      return NextResponse.json(updatedUserInfo, { status: response.status });
     }
-
-    return NextResponse.json({ nickname }, { status: response.status });
   } catch (error: any) {
     if (error.response) {
       const { status, data } = error.response;
+      console.log('백엔드 에러:', error.response);
       return NextResponse.json(data, { status });
     }
 

@@ -40,12 +40,12 @@ const UserInfoView = () => {
           },
         );
 
-        if (response.status === 200) {
-          setUserInfo({
-            ...userInfo,
-            profileImageUrl: null,
-          } as UserInfo);
-          setProfileImageUrl('/default-profile-image.png');
+        if (response.status === 200 && response.data) {
+          const updatedUserInfo = response.data;
+          setUserInfo(updatedUserInfo);
+          setProfileImageUrl(
+            updatedUserInfo.profileImageUrl || '/default-profile-image.png',
+          );
           setSelectedImage(null);
           setAlertMessage('프로필 이미지가 삭제되었습니다.');
           setShowAlert(true);
@@ -53,7 +53,7 @@ const UserInfoView = () => {
       } catch (error: any) {
         if (error.response) {
           const { status, data } = error.response;
-          const errorCode = data?.errorCode;
+          console.log('error:' + error.response);
           const message =
             data?.message || '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
 
@@ -104,24 +104,22 @@ const UserInfoView = () => {
           },
         );
 
-        console.log('API Response:', response.data);
-
         if (response.status === 200 && response.data.profileImageUrl) {
-          const { profileImageUrl } = response.data;
-          setUserInfo({
-            ...userInfo,
-            profileImageUrl,
-          } as UserInfo);
-          setProfileImageUrl(profileImageUrl);
+          const updatedUserInfo = response.data;
+          setUserInfo(updatedUserInfo);
+          setProfileImageUrl(
+            updatedUserInfo.profileImageUrl || '/default-profile-image.png',
+          );
           setSelectedImage(null);
           setAlertMessage('프로필 이미지가 변경되었습니다.');
+          console.log(`response: ${response.data}`);
           setShowAlert(true);
         }
       } catch (error: any) {
         console.error('Error occurred:', error);
         if (error.response) {
           const { status, data } = error.response;
-          const errorCode = data?.errorCode;
+          console.log(`error: ${error.response.data}`);
           const message =
             data?.message || '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
 
@@ -184,12 +182,9 @@ const UserInfoView = () => {
           },
         );
 
-        if (response.status === 200 && response.data.nickname) {
-          const { nickname } = response.data;
-          setUserInfo({
-            ...userInfo,
-            nickname,
-          } as UserInfo);
+        if (response.status === 200 && response.data) {
+          const updatedUserInfo = response.data;
+          setUserInfo(updatedUserInfo);
           setAlertMessage('닉네임이 변경되었습니다.');
           setShowAlert(true);
         }

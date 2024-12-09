@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import FormData from 'form-data';
+
 import fs from 'fs';
 import path from 'path';
 
@@ -7,7 +7,8 @@ let mockUserInfo = {
   id: 1,
   email: 'test@example.com',
   nickname: 'testUser',
-  profileImageUrl: null,
+  // profileImageUrl: null as string | null,
+  profileImageUrl: '/default-profile-image.png',
 };
 
 // 파일을 서버의 임시 디렉토리에 저장하고 URL 반환
@@ -43,8 +44,14 @@ export const POST = async (req: NextRequest) => {
   try {
     const profileImageUrl = await saveMockFile(profileImage);
 
-    return NextResponse.json({
+    mockUserInfo = {
+      ...mockUserInfo,
       profileImageUrl,
+    };
+
+    return NextResponse.json({
+      message: '프로필 이미지가 변경되었습니다.',
+      mockUserInfo,
     });
   } catch (error) {
     return NextResponse.json(
@@ -55,11 +62,8 @@ export const POST = async (req: NextRequest) => {
 };
 
 export const DELETE = async (req: NextRequest) => {
-  mockUserInfo = {
-    ...mockUserInfo,
-    profileImageUrl: null,
-  };
   return NextResponse.json({
     message: '프로필 이미지가 삭제되었습니다.',
+    mockUserInfo,
   });
 };
