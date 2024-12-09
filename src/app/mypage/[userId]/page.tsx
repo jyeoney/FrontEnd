@@ -1,4 +1,4 @@
-import MyPageView from '../components/MyPageView';
+import MySutdyView from '../components/MySutdyView';
 import UserInfoView from '../components/UserInfoView';
 // const fetchStudies = async (accessToken: string) => {
 //   const response = await axios.get(
@@ -23,7 +23,7 @@ const MyPage = async () => {
     return (
       <>
         <UserInfoView />
-        <MyPageView studies={studies} />
+        <MySutdyView studies={studies} />
       </>
     );
   } catch (error) {

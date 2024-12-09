@@ -6,6 +6,8 @@ import { usePathname } from 'next/navigation';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import CustomConfirm from '@/components/common/Confirm';
+import CustomAlert from '@/components/common/Alert';
 
 type HeaderProps = {
   initialSignedIn: boolean;
@@ -15,6 +17,13 @@ const Header = ({ initialSignedIn }: HeaderProps) => {
   const { isSignedIn, setIsSignedIn, setUserInfo, userInfo, resetStore } =
     useAuthStore();
   const [isNavOpen, setIsNavOpen] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const [onConfirmCallback, setOnConfirmCallback] = useState<() => void>(
+    () => () => {},
+  );
 
   const pathname = usePathname();
   const router = useRouter();
@@ -44,42 +53,46 @@ const Header = ({ initialSignedIn }: HeaderProps) => {
     return pathname === path ? 'btn-active' : '';
   };
 
+  const showSignOutConfirm = () => {
+    setConfirmMessage('로그아웃 하시겠습니까?');
+    setOnConfirmCallback(() => handleSignOutClick);
+    setShowConfirm(true);
+  };
+
   const handleSignOutClick = async () => {
-    const isConfirmed = window.confirm('로그아웃 하시겠습니까?');
-    if (isConfirmed) {
-      try {
-        const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/auth/sign-out`,
-          {},
-          {
-            headers: { 'Content-Type': 'application/json' },
-          },
-        );
-        if (response.status === 200) {
-          // 로그아웃 후 상태 변경
-          resetStore();
-          router.push('/');
-          alert('로그아웃이 완료되었습니다.');
-        }
-      } catch (error: any) {
-        const { status, data } = error.response;
-        const errorCode = data?.errorCode;
-        const message =
-          data?.message || '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-        if (error.response) {
-          if (status === 400) {
-            alert('로그아웃에 실패했습니다. 다시 시도해 주세요.');
-          } else if (status === 403) {
-            alert('사용자를 찾을 수 없습니다.');
-          } else {
-            alert('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
-          }
-        } else {
-          alert('서버에 연결할 수 없습니다. 네트워크 상태를 확인해 주세요.');
-        }
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/auth/sign-out`,
+        {},
+        {
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
+      if (response.status === 200) {
+        resetStore();
+        router.push('/');
+        setShowAlert(true);
+        setAlertMessage('로그아웃이 완료되었습니다.');
       }
-    } else {
-      alert('로그아웃이 취소되었습니다.');
+    } catch (error: any) {
+      const { status, data } = error.response;
+      const message =
+        data?.message || '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+      if (error.response) {
+        if (status === 400) {
+          setAlertMessage('로그아웃에 실패했습니다. 다시 시도해 주세요.');
+        } else if (status === 403) {
+          setAlertMessage('사용자를 찾을 수 없습니다.');
+        } else {
+          setAlertMessage('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+        }
+      } else {
+        setAlertMessage(
+          '서버에 연결할 수 없습니다. 네트워크 상태를 확인해 주세요.',
+        );
+      }
+    } finally {
+      setShowConfirm(false);
     }
   };
 
@@ -184,7 +197,7 @@ const Header = ({ initialSignedIn }: HeaderProps) => {
             </Link>
             <button
               className="btn btn-ghost text-base-content"
-              onClick={handleSignOutClick}
+              onClick={showSignOutConfirm}
             >
               로그아웃
             </button>
@@ -200,6 +213,20 @@ const Header = ({ initialSignedIn }: HeaderProps) => {
           </>
         )}
       </div>
+      {showConfirm && (
+        <CustomConfirm
+          message={confirmMessage}
+          onConfirm={onConfirmCallback}
+          onCancel={() => setShowConfirm(false)}
+        />
+      )}
+
+      {showAlert && (
+        <CustomAlert
+          message="로그아웃이 완료되었습니다."
+          onClose={() => setShowAlert(false)}
+        />
+      )}
     </header>
   );
 };
