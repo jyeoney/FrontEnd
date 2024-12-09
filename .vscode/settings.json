@@ -6,12 +6,16 @@
     "source.fixAll.eslint": "always"
   },
   "cSpell.words": [
+    "daisyui",
     "kakao",
     "mypage",
     "Naver",
     "signin",
     "signup",
     "studyroom",
+    "Sutdy",
+    "tailwindcss",
+    "tanstack",
     "zustand"
   ]
 }
