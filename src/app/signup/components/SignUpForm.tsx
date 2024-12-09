@@ -302,7 +302,6 @@ const SignUpForm = () => {
   return (
     <div className="flex flex-col items-center justify-center p-6 max-w-lg mx-auto">
       <form onSubmit={handleSignUpSubmit} className="w-full">
-        {/* 이메일 입력 */}
         <div className="mb-4">
           <label
             htmlFor="email"
@@ -330,8 +329,8 @@ const SignUpForm = () => {
               onClick={handleAuthCodeSendClick}
               className={`ml-2 px-4 py-2 ${
                 isValidEmail(email)
-                  ? 'btn btn-secondary text-white text-sm sm:text-base'
-                  : 'btn bg-gray-400 text-white hover:bg-gray-500 text-sm sm:text-base'
+                  ? 'btn btn-secondary text-sm sm:text-base hover:text-white'
+                  : 'btn bg-gray-400 hover:bg-gray-500 hover:text-white text-sm sm:text-base'
               }`}
             >
               {emailSent ? '재발송' : '인증번호 전송'}
@@ -339,7 +338,6 @@ const SignUpForm = () => {
           </div>
           <div className="mt-2 min-h-[20px]">
             {' '}
-            {/* 고정 높이로 메시지 공간 확보 */}
             {emailMessage && (
               <p
                 className={`text-sm sm:text-base ${
@@ -354,7 +352,6 @@ const SignUpForm = () => {
           </div>
         </div>
 
-        {/* 인증번호 입력 */}
         {emailSent && (
           <div className="mb-4">
             <label htmlFor="authCode" className="block mb-2 font-semibold">
@@ -367,13 +364,13 @@ const SignUpForm = () => {
                 value={authCode}
                 onChange={e => setAuthCode(e.target.value.trim())}
                 required
-                className="flex-grow px-4 py-2 rounded border bg-white focus:outline-indigo-500"
+                className="w-full flex-grow input input-bordered px-4 py-2 focus:outline-indigo-500 text-sm sm:text-base"
               />
               <button
                 type="button"
                 onClick={handleAuthCodeVerifyClick}
                 disabled={authCodeVerified}
-                className="ml-2 px-4 py-2 rounded bg-indigo-500 text-white"
+                className="ml-2 px-4 py-2 btn btn-secondary hover:text-white text-sm sm:text-base"
               >
                 {authCodeVerified ? '완료' : '확인'}
               </button>
@@ -392,7 +389,6 @@ const SignUpForm = () => {
           </div>
         )}
 
-        {/* 닉네임 입력 */}
         <div className="mb-4">
           <label
             htmlFor="nickname"
@@ -438,7 +434,6 @@ const SignUpForm = () => {
             )}
           </div>
         </div>
-        {/* 비밀번호 입력 */}
         <div className="mb-4">
           <label
             htmlFor="password"
@@ -475,8 +470,6 @@ const SignUpForm = () => {
             {passwordError}
           </p>
         </div>
-
-        {/* 비밀번호 확인 */}
         <div className="mb-6">
           <label
             htmlFor="passwordCheck"
@@ -522,7 +515,6 @@ const SignUpForm = () => {
           )}
         </div>
 
-        {/* 회원가입 버튼 */}
         <button
           type="submit"
           className="w-full btn btn-secondary hover:text-white text-sm sm:text-base"
