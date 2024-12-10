@@ -55,6 +55,9 @@ const SingInPage = () => {
     } catch (error: any) {
       if (error.response) {
         const { status, data } = error.response;
+        console.log(`status: ${status}`);
+        const errorCode = data?.errorCode;
+        console.log(`errorRes: ${errorCode}`);
         if (status === 401) {
           setError(
             '이메일 혹은 비밀번호가 일치하지 않습니다. 입력한 내용을 다시 확인해 주세요.',
@@ -75,7 +78,7 @@ const SingInPage = () => {
   const handleKakaoButtonClick = async () => {
     try {
       // 카카오 로그인 페이지로 리디렉션
-      const kakaoAuthURL = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${process.env.KAKAO_CLIENT_ID}&redirect_uri=${process.env.KAKAO_REDIRECT_URI}`;
+      const kakaoAuthURL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI}&response_type=code&scope=profile_nickname,account_email`;
       window.location.href = kakaoAuthURL;
     } catch (error) {
       console.error('카카오 로그인 오류:', error);
@@ -153,7 +156,6 @@ const SingInPage = () => {
         <button
           name="Naver"
           className="flex items-center justify-center w-full btn bg-green-500 hover:bg-green-600 hover:text-white text-sm sm:text-base"
-          onClick={handleKakaoButtonClick}
         >
           <SiNaver className="mr-2 text-white" size={16} />
           <span className="font-medium">Naver</span> 로그인
@@ -161,6 +163,7 @@ const SingInPage = () => {
         <button
           name="Kakao"
           className="flex items-center justify-center w-full btn text-yellow-950 bg-yellow-300 hover:bg-yellow-500 hover:text-white text-sm sm:text-base"
+          onClick={handleKakaoButtonClick}
         >
           <RiKakaoTalkFill className="mr-2 text-yellow-950" size={24} />
           <span className="font-medium">Kakao</span> 로그인

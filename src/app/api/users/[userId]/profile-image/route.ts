@@ -12,7 +12,7 @@ export const POST = async (
   req: NextRequest,
   { params }: { params: { userId: string } },
 ) => {
-  const { userId } = params;
+  const { userId } = await params;
   try {
     const response = await axios.post(
       `${process.env.API_URL}/users/${userId}/profile-image`,
@@ -25,11 +25,9 @@ export const POST = async (
     );
 
     if (response.status === 200) {
-      const { profileImageUrl } = response.data;
-      return NextResponse.json(
-        { profileImageUrl },
-        { status: response.status },
-      );
+      const updatedUserInfo = response.data;
+      console.log('response data:', updatedUserInfo);
+      return NextResponse.json(updatedUserInfo, { status: response.status });
     }
   } catch (error: any) {
     if (error.response) {
@@ -49,7 +47,7 @@ export const DELETE = async (
   req: NextRequest,
   { params }: { params: { userId: string } },
 ) => {
-  const { userId } = params;
+  const { userId } = await params;
 
   try {
     const response = await axios.delete(
@@ -60,7 +58,8 @@ export const DELETE = async (
     );
 
     if (response.status === 200) {
-      return NextResponse.json({}, { status: response.status });
+      const updatedUserInfo = response.data;
+      return NextResponse.json(updatedUserInfo, { status: response.status });
     }
   } catch (error: any) {
     if (error.response) {

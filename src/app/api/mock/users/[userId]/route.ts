@@ -13,11 +13,11 @@ export const PUT = async (req: NextRequest) => {
   if (nickname && typeof nickname === 'string' && nickname.trim()) {
     mockUserInfo = {
       ...mockUserInfo,
-      nickname, // 수정된 닉네임으로 업데이트
+      nickname,
     };
   }
   return NextResponse.json({
     message: '닉네임이 수정되었습니다.',
-    nickname: mockUserInfo.nickname,
+    mockUserInfo,
   });
 };

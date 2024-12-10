@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
@@ -9,11 +9,7 @@ import { useEffect, useState } from 'react';
 import CustomConfirm from '@/components/common/Confirm';
 import CustomAlert from '@/components/common/Alert';
 
-type HeaderProps = {
-  initialSignedIn: boolean;
-};
-
-const Header = ({ initialSignedIn }: HeaderProps) => {
+const Header = () => {
   const { isSignedIn, setIsSignedIn, setUserInfo, userInfo, resetStore } =
     useAuthStore();
   const [isNavOpen, setIsNavOpen] = useState(false);
@@ -24,29 +20,38 @@ const Header = ({ initialSignedIn }: HeaderProps) => {
   const [onConfirmCallback, setOnConfirmCallback] = useState<() => void>(
     () => () => {},
   );
+  const [isLoading, setIsLoading] = useState(true);
 
   const pathname = usePathname();
   const router = useRouter();
 
   // 초기 로그인 상태를 클라이언트 상태로 설정
-  useEffect(() => {
-    setIsSignedIn(initialSignedIn);
+  // useEffect(() => {
+  //   setIsSignedIn(initialSignedIn);
 
-    // if (initialSignedIn) {
-    //   const mockUserInfo = {
-    //     id: 1,
-    //     nickname: 'testuser',
-    //     email: 'test@example.com',
-    //     profileImageUrl: 'https://via.placeholder.com/150',
-    //   };
-    //   setUserInfo(mockUserInfo);
-    // } else {
-    //   setUserInfo(null);
-    // }
-  }, [initialSignedIn, setIsSignedIn, setUserInfo]);
+  //   // if (initialSignedIn) {
+  //   //   const mockUserInfo = {
+  //   //     id: 1,
+  //   //     nickname: 'testuser',
+  //   //     email: 'test@example.com',
+  //   //     profileImageUrl: 'https://via.placeholder.com/150',
+  //   //   };
+  //   //   setUserInfo(mockUserInfo);
+  //   // } else {
+  //   //   setUserInfo(null);
+  //   // }
+  // }, [initialSignedIn, setIsSignedIn, setUserInfo]);
+
+  // useEffect(() => {
+  //   // 상태 복원
+  //   const storedSignedIn = useAuthStore.getState().isSignedIn;
+  //   setIsSignedIn(storedSignedIn);
+  //   setIsLoading(false); // 로딩 완료
+  // }, []);
 
   useEffect(() => {
-    console.log(`userInfo는: ${userInfo?.nickname}`);
+    console.log(`닉네임: ${userInfo?.nickname}`);
+    console.log(`profileImageUrl: ${userInfo?.profileImageUrl}`);
   }, [userInfo]);
 
   const isActive = (path: string) => {
@@ -71,25 +76,31 @@ const Header = ({ initialSignedIn }: HeaderProps) => {
       if (response.status === 200) {
         resetStore();
         router.push('/');
-        setShowAlert(true);
         setAlertMessage('로그아웃이 완료되었습니다.');
+        setShowAlert(true);
       }
     } catch (error: any) {
       const { status, data } = error.response;
+      console.log('data: ' + data);
+
       const message =
         data?.message || '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
       if (error.response) {
         if (status === 400) {
           setAlertMessage('로그아웃에 실패했습니다. 다시 시도해 주세요.');
+          setShowAlert(true);
         } else if (status === 403) {
           setAlertMessage('사용자를 찾을 수 없습니다.');
+          setShowAlert(true);
         } else {
           setAlertMessage('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+          setShowAlert(true);
         }
       } else {
         setAlertMessage(
           '서버에 연결할 수 없습니다. 네트워크 상태를 확인해 주세요.',
         );
+        setShowAlert(true);
       }
     } finally {
       setShowConfirm(false);
