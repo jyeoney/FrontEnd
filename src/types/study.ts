@@ -21,6 +21,7 @@ export interface StudyPost extends BaseStudyPost {
   latitude?: number;
   longitude?: number;
   address?: string;
+  thumbnailImgUrl?: string;
 }
 
 export type { BaseStudyPost as StudyPostBase };
