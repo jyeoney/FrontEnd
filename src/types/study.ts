@@ -26,10 +26,10 @@ export interface StudyPost extends BaseStudyPost {
 export type { BaseStudyPost as StudyPostBase };
 
 export interface StudyResponse {
-  data: StudyPost[];
+  content: StudyPost[];
   page: number;
   size: number;
-  total_pages: number;
+  totalPages: number;
 }
 
 export const SUBJECT_OPTIONS = {

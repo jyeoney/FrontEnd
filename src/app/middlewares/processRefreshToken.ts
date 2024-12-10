@@ -1,9 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
+import handleRedirectToSignIn from './handleRedirectToSignIn';
 
-const processRefreshToken = (request: NextRequest, accessToken: string) => {
-  console.log('accessToken 없음');
-  const refreshRoute = new URL('/api/mock/auth/token-reissue', request.url);
-  return NextResponse.rewrite(refreshRoute);
+const processRefreshToken = async (
+  request: NextRequest,
+  refreshToken: string,
+) => {
+  console.log('refreshToken으로 토큰 재발급 시도');
+
+  const baseUrl = request.nextUrl.origin;
+  const response = await fetch(`${baseUrl}/api/auth/token-reissue`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ refreshToken }),
+  });
+
+  if (!response.ok) {
+    return handleRedirectToSignIn(request);
+  }
+
+  const { accessToken } = await response.json();
+  return NextResponse.next({
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
 };
 
 export default processRefreshToken;
