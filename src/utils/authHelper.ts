@@ -4,7 +4,6 @@ import { NextResponse } from 'next/server';
 import { setCookie } from './cookies';
 
 /**
- * 로그인 후 액세스 토큰과 리프레시 토큰을 처리하고, 사용자 정보를 조회하여 쿠키를 설정하는 함수
  * @param res - NextResponse 객체
  * @param accessToken - 액세스 토큰
  * @param refreshToken - 리프레시 토큰
@@ -68,6 +67,7 @@ export const handleUserInfo = async (
     // 쿠키 설정
     setCookie(res, 'accessToken', accessToken, accessTokenMaxAge);
     setCookie(res, 'refreshToken', refreshToken, refreshTokenMaxAge);
+    console.log(res.cookies.getAll());
 
     return { userInfo };
   } catch (error: any) {

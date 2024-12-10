@@ -36,11 +36,11 @@ export const POST = async (req: NextRequest) => {
       console.log('accessToken:', accessToken);
       console.log('refreshToken:', refreshToken);
 
-      res.headers.append(
-        'Access-Control-Allow-Origin',
-        'http://localhost:3000',
-      ); // 클라이언트 도메인
-      res.headers.append('Access-Control-Allow-Credentials', 'true');
+      // res.headers.append(
+      //   'Access-Control-Allow-Origin',
+      //   'http://localhost:3000',
+      // ); // 클라이언트 도메인
+      // res.headers.append('Access-Control-Allow-Credentials', 'true');
 
       return NextResponse.json(
         { message: '로그인 성공', userInfo },

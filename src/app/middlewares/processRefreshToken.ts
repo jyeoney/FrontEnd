@@ -1,31 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 import handleRedirectToSignIn from './handleRedirectToSignIn';
 
-const processRefreshToken = async (
-  request: NextRequest,
-  refreshToken: string,
-) => {
-  console.log('refreshToken으로 토큰 재발급 시도');
-
-  const baseUrl = request.nextUrl.origin;
-  const response = await fetch(`${baseUrl}/api/auth/token-reissue`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ refreshToken }),
-  });
-
-  if (!response.ok) {
-    return handleRedirectToSignIn(request);
-  }
-
-  const { accessToken } = await response.json();
-  return NextResponse.next({
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+const processRefreshToken = (request: NextRequest, accessToken: string) => {
+  console.log('accessToken 없음');
+  const refreshRoute = new URL('/api/auth/token-reissue', request.url);
+  return NextResponse.rewrite(refreshRoute);
 };
 
 export default processRefreshToken;
+
+// import { NextRequest, NextResponse } from 'next/server';
+// import axios from 'axios';
+// const processRefreshToken = async (refreshToken: string) => {
+//   try {
+//     const response = await axios.post(
+//       `${process.env.API_URL}/auth/token-reissue`,
+//       { refreshToken },
+//       {
+//         headers: { 'Content-Type': 'application/json' },
+//       },
+//     );
+
+//     if (response.status === 200) {
+//       return response.data;
+//     }
+
+//     throw new Error('accessToken 재발급에 실패했습니다.');
+//   } catch (error: any) {
+//     console.error('accessToken 재발급 중 오류가 발생했습니다.');
+//     throw error;
+//   }
+// };
+
+// export default processRefreshToken;

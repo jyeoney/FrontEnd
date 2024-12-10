@@ -6,7 +6,7 @@ export const mockUserInfo = {
   id: 1,
   email: 'test@example.com',
   nickname: 'testUser',
-  profileImageUrl: null,
+  profileImageUrl: '/default-profile-image.png',
 };
 
 export const POST = async (req: NextRequest) => {
