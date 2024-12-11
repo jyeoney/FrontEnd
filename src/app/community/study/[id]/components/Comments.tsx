@@ -4,44 +4,75 @@ import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { Comment } from '@/types/comments';
 import dayjs from 'dayjs';
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
 import axios from 'axios';
+
+// dayjs 플러그인 설정
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.tz.setDefault('Asia/Seoul');
 
 interface CommentsProps {
   studyId: string;
+}
+
+interface CommentResponse {
+  content: Comment[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number;
 }
 
 export default function Comments({ studyId }: CommentsProps) {
   const { isSignedIn } = useAuthStore();
   const [comments, setComments] = useState<Comment[]>([]);
   const [content, setContent] = useState('');
-  const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [replyTo, setReplyTo] = useState<number | null>(null);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
     const fetchComments = async () => {
       try {
-        const response = await fetch(`/api/comments?studyId=${studyId}`);
-        if (response.ok) {
-          const data = await response.json();
-          setComments(data);
+        const response = await axios.get<CommentResponse>(
+          `${process.env.NEXT_PUBLIC_API_URL}/comments?post_id=${studyId}&post_type=STUDY&page=${page + 1}&size=5`,
+        );
+        if (response.status === 200) {
+          const { content: commentData, totalPages: total } = response.data;
+          setComments(commentData);
+          setTotalPages(total);
         }
       } catch (error) {
         console.error('댓글 목록 조회 실패:', error);
+        setComments([]);
       }
     };
 
     fetchComments();
-  }, [studyId]);
+  }, [studyId, page]);
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim() || !isSignedIn) return;
 
     try {
-      const response = await axios.post('/api/comments', {
-        studyId,
-        content,
-        parentId: replyTo,
-      });
+      const response = await axios.post(
+        replyTo
+          ? `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/comments/${replyTo}/reply`
+          : `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/comments`,
+        {
+          post_id: studyId,
+          post_type: 'STUDY',
+          is_secret: false,
+          content: content,
+        },
+      );
 
       if (response.status === 200) {
         const newComment = response.data;
@@ -56,23 +87,32 @@ export default function Comments({ studyId }: CommentsProps) {
         );
         setContent('');
         setReplyTo(null);
+        setPage(0);
       }
     } catch (error) {
       console.error('댓글 작성 실패:', error);
     }
   };
 
-  const CommentItem = ({ comment }: { comment: Comment }) => (
+  const CommentItem = ({
+    comment,
+    isReply = false,
+  }: {
+    comment: Comment;
+    isReply?: boolean;
+  }) => (
     <div className="mb-4">
       <div className="bg-base-200 p-4 rounded-lg">
         <div className="flex justify-between mb-2">
-          <span className="font-semibold">{comment.author.nickname}</span>
+          <span className="font-semibold">
+            {comment.user?.nickname || comment.userDto?.nickname}
+          </span>
           <span className="text-sm text-gray-500">
-            {dayjs(comment.createdAt).format('YYYY.MM.DD HH:mm')}
+            {dayjs.utc(comment.createdAt).tz().format('YYYY.MM.DD HH:mm')}
           </span>
         </div>
         <p className="mb-2">{comment.content}</p>
-        {isSignedIn && (
+        {isSignedIn && !isReply && (
           <button
             onClick={() => setReplyTo(comment.id)}
             className="text-sm text-primary hover:underline"
@@ -81,10 +121,10 @@ export default function Comments({ studyId }: CommentsProps) {
           </button>
         )}
       </div>
-      {comment.replies.length > 0 && (
+      {comment.replies && comment.replies.length > 0 && (
         <div className="ml-8 mt-2">
-          {comment.replies.map(reply => (
-            <CommentItem key={reply.id} comment={reply} />
+          {comment.replies.map((reply: Comment) => (
+            <CommentItem key={reply.id} comment={reply} isReply={true} />
           ))}
         </div>
       )}
@@ -130,6 +170,22 @@ export default function Comments({ studyId }: CommentsProps) {
           <CommentItem key={comment.id} comment={comment} />
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-8">
+          <div className="join">
+            {Array.from({ length: totalPages }).map((_, i) => (
+              <button
+                key={i}
+                className={`join-item btn ${page === i ? 'btn-active' : ''}`}
+                onClick={() => handlePageChange(i)}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import axios from 'axios';
 import { QnAPost, PostResponse } from '@/types/post';
 import { PostList } from '../components/PostList';
 import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/store/authStore';
 
 export default function QnAListPage() {
   const router = useRouter();
@@ -22,7 +23,9 @@ export default function QnAListPage() {
         searchTitle,
       });
 
-      const response = await axios.get('/api/qna-posts/search', { params });
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/qna-posts?${params}`,
+      );
       setPosts(response.data);
     } catch (error) {
       console.error('Q&A 목록 조회 실패:', error);
@@ -35,6 +38,12 @@ export default function QnAListPage() {
     fetchPosts();
   }, [page, searchTitle]);
 
+  const { isSignedIn } = useAuthStore();
+
+  const handleWrite = () => {
+    router.push('/community/qna/write');
+  };
+
   return (
     <PostList<QnAPost>
       title="Q&A"
@@ -44,6 +53,8 @@ export default function QnAListPage() {
       isLoading={isLoading}
       onPageChange={setPage}
       onSearch={setSearchTitle}
+      onWrite={handleWrite}
+      isSignedIn={isSignedIn}
       renderPostCard={post => (
         <div key={post.id} className="card bg-base-100 shadow-xl">
           <figure className="px-4 pt-4">

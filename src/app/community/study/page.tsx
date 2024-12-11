@@ -22,7 +22,7 @@ export default function StudyListPage() {
       subjects: newSearchParams.getAll('subjects'),
       status: newSearchParams.getAll('status'),
       difficulty: newSearchParams.getAll('difficulty'),
-      days: newSearchParams.getAll('days'),
+      dayType: newSearchParams.getAll('dayType'),
     };
 
     newSearchParams.set('type', type);
@@ -36,7 +36,9 @@ export default function StudyListPage() {
     currentFilters.difficulty.forEach(difficulty =>
       newSearchParams.append('difficulty', difficulty),
     );
-    currentFilters.days.forEach(day => newSearchParams.append('days', day));
+    currentFilters.dayType.forEach(day =>
+      newSearchParams.append('dayType', day),
+    );
 
     router.push(`?${newSearchParams.toString()}`);
   };

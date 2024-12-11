@@ -56,7 +56,7 @@ export default function StudyDetailContent({
     if (!window.confirm('정말로 이 스터디 모집을 취소하시겠습니까?')) return;
 
     try {
-      const response = await axios.put(`/api/study-posts/${studyId}/close`);
+      const response = await axios.patch(`/api/study-posts/${studyId}/cancel`);
       if (response.status === 200) {
         setStudy(prev => {
           if (!prev) return prev;

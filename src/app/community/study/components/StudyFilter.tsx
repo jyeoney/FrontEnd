@@ -1,12 +1,12 @@
 'use client';
 
-type FilterType = 'subjects' | 'status' | 'difficulty' | 'days';
+type FilterType = 'subjects' | 'status' | 'difficulty' | 'dayType';
 
 // 영어 Enum -> 한글 표시용 매핑
 const STATUS_DISPLAY = {
   RECRUITING: '모집 중',
-  IN_PROGRESS: '진행 중',
-  CANCELED: '종료',
+  CLOSED: '모집 완료',
+  CANCELED: '모집 취소',
 };
 
 const DIFFICULTY_DISPLAY = {
@@ -101,7 +101,7 @@ export function StudyFilter({
             {['월', '화', '수', '목', '금', '토', '일'].map(day => (
               <button
                 key={day}
-                onClick={() => onFilterChange('days', day)}
+                onClick={() => onFilterChange('dayType', day)}
                 className={`btn btn-sm ${
                   selectedDays.includes(day) ? 'btn-primary' : 'btn-outline'
                 }`}

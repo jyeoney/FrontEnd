@@ -14,6 +14,8 @@ interface PostListProps<T extends BasePost> {
   renderPostCard: (post: T) => React.ReactNode;
   showFilters?: boolean;
   filterComponent?: React.ReactNode;
+  onWrite?: () => void;
+  isSignedIn?: boolean;
 }
 
 export function PostList<T extends BasePost>({
@@ -27,6 +29,8 @@ export function PostList<T extends BasePost>({
   renderPostCard,
   showFilters = false,
   filterComponent,
+  onWrite,
+  isSignedIn,
 }: PostListProps<T>) {
   const handleSearchInput = useCallback(
     debounce((value: string) => {
@@ -39,7 +43,14 @@ export function PostList<T extends BasePost>({
 
   return (
     <div className="w-full">
-      {title && <h1 className="text-2xl font-bold mb-6">{title}</h1>}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">{title}</h1>
+        {onWrite && isSignedIn && (
+          <button onClick={onWrite} className="btn btn-primary">
+            글쓰기
+          </button>
+        )}
+      </div>
 
       <div className="mb-6">
         <form

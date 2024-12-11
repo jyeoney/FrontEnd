@@ -7,7 +7,7 @@ import { StudyResponse, StudyPost } from '@/types/study';
 import { StudyFilter } from './StudyFilter';
 import { StudyCard } from './StudyCard';
 
-type FilterType = 'subjects' | 'status' | 'difficulty' | 'days';
+type FilterType = 'subjects' | 'status' | 'difficulty' | 'dayType';
 
 export default function OnlineStudyList() {
   const router = useRouter();
@@ -18,7 +18,7 @@ export default function OnlineStudyList() {
   const selectedSubjects = searchParams.getAll('subjects');
   const selectedStatus = searchParams.getAll('status');
   const selectedDifficulty = searchParams.getAll('difficulty');
-  const selectedDays = searchParams.getAll('days');
+  const selectedDays = searchParams.getAll('dayType');
 
   const { data: posts, isLoading } = useQuery<StudyResponse>({
     queryKey: [

@@ -1,11 +1,7 @@
 export interface Application {
-  id: number;
+  signupId: number;
   userId: number;
-  studyId: number;
-  status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+  nickname: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
   createdAt: string;
-  user: {
-    id: number;
-    nickname: string;
-  };
 }

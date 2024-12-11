@@ -1,5 +1,6 @@
-import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import axios from 'axios';
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,45 +15,46 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 파일 처리
-    const thumbnail = formData.get('thumbnail');
+    const file = formData.get('file');
     const transformedFormData = new FormData();
 
-    if (thumbnail && thumbnail instanceof File) {
-      transformedFormData.append('thumbnail', thumbnail);
+    if (file && file instanceof File) {
+      transformedFormData.append('file', file);
     }
 
-    // 나머지 필드들 추가
     const fields = {
       title: formData.get('title'),
       content: formData.get('content'),
-      userId: Number(formData.get('userId')),
     };
 
-    // FormData에 필드 추가
     Object.entries(fields).forEach(([key, value]) => {
       if (value !== undefined) {
         transformedFormData.append(key, String(value));
       }
     });
 
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/info-posts`,
+    const response = await axios.post(
+      `${process.env.API_URL}/info-posts`,
+      transformedFormData,
       {
-        method: 'POST',
         headers: {
+          'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${accessToken}`,
         },
-        body: transformedFormData,
+        transformRequest: [
+          function () {
+            return transformedFormData;
+          },
+        ],
+        maxBodyLength: Infinity,
       },
     );
 
-    if (!response.ok) {
+    if (response.status !== 200) {
       throw new Error('정보공유 글 작성 실패');
     }
 
-    const responseData = await response.json();
-    return NextResponse.json(responseData, { status: response.status });
+    return NextResponse.json(response.data, { status: response.status });
   } catch (error) {
     console.error('API Route 에러:', error);
     return NextResponse.json(

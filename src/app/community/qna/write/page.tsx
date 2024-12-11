@@ -8,8 +8,8 @@ import axios from 'axios';
 export default function QnAWritePage() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
-  const { isSignedIn, userInfo } = useAuthStore();
+  const [filePreview, setFilePreview] = useState<string | null>(null);
+  const { isSignedIn } = useAuthStore();
   const router = useRouter();
 
   useEffect(() => {
@@ -18,12 +18,12 @@ export default function QnAWritePage() {
     }
   }, [isSignedIn]);
 
-  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setThumbnailPreview(reader.result as string);
+        setFilePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -34,17 +34,16 @@ export default function QnAWritePage() {
     try {
       const formData = new FormData();
       const fileInput = (e.target as HTMLFormElement).querySelector(
-        'input[name="thumbnail"]',
+        'input[name="file"]',
       ) as HTMLInputElement;
       const file = fileInput.files?.[0];
 
       if (file) {
-        formData.append('thumbnail', file);
+        formData.append('file', file);
       }
 
       formData.append('title', title);
       formData.append('content', content);
-      formData.append('userId', String(userInfo?.id));
 
       await axios.post('/api/qna-posts', formData, {
         headers: {
@@ -62,20 +61,20 @@ export default function QnAWritePage() {
     <form onSubmit={handleSubmit} className="max-w-4xl mx-auto p-4 space-y-4">
       <div className="form-control">
         <label className="label">
-          <span className="label-text">썸네일 이미지</span>
+          <span className="label-text">이미지</span>
         </label>
         <input
           type="file"
-          name="thumbnail"
+          name="file"
           accept="image/*"
-          onChange={handleThumbnailChange}
+          onChange={handleFileChange}
           className="file-input file-input-bordered w-full"
         />
-        {thumbnailPreview && (
+        {filePreview && (
           <div className="mt-2">
             <img
-              src={thumbnailPreview}
-              alt="썸네일 미리보기"
+              src={filePreview}
+              alt="이미지 미리보기"
               className="w-full max-w-xs rounded-lg"
             />
           </div>
