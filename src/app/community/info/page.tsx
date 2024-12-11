@@ -9,11 +9,11 @@ import { useAuthStore } from '@/store/authStore';
 
 export default function InfoListPage() {
   const router = useRouter();
-  const { isSignedIn } = useAuthStore();
   const [posts, setPosts] = useState<PostResponse<InfoPost> | null>(null);
   const [page, setPage] = useState(0);
   const [searchTitle, setSearchTitle] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { isSignedIn } = useAuthStore();
 
   const fetchPosts = async () => {
     setIsLoading(true);
@@ -24,7 +24,9 @@ export default function InfoListPage() {
         searchTitle,
       });
 
-      const response = await axios.get('/api/info-posts/search', { params });
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/info-posts?${params}`,
+      );
       setPosts(response.data);
     } catch (error) {
       console.error('정보공유 목록 조회 실패:', error);
@@ -37,51 +39,46 @@ export default function InfoListPage() {
     fetchPosts();
   }, [page, searchTitle]);
 
+  const handleWrite = () => {
+    router.push('/community/info/write');
+  };
+
   return (
-    <div>
-      <PostList<InfoPost>
-        title="정보공유"
-        posts={posts?.data || []}
-        totalPages={posts?.total_pages || 0}
-        currentPage={page}
-        isLoading={isLoading}
-        onPageChange={setPage}
-        onSearch={setSearchTitle}
-        renderPostCard={post => (
-          <div key={post.id} className="card bg-base-100 shadow-xl">
-            <figure className="px-4 pt-4">
-              <img
-                src={post.thumbnail || '/default-info-thumbnail.png'}
-                alt={post.title}
-                className="rounded-xl h-48 w-full object-cover"
-              />
-            </figure>
-            <div className="card-body">
-              <h2 className="card-title">{post.title}</h2>
-              <p className="text-base-content/70">
-                {post.content.slice(0, 100)}...
-              </p>
-              <div className="card-actions justify-end mt-4">
-                <button
-                  className="btn btn-primary btn-sm"
-                  onClick={() => router.push(`/community/info/${post.id}`)}
-                >
-                  상세보기
-                </button>
-              </div>
+    <PostList<InfoPost>
+      title="정보공유"
+      posts={posts?.data || []}
+      totalPages={posts?.total_pages || 0}
+      currentPage={page}
+      isLoading={isLoading}
+      onPageChange={setPage}
+      onSearch={setSearchTitle}
+      onWrite={handleWrite}
+      isSignedIn={isSignedIn}
+      renderPostCard={post => (
+        <div key={post.id} className="card bg-base-100 shadow-xl">
+          <figure className="px-4 pt-4">
+            <img
+              src={post.thumbnail || '/default-info-thumbnail.png'}
+              alt={post.title}
+              className="rounded-xl h-48 w-full object-cover"
+            />
+          </figure>
+          <div className="card-body">
+            <h2 className="card-title">{post.title}</h2>
+            <p className="text-base-content/70">
+              {post.content.slice(0, 100)}...
+            </p>
+            <div className="card-actions justify-end mt-4">
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => router.push(`/community/info/${post.id}`)}
+              >
+                상세보기
+              </button>
             </div>
           </div>
-        )}
-      />
-
-      {isSignedIn && (
-        <button
-          onClick={() => router.push('/community/info/write')}
-          className="btn btn-primary"
-        >
-          글쓰기
-        </button>
+        </div>
       )}
-    </div>
+    />
   );
 }

@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import axios from 'axios';
 
-export async function POST(req: NextRequest) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { commentId: string } },
+) {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
 
@@ -16,13 +19,12 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const response = await axios.post(
-      `${process.env.API_URL}/comments`,
+      `${process.env.API_URL}/comments/${params.commentId}/reply`,
       {
         post_id: body.post_id,
         post_type: body.post_type,
         is_secret: body.is_secret,
         content: body.content,
-        ...(body.reply_to && { reply_to: body.reply_to }),
       },
       {
         headers: {
@@ -34,7 +36,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(response.data);
   } catch {
     return NextResponse.json(
-      { message: '댓글 작성에 실패했습니다.' },
+      { message: '대댓글 작성에 실패했습니다.' },
       { status: 500 },
     );
   }

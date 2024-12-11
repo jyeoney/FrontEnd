@@ -1,11 +1,29 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { InfoPost } from '@/types/post';
 import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 import axios from 'axios';
+
+interface User {
+  id: number;
+  username: string;
+  email: string;
+  profileImageUrl: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface InfoPost {
+  id: number;
+  user: User;
+  title: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export default function InfoDetailPage({ params }: { params: { id: string } }) {
   const [post, setPost] = useState<InfoPost | null>(null);
@@ -15,7 +33,9 @@ export default function InfoDetailPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const response = await axios.get(`/api/info-posts/${params.id}`);
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/info-posts/${params.id}`,
+        );
         setPost(response.data);
       } catch (error) {
         console.error('게시글 조회 실패:', error);
@@ -25,22 +45,7 @@ export default function InfoDetailPage({ params }: { params: { id: string } }) {
     fetchPost();
   }, [params.id]);
 
-  const isAuthor = isSignedIn && userInfo?.id === post?.userId;
-
-  const handleEdit = () => {
-    router.push(`/community/info/edit/${params.id}`);
-  };
-
-  const handleDelete = async () => {
-    if (!window.confirm('정말로 이 게시글을 삭제하시겠습니까?')) return;
-
-    try {
-      await axios.delete(`/api/info-posts/${params.id}`);
-      router.push('/community/info');
-    } catch (error) {
-      console.error('게시글 삭제 실패:', error);
-    }
-  };
+  const isAuthor = isSignedIn && userInfo?.id === post?.user.id;
 
   if (!post) return <div>Loading...</div>;
 
@@ -49,8 +54,11 @@ export default function InfoDetailPage({ params }: { params: { id: string } }) {
       <div className="bg-base-100 shadow-xl rounded-lg p-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold mb-4">{post.title}</h1>
-          <div className="text-sm text-base-content/60">
-            작성일: {dayjs(post.createdAt).format('YYYY.MM.DD HH:mm')}
+          <div className="flex justify-between text-sm text-base-content/60">
+            <span>작성자: {post.user.username}</span>
+            <span>
+              작성일: {dayjs(post.createdAt).format('YYYY.MM.DD HH:mm')}
+            </span>
           </div>
         </div>
         <div className="prose max-w-none">
@@ -59,10 +67,25 @@ export default function InfoDetailPage({ params }: { params: { id: string } }) {
 
         {isAuthor && (
           <div className="flex gap-2 mt-4">
-            <button onClick={handleEdit} className="btn btn-primary">
+            <button
+              onClick={() => router.push(`/community/info/edit/${post.id}`)}
+              className="btn btn-primary"
+            >
               수정
             </button>
-            <button onClick={handleDelete} className="btn btn-error">
+            <button
+              onClick={async () => {
+                if (window.confirm('정말로 삭제하시겠습니까?')) {
+                  try {
+                    await axios.delete(`/api/info-posts/${post.id}`);
+                    router.push('/community/info');
+                  } catch (error) {
+                    console.error('삭제 실패:', error);
+                  }
+                }
+              }}
+              className="btn btn-error"
+            >
               삭제
             </button>
           </div>

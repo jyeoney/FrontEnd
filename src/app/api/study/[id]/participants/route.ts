@@ -18,7 +18,7 @@ export async function GET(
 
   try {
     const response = await axios.get(
-      `${process.env.API_BASE_URL}/api/study/${params.id}/participants`,
+      `${process.env.API_URL}/study/${params.id}/participants`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -27,7 +27,8 @@ export async function GET(
     );
 
     return NextResponse.json(response.data);
-  } catch {
+  } catch (error) {
+    console.error('참여자 목록 조회 실패:', error);
     return NextResponse.json(
       { message: '참여자 목록 조회에 실패했습니다.' },
       { status: 500 },

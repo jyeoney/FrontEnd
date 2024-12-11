@@ -1,12 +1,22 @@
-export interface Comment {
-  id: string;
-  content: string;
+export interface User {
+  id: number;
+  nickname: string;
+  email: string;
+  profileImageUrl: string | null;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  author: {
-    id: string;
+}
+
+export interface Comment {
+  id: number;
+  content: string;
+  createdAt: string;
+  user?: {
     nickname: string;
   };
-  parentId: string | null;
+  userDto?: {
+    nickname: string;
+  };
   replies: Comment[];
 }

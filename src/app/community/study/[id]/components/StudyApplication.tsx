@@ -29,9 +29,7 @@ export function StudyApplication({
 
       try {
         const response = await axios.get(
-          `/api/study-signup?studyPostId=${study.id}${
-            isAuthor ? '' : '&status=PENDING'
-          }`,
+          `/api/study-signup?studyPostId=${study.id}`,
         );
         const data = response.data;
 
@@ -55,15 +53,17 @@ export function StudyApplication({
   const handleApply = async () => {
     if (!isSignedIn || !userInfo) return;
     setIsLoading(true);
+    setError(null);
 
     try {
-      const response = await axios.post('/api/study-sign-up', {
+      const response = await axios.post('/api/study-signup', {
         studyPostId: study.id,
         userId: userInfo.id,
       });
 
       if (response.status === 200) {
         setMyApplication(response.data);
+        alert('스터디 신청이 완료되었습니다.');
       }
     } catch (error) {
       console.error('스터디 신청 실패:', error);
@@ -76,26 +76,28 @@ export function StudyApplication({
   // 신청 상태 변경 (수락/거절)
   const handleStatusChange = async (
     applicationId: number,
-    newStatus: 'ACCEPTED' | 'REJECTED',
+    newStatus: 'APPROVED' | 'REJECTED',
   ) => {
     try {
-      const response = await axios.put(
-        `/api/study-signup/${applicationId}?status=${newStatus}`,
+      const response = await axios.patch(
+        `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/study-signup/${applicationId}?newStatus=${newStatus}`,
       );
 
       if (response.status === 200) {
         setApplications(prev =>
           prev.map(app =>
-            app.id === applicationId ? { ...app, status: newStatus } : app,
+            app.signupId === applicationId
+              ? { ...app, status: newStatus }
+              : app,
           ),
         );
 
-        if (newStatus === 'ACCEPTED') {
+        if (newStatus === 'APPROVED' && study.status === 'IN_PROGRESS') {
           const acceptedApplication = applications.find(
-            app => app.id === applicationId,
+            app => app.signupId === applicationId,
           );
           if (acceptedApplication) {
-            await axios.post(`/api/study-posts/${study.id}/participants`, {
+            await axios.post(`/api/study/${study.id}/participants`, {
               participantId: acceptedApplication.userId,
             });
           }
@@ -109,9 +111,7 @@ export function StudyApplication({
   // 신청 취소 기능
   const handleCancelApplication = async (applicationId: number) => {
     try {
-      const response = await axios.delete(
-        `/api/study-sign-up/${applicationId}?userId=${userInfo?.id}`,
-      );
+      const response = await axios.delete(`/api/study-signup/${applicationId}`);
 
       if (response.status === 200) {
         setMyApplication(null);
@@ -124,30 +124,15 @@ export function StudyApplication({
   // 스터디 마감 기능
   const handleCloseRecruitment = async () => {
     try {
-      const response = await axios.put(`/api/study-posts/${study.id}/close`);
+      const response = await axios.patch(`/api/study-posts/${study.id}/close`);
       if (response.status === 200) {
-        // 스터디 상태 업데이트
         setStudy(prev => {
           if (!prev) return prev;
           return {
             ...prev,
-            status: 'IN_PROGRESS',
+            status: 'CLOSED',
           };
         });
-
-        // 승인된 신청자들 자동으로 참가자로 추가
-        const acceptedApplications = applications.filter(
-          app => app.status === 'ACCEPTED',
-        );
-
-        // 승인된 신청자들을 참가자로 추가
-        await Promise.all(
-          acceptedApplications.map(app =>
-            axios.post(`/api/study-posts/${study.id}/participants`, {
-              participantId: app.userId,
-            }),
-          ),
-        );
       }
     } catch (error) {
       console.error('스터디 마감 실패:', error);
@@ -188,8 +173,8 @@ export function StudyApplication({
             </thead>
             <tbody>
               {applications.map(app => (
-                <tr key={app.id}>
-                  <td>{app.user.nickname}</td>
+                <tr key={app.signupId}>
+                  <td>{app.nickname}</td>
                   <td>{dayjs(app.createdAt).format('YYYY.MM.DD')}</td>
                   <td>{app.status}</td>
                   <td>
@@ -197,13 +182,17 @@ export function StudyApplication({
                       <div className="space-x-2">
                         <button
                           className="btn btn-success btn-xs"
-                          onClick={() => handleStatusChange(app.id, 'ACCEPTED')}
+                          onClick={() =>
+                            handleStatusChange(app.signupId, 'APPROVED')
+                          }
                         >
                           수락
                         </button>
                         <button
                           className="btn btn-error btn-xs"
-                          onClick={() => handleStatusChange(app.id, 'REJECTED')}
+                          onClick={() =>
+                            handleStatusChange(app.signupId, 'REJECTED')
+                          }
                         >
                           거절
                         </button>
@@ -225,12 +214,12 @@ export function StudyApplication({
         <div className="flex justify-between items-center w-full">
           <span>
             신청 상태: {myApplication.status === 'PENDING' && '검토 중'}
-            {myApplication.status === 'ACCEPTED' && '수락됨'}
+            {myApplication.status === 'APPROVED' && '수락됨'}
             {myApplication.status === 'REJECTED' && '거절됨'}
           </span>
           {myApplication.status === 'PENDING' && (
             <button
-              onClick={() => handleCancelApplication(myApplication.id)}
+              onClick={() => handleCancelApplication(myApplication.signupId)}
               className="btn btn-error btn-sm"
             >
               신청 취소
@@ -245,6 +234,18 @@ export function StudyApplication({
     return (
       <div className="alert alert-error">
         <span>{error}</span>
+      </div>
+    );
+  }
+
+  // 모집 상태가 아닌 경우 신청 버튼을 비활성화
+  if (study.status !== 'RECRUITING') {
+    return (
+      <div className="alert">
+        <span>
+          {study.status === 'CLOSED' && '모집 완료된 스터디입니다.'}
+          {study.status === 'CANCELED' && '취소된 스터디입니다.'}
+        </span>
       </div>
     );
   }

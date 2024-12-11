@@ -9,7 +9,7 @@ import { StudyFilter } from './StudyFilter';
 import { StudyCard } from './StudyCard';
 import KakaoMap from './KakaoMap';
 
-type FilterType = 'subjects' | 'status' | 'difficulty' | 'days';
+type FilterType = 'subjects' | 'status' | 'difficulty' | 'dayType';
 
 export default function HybridStudyList() {
   const router = useRouter();
@@ -24,7 +24,7 @@ export default function HybridStudyList() {
   const selectedSubjects = searchParams.getAll('subjects');
   const selectedStatus = searchParams.getAll('status');
   const selectedDifficulty = searchParams.getAll('difficulty');
-  const selectedDays = searchParams.getAll('days');
+  const selectedDays = searchParams.getAll('dayType');
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -76,7 +76,7 @@ export default function HybridStudyList() {
       selectedDifficulty.forEach(difficulty =>
         params.append('difficulty[]', difficulty),
       );
-      selectedDays.forEach(day => params.append('days[]', day));
+      selectedDays.forEach(day => params.append('dayType[]', day));
 
       const response = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/study-posts/search`,

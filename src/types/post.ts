@@ -2,7 +2,7 @@ export interface BasePost {
   id: number;
   title: string;
   content: string;
-  thumbnail?: string;
+  thumbnailImgUrl?: string;
   createdAt: string;
   updatedAt: string;
   userId: number;
@@ -34,7 +34,8 @@ export interface StudyPost {
   description: string;
   latitude?: number;
   longitude?: number;
-  status: 'RECRUITING' | 'IN_PROGRESS' | 'CANCELED';
+  address?: string;
+  status: 'RECRUITING' | 'IN_PROGRESS' | 'CLOSED' | 'CANCELED';
   thumbnailImgUrl: string | null;
   maxParticipants: number;
   currentParticipants: number;
