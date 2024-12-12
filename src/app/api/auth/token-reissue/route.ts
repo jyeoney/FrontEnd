@@ -5,8 +5,9 @@ import jwt from 'jsonwebtoken';
 import { setCookie } from '@/utils/cookies';
 
 export const POST = async (req: NextRequest) => {
-  const cookiesList = await cookies();
-  const refreshToken = cookiesList.get('refreshToken')?.value;
+  // const cookiesList = await cookies();
+  // const refreshToken = cookiesList.get('refreshToken')?.value;
+  const { refreshToken } = await req.json();
 
   if (!refreshToken) {
     return NextResponse.json(
@@ -15,12 +16,10 @@ export const POST = async (req: NextRequest) => {
     );
   }
 
-  const { email } = await req.json();
-
   try {
     const response = await axios.post(
       `${process.env.API_URL}/auth/token-reissue`, // 백엔드 API 실제 경로
-      { email, refreshToken },
+      { refreshToken },
       {
         headers: { 'Content-Type': 'application/json' },
       },
@@ -44,7 +43,11 @@ export const POST = async (req: NextRequest) => {
       const res = NextResponse.json({ message: '토큰 갱신 성공' });
 
       setCookie(res, 'accessToken', accessToken, accessTokenMaxAge);
-      return res;
+      res.headers.set('Authorization', `Bearer ${accessToken}`);
+      return (
+        NextResponse.json({ message: '토큰 갱신 성공' }),
+        { headers: res.headers }
+      );
     }
     return NextResponse.json(response.data, { status: response.status });
   } catch (error: any) {

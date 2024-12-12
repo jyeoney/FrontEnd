@@ -31,7 +31,7 @@ export default async function RootLayout({
         <Providers>
           {process.env.NEXT_PUBLIC_API_MOCKING === 'enabled' && <MSWProvider />}
           <div className="flex flex-col min-h-screen">
-            <Header initialSignedIn={isSignedIn} />
+            <Header />
             <main className="flex-1 container mx-auto px-4 py-8">
               {children}
             </main>
