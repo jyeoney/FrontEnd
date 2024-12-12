@@ -33,5 +33,8 @@ export const deleteCookie = (res: NextResponse, name: string) => {
     path: '/', // 쿠키의 유효 경로
     sameSite: 'strict',
     maxAge: 0,
+    // expires: new Date(0),
   });
+
+  console.log(`쿠키 삭제됨: ${name}`);
 };
