@@ -9,12 +9,13 @@ import {
   SUBJECT_OPTIONS,
   DIFFICULTY_OPTIONS,
   DAY_KOREAN,
-  StudyPost,
+  BaseStudyPost,
 } from '@/types/study';
 import { Location } from '@/types/location';
+import { useAuthStore } from '@/store/authStore';
 
 interface HybridFormProps {
-  initialData?: StudyPost;
+  initialData?: BaseStudyPost;
   isEdit?: boolean;
 }
 
@@ -26,17 +27,19 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [thumbnailPreview, setThumbnailPreview] = useState<string>('');
-
+  const [studyStartDate, setStudyStartDate] = useState<string>('');
+  const [recruitmentEndDate, setRecruitmentEndDate] = useState<string>('');
+  const { userInfo } = useAuthStore();
   useEffect(() => {
     if (initialData && isEdit) {
       setSelectedDays(initialData.dayType);
       setSelectedLocation({
-        latitude: initialData.latitude,
-        longitude: initialData.longitude,
-        address: initialData.address,
+        latitude: initialData.latitude || 0,
+        longitude: initialData.longitude || 0,
+        address: initialData.address || '',
       });
-      if (initialData.thumbnail) {
-        setThumbnailPreview(initialData.thumbnail);
+      if (initialData.thumbnailImgUrl) {
+        setThumbnailPreview(initialData.thumbnailImgUrl);
       }
     }
   }, [initialData, isEdit]);
@@ -74,17 +77,71 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
         thumbnailUrl = response.data.url;
       }
 
+      const requiredFields = {
+        title: (e.currentTarget.elements.namedItem('title') as HTMLInputElement)
+          .value,
+        studyName: (
+          e.currentTarget.elements.namedItem('studyName') as HTMLInputElement
+        ).value,
+        subject: (
+          e.currentTarget.elements.namedItem('subject') as HTMLSelectElement
+        ).value,
+        difficulty: (
+          e.currentTarget.elements.namedItem('difficulty') as HTMLSelectElement
+        ).value,
+        dayType: selectedDays,
+        startDate: (
+          e.currentTarget.elements.namedItem(
+            'studyStartDate',
+          ) as HTMLInputElement
+        ).value,
+        endDate: (
+          e.currentTarget.elements.namedItem('studyEndDate') as HTMLInputElement
+        ).value,
+        startTime: (
+          e.currentTarget.elements.namedItem(
+            'meetingStartTime',
+          ) as HTMLInputElement
+        ).value,
+        endTime: (
+          e.currentTarget.elements.namedItem(
+            'meetingEndTime',
+          ) as HTMLInputElement
+        ).value,
+        meetingType: 'HYBRID',
+        recruitmentPeriod: (
+          e.currentTarget.elements.namedItem(
+            'recruitmentEndDate',
+          ) as HTMLInputElement
+        ).value,
+        maxParticipants: Number(
+          (e.currentTarget.elements.namedItem('maxMembers') as HTMLInputElement)
+            .value,
+        ),
+        description: (
+          e.currentTarget.elements.namedItem(
+            'description',
+          ) as HTMLTextAreaElement
+        ).value,
+        userId: userInfo?.id,
+        latitude: selectedLocation?.latitude,
+        longitude: selectedLocation?.longitude,
+        address: selectedLocation?.address,
+        thumbnail: thumbnailUrl || '',
+      };
+
+      const maxMembers = formData.get('maxMembers');
       const studyData = {
         title: formData.get('title'),
         studyName: formData.get('studyName'),
-        content: formData.get('content'),
+        description: formData.get('description'),
         subject: formData.get('subject'),
         difficulty: formData.get('difficulty'),
         recruitmentStartDate: dayjs().format('YYYY-MM-DD'),
         recruitmentEndDate: formData.get('recruitmentEndDate'),
         studyStartDate: formData.get('studyStartDate'),
         studyEndDate: formData.get('studyEndDate'),
-        maxMembers: parseInt(formData.get('maxMembers') as string),
+        maxParticipants: maxMembers ? Number(maxMembers) + 1 : 2,
         startTime: formData.get('meetingStartTime') as string,
         endTime: formData.get('meetingEndTime') as string,
         status: 'RECRUITING',
@@ -94,12 +151,19 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
         longitude: selectedLocation?.longitude,
         address: selectedLocation?.address,
         thumbnail: thumbnailUrl || '/default-study-thumbnail.png',
+        userId: userInfo?.id,
       };
 
       if (isEdit && initialData) {
-        await axios.put(`/api/study-posts/${initialData.id}`, studyData);
+        await axios.post(`/api/study-posts/${initialData.id}`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        alert('스터디 글이 수정되었습니다!');
       } else {
         await axios.post('/api/study-posts', studyData);
+        alert('스터디 글이 작성되었습니다!');
       }
 
       router.push('/community/study');
@@ -108,6 +172,7 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
         isEdit ? '스터디 글 수정 실패:' : '스터디 글 작성 실패:',
         error,
       );
+      alert('스터디 글 작성에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsLoading(false);
     }
@@ -208,11 +273,12 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
         </label>
         <input
           type="date"
-          name="recruitmentPeriod"
+          name="recruitmentEndDate"
           defaultValue={initialData?.recruitmentPeriod}
           required
           className="input input-bordered"
           min={dayjs().format('YYYY-MM-DD')}
+          onChange={e => setRecruitmentEndDate(e.target.value)}
         />
       </div>
 
@@ -227,7 +293,8 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
             defaultValue={initialData?.startDate}
             required
             className="input input-bordered flex-1"
-            min={dayjs().format('YYYY-MM-DD')}
+            min={dayjs(recruitmentEndDate).format('YYYY-MM-DD')}
+            onChange={e => setStudyStartDate(e.target.value)}
           />
           <span className="self-center">~</span>
           <input
@@ -236,7 +303,8 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
             defaultValue={initialData?.endDate}
             required
             className="input input-bordered flex-1"
-            min={dayjs().format('YYYY-MM-DD')}
+            min={studyStartDate || dayjs().format('YYYY-MM-DD')}
+            disabled={!studyStartDate}
           />
         </div>
       </div>
@@ -249,16 +317,17 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
           type="number"
           name="maxMembers"
           required
-          min={2}
-          max={10}
-          defaultValue={initialData?.maxParticipants || 2}
+          min={1}
+          max={9}
+          defaultValue={
+            initialData?.maxParticipants ? initialData.maxParticipants - 1 : 1
+          }
           step={1}
           className="input input-bordered"
-          placeholder="2~10명 사이로 입력하세요"
-          onInput={(e: React.ChangeEvent<HTMLInputElement>) => {
+          placeholder="모집할 인원을 1~9명 사이로 입력하세요"
+          onChange={e => {
             const value = parseInt(e.target.value);
-            if (value < 2) e.target.value = '2';
-            if (value > 10) e.target.value = '10';
+            e.target.value = String(Math.min(Math.max(value, 1), 9));
           }}
         />
       </div>
@@ -323,8 +392,8 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
           <span className="label-text">스터디 소개</span>
         </label>
         <textarea
-          name="content"
-          defaultValue={initialData?.content}
+          name="description"
+          defaultValue={initialData?.description}
           required
           className="textarea textarea-bordered h-32"
           placeholder="스터디에 대해 자세히 설명해주세요"

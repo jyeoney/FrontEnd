@@ -25,7 +25,7 @@ export default function StudyParticipants({
 
   useEffect(() => {
     const fetchParticipants = async () => {
-      if (!study || study.status !== 'IN_PROGRESS') {
+      if (!study || study.status !== 'RECRUITING') {
         setIsLoading(false);
         return;
       }

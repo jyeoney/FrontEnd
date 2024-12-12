@@ -3,7 +3,7 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { StudyResponse, StudyPost } from '@/types/study';
+import { PostResponse, StudyPost } from '@/types/post';
 import { StudyFilter } from './StudyFilter';
 import { StudyCard } from './StudyCard';
 
@@ -20,7 +20,7 @@ export default function OnlineStudyList() {
   const selectedDifficulty = searchParams.getAll('difficulty');
   const selectedDays = searchParams.getAll('dayType');
 
-  const { data: posts, isLoading } = useQuery<StudyResponse>({
+  const { data: posts, isLoading } = useQuery<PostResponse<StudyPost>>({
     queryKey: [
       'studies',
       'online',

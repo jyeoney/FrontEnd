@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { Comment } from '@/types/comments';
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
@@ -15,6 +14,7 @@ dayjs.tz.setDefault('Asia/Seoul');
 
 interface CommentsProps {
   studyId: string;
+  postType: 'STUDY' | 'INFO' | 'QNA';
 }
 
 interface CommentResponse {
@@ -25,7 +25,27 @@ interface CommentResponse {
   number: number;
 }
 
-export default function Comments({ studyId }: CommentsProps) {
+interface Comment {
+  id: number;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  user?: {
+    id: number;
+    nickname: string;
+    email: string;
+    profileImageUrl: string | null;
+  };
+  userDto?: {
+    id: number;
+    nickname: string;
+    email: string;
+    profileImageUrl: string | null;
+  };
+  replies: Comment[];
+}
+
+export default function Comments({ studyId, postType }: CommentsProps) {
   const { isSignedIn } = useAuthStore();
   const [comments, setComments] = useState<Comment[]>([]);
   const [content, setContent] = useState('');
@@ -37,7 +57,7 @@ export default function Comments({ studyId }: CommentsProps) {
     const fetchComments = async () => {
       try {
         const response = await axios.get<CommentResponse>(
-          `${process.env.NEXT_PUBLIC_API_URL}/comments?post_id=${studyId}&post_type=STUDY&page=${page + 1}&size=5`,
+          `${process.env.NEXT_PUBLIC_API_URL}/comments?post_id=${studyId}&post_type=${postType}&page=${page + 1}&size=5`,
         );
         if (response.status === 200) {
           const { content: commentData, totalPages: total } = response.data;
@@ -51,7 +71,7 @@ export default function Comments({ studyId }: CommentsProps) {
     };
 
     fetchComments();
-  }, [studyId, page]);
+  }, [studyId, page, postType]);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -68,7 +88,7 @@ export default function Comments({ studyId }: CommentsProps) {
           : `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/comments`,
         {
           post_id: studyId,
-          post_type: 'STUDY',
+          post_type: postType,
           is_secret: false,
           content: content,
         },
@@ -76,15 +96,22 @@ export default function Comments({ studyId }: CommentsProps) {
 
       if (response.status === 200) {
         const newComment = response.data;
-        setComments(prev =>
-          replyTo
-            ? prev.map(comment =>
-                comment.id === replyTo
-                  ? { ...comment, replies: [...comment.replies, newComment] }
-                  : comment,
-              )
-            : [...prev, newComment],
-        );
+        if (replyTo) {
+          setComments(prev =>
+            prev.map(comment =>
+              comment.id === replyTo
+                ? {
+                    ...comment,
+                    replies: Array.isArray(comment.replies)
+                      ? [...comment.replies, newComment]
+                      : [newComment],
+                  }
+                : comment,
+            ),
+          );
+        } else {
+          setComments(prev => [...prev, { ...newComment, replies: [] }]);
+        }
         setContent('');
         setReplyTo(null);
         setPage(0);

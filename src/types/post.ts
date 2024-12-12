@@ -1,23 +1,40 @@
-export interface BasePost {
+// 공통으로 사용되는 User 인터페이스
+interface User {
   id: number;
-  title: string;
-  content: string;
-  thumbnailImgUrl?: string;
+  email: string;
+  profileImageUrl: string | null;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  userId: number;
 }
 
-export type InfoPost = BasePost;
-export type QnAPost = BasePost;
-
-export interface PostResponse<T> {
-  data: T[];
-  page: number;
-  size: number;
-  total_pages: number;
+// 정보공유 게시글
+export interface InfoPost {
+  id: number;
+  user: User & {
+    nickname: string;
+  };
+  thumbnailImgUrl: string | null;
+  title: string;
+  description: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
+// QnA 게시글
+export interface QnAPost {
+  id: number;
+  user: User & {
+    nickname: string;
+  };
+  title: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  thumbnailImgUrl: string | null;
+}
+
+// 스터디 게시글
 export interface StudyPost {
   id: number;
   title: string;
@@ -31,15 +48,25 @@ export interface StudyPost {
   endTime: string;
   meetingType: string;
   recruitmentPeriod: string;
-  content: string;
+  description: string;
   latitude?: number;
   longitude?: number;
   address?: string;
-  status: 'RECRUITING' | 'IN_PROGRESS' | 'CLOSED' | 'CANCELED';
+  status: 'RECRUITING' | 'CLOSED' | 'CANCELED';
   thumbnailImgUrl: string | null;
   maxParticipants: number;
   currentParticipants: number;
-  userId: number;
+  user: User & {
+    nickname: string;
+  };
   createdAt: string;
   updatedAt: string;
+}
+
+// 페이지네이션 응답 인터페이스
+export interface PostResponse<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalPages: number;
 }

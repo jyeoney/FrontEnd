@@ -7,7 +7,7 @@ import axios from 'axios';
 
 export default function InfoWritePage() {
   const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+  const [description, setDescription] = useState('');
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const { isSignedIn } = useAuthStore();
   const router = useRouter();
@@ -43,7 +43,7 @@ export default function InfoWritePage() {
       }
 
       formData.append('title', title);
-      formData.append('content', content);
+      formData.append('description', description);
 
       await axios.post('/api/info-posts', formData, {
         headers: {
@@ -100,9 +100,9 @@ export default function InfoWritePage() {
           <span className="label-text">내용</span>
         </label>
         <textarea
-          name="content"
-          value={content}
-          onChange={e => setContent(e.target.value)}
+          name="description"
+          value={description}
+          onChange={e => setDescription(e.target.value)}
           className="textarea textarea-bordered h-32"
           required
         />

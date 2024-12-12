@@ -8,12 +8,12 @@ import {
   SUBJECT_OPTIONS,
   DIFFICULTY_OPTIONS,
   DAY_KOREAN,
-  StudyPost,
+  BaseStudyPost,
 } from '@/types/study';
 import { useAuthStore } from '@/store/authStore';
 
 interface OnlineFormProps {
-  initialData?: StudyPost;
+  initialData?: BaseStudyPost;
   isEdit?: boolean;
 }
 
@@ -24,6 +24,8 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [thumbnailPreview, setThumbnailPreview] = useState<string>('');
   const { isSignedIn } = useAuthStore();
+  const [studyStartDate, setStudyStartDate] = useState<string>('');
+  const [recruitmentEndDate, setRecruitmentEndDate] = useState<string>('');
 
   useEffect(() => {
     if (!isSignedIn) {
@@ -34,8 +36,8 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
   useEffect(() => {
     if (initialData && isEdit) {
       setSelectedDays(initialData.dayType);
-      if (initialData.thumbnail) {
-        setThumbnailPreview(initialData.thumbnail);
+      if (initialData.thumbnailImgUrl) {
+        setThumbnailPreview(initialData.thumbnailImgUrl);
       }
     }
   }, [initialData, isEdit]);
@@ -46,22 +48,27 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
     );
   };
 
+  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setThumbnailPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const formData = new FormData();
-      const fileInput = e.currentTarget.querySelector(
-        'input[name="file"]',
-      ) as HTMLInputElement;
-      const file = fileInput.files?.[0];
-
-      if (file) {
-        formData.append('file', file);
+      const formData = new FormData(e.currentTarget);
+      const maxMembers = formData.get('maxMembers');
+      if (maxMembers) {
+        formData.set('maxMembers', String(Number(maxMembers) + 1));
       }
-
-      // 나머지 필드들 추가
       const requiredFields = {
         title: (e.currentTarget.elements.namedItem('title') as HTMLInputElement)
           .value,
@@ -138,6 +145,7 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
           alert('스터디 글이 작성되었습니다!');
         }
       }
+
       router.push('/community/study');
     } catch (error) {
       console.error(
@@ -147,17 +155,6 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
       alert('스터디 글 작성에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setThumbnailPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
     }
   };
 
@@ -274,7 +271,8 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
             defaultValue={initialData?.startDate}
             required
             className="input input-bordered flex-1"
-            min={dayjs().format('YYYY-MM-DD')}
+            min={dayjs(recruitmentEndDate).format('YYYY-MM-DD')}
+            onChange={e => setStudyStartDate(e.target.value)}
           />
           <span className="self-center">~</span>
           <input
@@ -283,7 +281,8 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
             defaultValue={initialData?.endDate}
             required
             className="input input-bordered flex-1"
-            min={dayjs().format('YYYY-MM-DD')}
+            min={studyStartDate || dayjs().format('YYYY-MM-DD')}
+            disabled={!studyStartDate}
           />
         </div>
       </div>
@@ -296,12 +295,18 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
           type="number"
           name="maxMembers"
           required
-          min={2}
-          max={10}
-          defaultValue={initialData?.maxParticipants || 2}
+          min={1}
+          max={9}
+          defaultValue={
+            initialData?.maxParticipants ? initialData.maxParticipants - 1 : 1
+          }
           step={1}
           className="input input-bordered"
-          placeholder="2~10명 사이로 입력하세요"
+          placeholder="모집할 인원을 1~9명 사이로 입력하세요"
+          onChange={e => {
+            const value = parseInt(e.target.value);
+            e.target.value = String(Math.min(Math.max(value, 1), 9));
+          }}
         />
       </div>
 
@@ -354,7 +359,7 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
         </label>
         <textarea
           name="content"
-          defaultValue={initialData?.content}
+          defaultValue={initialData?.description}
           required
           className="textarea textarea-bordered h-32"
           placeholder="스터디에 대해 자세히 설명해주세요"

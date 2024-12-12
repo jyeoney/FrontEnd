@@ -4,7 +4,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { StudyResponse, StudyPost } from '@/types/study';
+import { StudyResponse, BaseStudyPost } from '@/types/study';
 import { StudyFilter } from './StudyFilter';
 import { StudyCard } from './StudyCard';
 import KakaoMap from './KakaoMap';
@@ -126,10 +126,10 @@ export default function HybridStudyList() {
       <div className="h-[400px] bg-base-200 p-4 rounded-lg">
         <KakaoMap
           studies={
-            posts?.data?.filter(
+            posts?.content?.filter(
               (
                 study,
-              ): study is StudyPost & {
+              ): study is BaseStudyPost & {
                 latitude: number;
                 longitude: number;
                 address: string;
@@ -142,8 +142,8 @@ export default function HybridStudyList() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {isLoading ? (
           <div>로딩 중...</div>
-        ) : posts?.data ? (
-          posts.data.map((post: StudyPost) => (
+        ) : posts?.content ? (
+          posts.content.map((post: BaseStudyPost) => (
             <StudyCard key={post.id} post={post} />
           ))
         ) : (
@@ -153,7 +153,7 @@ export default function HybridStudyList() {
 
       <div className="flex justify-center mt-8">
         <div className="join">
-          {Array.from({ length: posts?.total_pages || 0 }).map((_, i) => (
+          {Array.from({ length: posts?.totalPages || 0 }).map((_, i) => (
             <button
               key={i}
               className={`join-item btn ${page === i ? 'btn-active' : ''}`}

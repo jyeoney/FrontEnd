@@ -1,14 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import OnlineForm from './components/OnlineForm';
 import HybridForm from './components/HybridForm';
 import { MEETING_TYPE } from '@/types/study';
+import { useSearchParams } from 'next/navigation';
 
 type StudyType = 'ONLINE' | 'HYBRID';
 
 export default function StudyWritePage() {
   const [studyType, setStudyType] = useState<StudyType>('ONLINE');
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const type = searchParams.get('type');
+    if (type === 'HYBRID') {
+      setStudyType('HYBRID');
+    }
+  }, [searchParams]);
 
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-6">

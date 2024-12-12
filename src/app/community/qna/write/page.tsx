@@ -9,7 +9,7 @@ export default function QnAWritePage() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [filePreview, setFilePreview] = useState<string | null>(null);
-  const { isSignedIn } = useAuthStore();
+  const { isSignedIn, userInfo } = useAuthStore();
   const router = useRouter();
 
   useEffect(() => {
@@ -44,6 +44,7 @@ export default function QnAWritePage() {
 
       formData.append('title', title);
       formData.append('content', content);
+      formData.append('author', userInfo?.email || '');
 
       await axios.post('/api/qna-posts', formData, {
         headers: {
