@@ -42,7 +42,7 @@ export default function QnADetailContent({ postId }: QnADetailContentProps) {
         <div className="mb-6">
           <h1 className="text-2xl font-bold mb-4">{post.title}</h1>
           <div className="flex justify-between text-sm text-base-content/60">
-            <span>작성자: {post.user.username}</span>
+            <span>작성자: {post.user.nickname}</span>
             <span>
               작성일: {dayjs(post.createdAt).format('YYYY.MM.DD HH:mm')}
             </span>

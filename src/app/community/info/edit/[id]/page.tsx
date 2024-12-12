@@ -8,8 +8,9 @@ import axios from 'axios';
 export default function InfoEditPage() {
   const params = useParams();
   const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [content, setContent] = useState('');
   const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { isSignedIn, userInfo } = useAuthStore();
   const router = useRouter();
 
@@ -33,7 +34,7 @@ export default function InfoEditPage() {
         }
 
         setTitle(post.title);
-        setDescription(post.description);
+        setContent(post.content);
         if (post.thumbnailImgUrl) {
           setFilePreview(post.thumbnailImgUrl);
         }
@@ -49,6 +50,7 @@ export default function InfoEditPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setFilePreview(reader.result as string);
@@ -59,26 +61,33 @@ export default function InfoEditPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('content', content);
+
+    // 새로운 파일이 첨부된 경우
+    if (selectedFile) {
+      formData.append('file', selectedFile);
+    }
+    // 기존 이미지가 있고 새로운 파일이 첨부되지 않은 경우
+    else if (
+      filePreview &&
+      filePreview !==
+        'https://devonoffbucket.s3.ap-northeast-2.amazonaws.com/default/thumbnail.png'
+    ) {
+      formData.append('thumbnailImgUrl', filePreview);
+    }
+    // 기본 이미지인 경우
+    else {
+      formData.append(
+        'thumbnailImgUrl',
+        'https://devonoffbucket.s3.ap-northeast-2.amazonaws.com/default/thumbnail.png',
+      );
+    }
+
     try {
-      const formData = new FormData();
-      const fileInput = (e.target as HTMLFormElement).querySelector(
-        'input[name="file"]',
-      ) as HTMLInputElement;
-      const file = fileInput.files?.[0];
-
-      if (file) {
-        formData.append('file', file);
-      }
-
-      formData.append('title', title);
-      formData.append('description', description);
-      formData.append('userId', userInfo?.id.toString() || '');
-
-      if (filePreview && !file) {
-        formData.append('thumbnailImgUrl', filePreview);
-      }
-
-      await axios.post(`/api/info-posts/${params.id}`, formData, {
+      await axios.put(`/api/info-posts/${params.id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -96,13 +105,27 @@ export default function InfoEditPage() {
         <label className="label">
           <span className="label-text">이미지</span>
         </label>
-        <input
-          type="file"
-          name="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          className="file-input file-input-bordered w-full"
-        />
+        <div className="flex gap-2 items-center">
+          <input
+            type="file"
+            name="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="file-input file-input-bordered w-full"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              setFilePreview(
+                'https://devonoffbucket.s3.ap-northeast-2.amazonaws.com/default/thumbnail.png',
+              );
+              setSelectedFile(null);
+            }}
+            className="btn btn-secondary"
+          >
+            기본 이미지로 변경
+          </button>
+        </div>
         {filePreview && (
           <div className="mt-2">
             <img
@@ -132,8 +155,8 @@ export default function InfoEditPage() {
           <span className="label-text">내용</span>
         </label>
         <textarea
-          value={description}
-          onChange={e => setDescription(e.target.value)}
+          value={content}
+          onChange={e => setContent(e.target.value)}
           className="textarea textarea-bordered h-32"
           required
         />

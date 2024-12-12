@@ -24,6 +24,8 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [thumbnailPreview, setThumbnailPreview] = useState<string>('');
   const { isSignedIn } = useAuthStore();
+  const [studyStartDate, setStudyStartDate] = useState<string>('');
+  const [recruitmentEndDate, setRecruitmentEndDate] = useState<string>('');
 
   useEffect(() => {
     if (!isSignedIn) {
@@ -63,6 +65,10 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
 
     try {
       const formData = new FormData(e.currentTarget);
+      const maxMembers = formData.get('maxMembers');
+      if (maxMembers) {
+        formData.set('maxMembers', String(Number(maxMembers) + 1));
+      }
       const requiredFields = {
         title: (e.currentTarget.elements.namedItem('title') as HTMLInputElement)
           .value,
@@ -265,7 +271,8 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
             defaultValue={initialData?.startDate}
             required
             className="input input-bordered flex-1"
-            min={dayjs().format('YYYY-MM-DD')}
+            min={dayjs(recruitmentEndDate).format('YYYY-MM-DD')}
+            onChange={e => setStudyStartDate(e.target.value)}
           />
           <span className="self-center">~</span>
           <input
@@ -274,7 +281,8 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
             defaultValue={initialData?.endDate}
             required
             className="input input-bordered flex-1"
-            min={dayjs().format('YYYY-MM-DD')}
+            min={studyStartDate || dayjs().format('YYYY-MM-DD')}
+            disabled={!studyStartDate}
           />
         </div>
       </div>
@@ -287,12 +295,18 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
           type="number"
           name="maxMembers"
           required
-          min={2}
-          max={10}
-          defaultValue={initialData?.maxParticipants || 2}
+          min={1}
+          max={9}
+          defaultValue={
+            initialData?.maxParticipants ? initialData.maxParticipants - 1 : 1
+          }
           step={1}
           className="input input-bordered"
-          placeholder="2~10명 사이로 입력하세요"
+          placeholder="모집할 인원을 1~9명 사이로 입력하세요"
+          onChange={e => {
+            const value = parseInt(e.target.value);
+            e.target.value = String(Math.min(Math.max(value, 1), 9));
+          }}
         />
       </div>
 

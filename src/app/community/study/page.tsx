@@ -1,21 +1,23 @@
 'use client';
 
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { MEETING_TYPE } from '@/types/study';
 import OnlineStudyList from './components/OnlineStudyList';
 import HybridStudyList from './components/HybridStudyList';
-import { MEETING_TYPE } from '@/types/study';
 import { useAuthStore } from '@/store/authStore';
 
 type StudyType = 'ONLINE' | 'HYBRID';
 
 export default function StudyListPage() {
+  const { isSignedIn } = useAuthStore();
+  const [studyType, setStudyType] = useState<StudyType>('ONLINE');
   const router = useRouter();
   const searchParams = useSearchParams();
-  const studyType = (searchParams.get('type') as StudyType) || 'ONLINE';
-  const { isSignedIn } = useAuthStore();
 
   const handleTypeChange = (type: StudyType) => {
+    setStudyType(type);
     const newSearchParams = new URLSearchParams(searchParams);
     const currentFilters = {
       page: newSearchParams.get('page'),
@@ -48,7 +50,10 @@ export default function StudyListPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">스터디 모집</h1>
         {isSignedIn && (
-          <Link href="/community/study/write" className="btn btn-primary">
+          <Link
+            href={`/community/study/write?type=${studyType}`}
+            className="btn btn-primary"
+          >
             스터디 모집하기
           </Link>
         )}

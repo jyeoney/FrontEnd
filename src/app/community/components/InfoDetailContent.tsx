@@ -32,7 +32,7 @@ export default function InfoDetailContent({ postId }: InfoDetailContentProps) {
     fetchPost();
   }, [postId]);
 
-  const isAuthor = isSignedIn && userInfo?.email === post?.userDto.email;
+  const isAuthor = isSignedIn && userInfo?.email === post?.user.email;
 
   if (!post) return <div>Loading...</div>;
 
@@ -42,7 +42,7 @@ export default function InfoDetailContent({ postId }: InfoDetailContentProps) {
         <div className="mb-6">
           <h1 className="text-2xl font-bold mb-4">{post.title}</h1>
           <div className="flex justify-between text-sm text-base-content/60">
-            <span>작성자: {post.userDto.nickname}</span>
+            <span>작성자: {post.user.nickname}</span>
             <span>
               작성일: {dayjs(post.createdAt).format('YYYY.MM.DD HH:mm')}
             </span>

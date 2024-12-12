@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
       longitude: formData.get('longitude')
         ? Number(formData.get('longitude'))
         : undefined,
+      address: formData.get('address') || undefined,
     };
 
     // FormData에 필드 추가

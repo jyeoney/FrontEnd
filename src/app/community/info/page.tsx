@@ -71,7 +71,7 @@ export default function InfoListPage() {
             </p>
             <div className="flex justify-between items-center mt-4">
               <div className="text-sm text-base-content/60">
-                작성자: {post.userDto.nickname}
+                작성자: {post.user.nickname}
               </div>
               <button
                 className="btn btn-primary btn-sm"

@@ -11,7 +11,7 @@ interface User {
 // 정보공유 게시글
 export interface InfoPost {
   id: number;
-  userDto: User & {
+  user: User & {
     nickname: string;
   };
   thumbnailImgUrl: string | null;
@@ -25,7 +25,7 @@ export interface InfoPost {
 export interface QnAPost {
   id: number;
   user: User & {
-    username: string;
+    nickname: string;
   };
   title: string;
   content: string;
