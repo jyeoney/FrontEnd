@@ -25,7 +25,8 @@ export const POST = async (
     );
 
     if (response.status === 200) {
-      const updatedUserInfo = response.data;
+      const { isActive, createdAt, updatedAt, ...updatedUserInfo } =
+        response.data;
       console.log('response data:', updatedUserInfo);
       return NextResponse.json(updatedUserInfo, { status: response.status });
     }
@@ -58,7 +59,8 @@ export const DELETE = async (
     );
 
     if (response.status === 200) {
-      const updatedUserInfo = response.data;
+      const { isActive, createdAt, updatedAt, ...updatedUserInfo } =
+        response.data;
       return NextResponse.json(updatedUserInfo, { status: response.status });
     }
   } catch (error: any) {
