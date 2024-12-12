@@ -50,7 +50,7 @@ export const useGroupChat = (chatRoomId: string) => {
 
     try {
       const socket = new SockJS(
-        `${process.env.NEXT_PUBLIC_BACKEND_SOCKET_URL}/ws` as string,
+        `${process.env.NEXT_PUBLIC_CHAT_SOCKET_URL}/ws` as string,
       );
       console.log('SockJS 생성 완료', {
         socketState: socket.readyState, // 0: connecting, 1: open, 2: closing, 3: closed
@@ -127,7 +127,7 @@ export const useGroupChat = (chatRoomId: string) => {
   const loadPreviousMessages = useCallback(async () => {
     try {
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_BACKEND_SOCKET_URL}/chat-room/${chatRoomId}/messages`,
+        `${process.env.NEXT_PUBLIC_CHAT_SOCKET_URL}/chat/${chatRoomId}/messages`,
       );
       const previousMessages = response.data;
       console.log('Previous messages:', previousMessages);
@@ -179,7 +179,7 @@ export const useGroupChat = (chatRoomId: string) => {
 
       try {
         stompClient.current?.publish({
-          destination: `/app/chat/${chatRoomId}/sendMessage`,
+          destination: `/app/chat/${chatRoomId}/send-messages`,
           body: JSON.stringify(messagePayload),
         });
         console.log('Message sent:', messagePayload);

@@ -1,6 +1,7 @@
 import { useGroupChat } from '@/hooks/useGroupChat';
 import MessageInput from './MessageInput';
 import { useEffect, useRef } from 'react';
+import { useAuthStore } from '@/store/authStore';
 interface ChatRoomProps {
   chatRoomId: string;
 }
@@ -8,6 +9,8 @@ interface ChatRoomProps {
 const ChatRoom = ({ chatRoomId }: ChatRoomProps) => {
   const { messages, chatState, sendMessage, connect } =
     useGroupChat(chatRoomId);
+  const { userInfo } = useAuthStore();
+  // const userId = userInfo?.id;
   const userId = 'user1';
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
