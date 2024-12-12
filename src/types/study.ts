@@ -1,30 +1,14 @@
-import { StudyPost as BaseStudyPost } from './post';
+import { StudyPost } from './post';
 
-export type StudySubject =
-  | 'CONCEPT_LEARNING'
-  | 'PROJECT'
-  | 'CHALLENGE'
-  | 'CERTIFICATION'
-  | 'JOB_PREPARATION'
-  | 'ETC';
-
-export interface StudyPost extends BaseStudyPost {
-  studyName: string;
-  dayType: string[];
-  startDate: string;
-  endDate: string;
-  startTime: string;
-  endTime: string;
-  recruitmentPeriod: string;
-  maxParticipants: number;
-  content: string;
-  latitude?: number;
-  longitude?: number;
-  address?: string;
-  thumbnailImgUrl?: string;
+export interface StudyApplication {
+  signupId: number;
+  userId: number;
+  nickname: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  createdAt: string;
 }
 
-export type { BaseStudyPost as StudyPostBase };
+export type { StudyPost as BaseStudyPost };
 
 export interface StudyResponse {
   content: StudyPost[];
@@ -32,7 +16,6 @@ export interface StudyResponse {
   size: number;
   totalPages: number;
 }
-
 export const SUBJECT_OPTIONS = {
   CONCEPT_LEARNING: '개념학습',
   PROJECT: '프로젝트',

@@ -1,22 +1,50 @@
 'use client';
 
 import { useAuthStore } from '@/store/authStore';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
-export default function InfoWritePage() {
+export default function InfoEditPage() {
+  const params = useParams();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [filePreview, setFilePreview] = useState<string | null>(null);
-  const { isSignedIn } = useAuthStore();
+  const { isSignedIn, userInfo } = useAuthStore();
   const router = useRouter();
 
   useEffect(() => {
     if (!isSignedIn) {
       router.push('/signin');
+      return;
     }
-  }, [isSignedIn]);
+
+    const fetchPost = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/info-posts/${params.id}`,
+        );
+        const post = response.data;
+
+        if (userInfo?.id !== post.userId) {
+          alert('수정 권한이 없습니다.');
+          router.push('/community/info');
+          return;
+        }
+
+        setTitle(post.title);
+        setDescription(post.description);
+        if (post.thumbnailImgUrl) {
+          setFilePreview(post.thumbnailImgUrl);
+        }
+      } catch (error) {
+        console.error('게시글 조회 실패:', error);
+        router.push('/community/info');
+      }
+    };
+
+    fetchPost();
+  }, [isSignedIn, params.id, router, userInfo?.id]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -44,16 +72,21 @@ export default function InfoWritePage() {
 
       formData.append('title', title);
       formData.append('description', description);
+      formData.append('userId', userInfo?.id.toString() || '');
 
-      await axios.post('/api/info-posts', formData, {
+      if (filePreview && !file) {
+        formData.append('thumbnailImgUrl', filePreview);
+      }
+
+      await axios.post(`/api/info-posts/${params.id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
-      router.push('/community/info');
+      router.push(`/community/info/${params.id}`);
     } catch (error) {
-      console.error('게시글 작성 실패:', error);
+      console.error('게시글 수정 실패:', error);
     }
   };
 
@@ -87,7 +120,6 @@ export default function InfoWritePage() {
         </label>
         <input
           type="text"
-          name="title"
           value={title}
           onChange={e => setTitle(e.target.value)}
           className="input input-bordered"
@@ -100,7 +132,6 @@ export default function InfoWritePage() {
           <span className="label-text">내용</span>
         </label>
         <textarea
-          name="description"
           value={description}
           onChange={e => setDescription(e.target.value)}
           className="textarea textarea-bordered h-32"
@@ -109,7 +140,7 @@ export default function InfoWritePage() {
       </div>
 
       <button type="submit" className="btn btn-primary w-full">
-        작성하기
+        수정하기
       </button>
     </form>
   );

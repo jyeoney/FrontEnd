@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
     const fields = {
       title: formData.get('title'),
       content: formData.get('content'),
+      author: formData.get('author'),
     };
 
     Object.entries(fields).forEach(([key, value]) => {
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest) {
     });
 
     const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/qna-posts`,
+      `${process.env.API_URL}/qna-posts`,
       transformedFormData,
       {
         headers: {
@@ -44,11 +45,7 @@ export async function POST(req: NextRequest) {
       },
     );
 
-    if (response.status !== 200) {
-      throw new Error('Q&A 글 작성 실패');
-    }
-
-    return NextResponse.json(response.data, { status: response.status });
+    return NextResponse.json(response.data);
   } catch (error) {
     console.error('API Route 에러:', error);
     return NextResponse.json(

@@ -47,8 +47,8 @@ export default function QnAListPage() {
   return (
     <PostList<QnAPost>
       title="Q&A"
-      posts={posts?.data || []}
-      totalPages={posts?.total_pages || 0}
+      posts={posts?.content || []}
+      totalPages={posts?.totalPages || 0}
       currentPage={page}
       isLoading={isLoading}
       onPageChange={setPage}
@@ -59,7 +59,7 @@ export default function QnAListPage() {
         <div key={post.id} className="card bg-base-100 shadow-xl">
           <figure className="px-4 pt-4">
             <img
-              src={post.thumbnail || '/default-qna-thumbnail.png'}
+              src={post.thumbnailImgUrl || '/default-qna-thumbnail.png'}
               alt={post.title}
               className="rounded-xl h-48 w-full object-cover"
             />
@@ -67,9 +67,13 @@ export default function QnAListPage() {
           <div className="card-body">
             <h2 className="card-title">{post.title}</h2>
             <p className="text-base-content/70">
-              {post.content.slice(0, 100)}...
+              {post.content?.slice(0, 100) || '내용이 없습니다.'}
+              {post.content && post.content.length > 100 ? '...' : ''}
             </p>
-            <div className="card-actions justify-end mt-4">
+            <div className="flex justify-between items-center mt-4">
+              <div className="text-sm text-base-content/60">
+                작성자: {post.user.nickname}
+              </div>
               <button
                 className="btn btn-primary btn-sm"
                 onClick={() => router.push(`/community/qna/${post.id}`)}

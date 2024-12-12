@@ -46,8 +46,8 @@ export default function InfoListPage() {
   return (
     <PostList<InfoPost>
       title="정보공유"
-      posts={posts?.data || []}
-      totalPages={posts?.total_pages || 0}
+      posts={posts?.content || []}
+      totalPages={posts?.totalPages || 0}
       currentPage={page}
       isLoading={isLoading}
       onPageChange={setPage}
@@ -58,7 +58,7 @@ export default function InfoListPage() {
         <div key={post.id} className="card bg-base-100 shadow-xl">
           <figure className="px-4 pt-4">
             <img
-              src={post.thumbnail || '/default-info-thumbnail.png'}
+              src={post.thumbnailImgUrl || '/default-info-thumbnail.png'}
               alt={post.title}
               className="rounded-xl h-48 w-full object-cover"
             />
@@ -66,9 +66,13 @@ export default function InfoListPage() {
           <div className="card-body">
             <h2 className="card-title">{post.title}</h2>
             <p className="text-base-content/70">
-              {post.content.slice(0, 100)}...
+              {post.description?.slice(0, 100) || '내용이 없습니다.'}
+              {post.description && post.description.length > 100 ? '...' : ''}
             </p>
-            <div className="card-actions justify-end mt-4">
+            <div className="flex justify-between items-center mt-4">
+              <div className="text-sm text-base-content/60">
+                작성자: {post.userDto.nickname}
+              </div>
               <button
                 className="btn btn-primary btn-sm"
                 onClick={() => router.push(`/community/info/${post.id}`)}

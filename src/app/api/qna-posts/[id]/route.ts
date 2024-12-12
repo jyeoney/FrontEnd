@@ -1,73 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
-import axios from 'axios';
 import { cookies } from 'next/headers';
+import axios from 'axios';
 
-export async function GET(
+export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
 ) {
-  try {
-    const response = await axios.get(
-      `${process.env.API_URL}/qna-posts/${params.id}`,
-    );
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get('accessToken')?.value;
 
-    const post = response.data;
-
-    // 응답 형식을 명세서에 맞게 변환
-    const formattedResponse = {
-      id: post.id,
-      user: {
-        id: post.user.id,
-        username: post.user.username,
-        email: post.user.email,
-        profileImageUrl: post.user.profileImageUrl,
-        isActive: post.user.isActive,
-        createdAt: post.user.createdAt,
-        updatedAt: post.user.updatedAt,
-      },
-      title: post.title,
-      content: post.content,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
-    };
-
-    return NextResponse.json(formattedResponse);
-  } catch (error) {
-    console.error('게시글 조회 실패:', error);
+  if (!accessToken) {
     return NextResponse.json(
-      { message: '게시글을 찾을 수 없습니다.' },
-      { status: 404 },
+      { message: '인증이 필요합니다.' },
+      { status: 401 },
     );
   }
-}
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-) {
   try {
     const formData = await req.formData();
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get('accessToken')?.value;
-
-    if (!accessToken) {
-      return NextResponse.json(
-        { message: '인증이 필요합니다.' },
-        { status: 401 },
-      );
-    }
-
-    const file = formData.get('thumbnail');
+    const file = formData.get('file');
     const transformedFormData = new FormData();
 
     if (file && file instanceof File) {
-      transformedFormData.append('thumbnail', file);
+      transformedFormData.append('file', file);
     }
 
     const fields = {
       title: formData.get('title'),
       content: formData.get('content'),
-      userId: formData.get('userId'),
+      author: formData.get('author'),
+      thumbnailImgUrl: formData.get('thumbnailImgUrl'),
     };
 
     Object.entries(fields).forEach(([key, value]) => {
@@ -76,28 +38,25 @@ export async function PUT(
       }
     });
 
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/qna-posts/${params.id}`,
+    const response = await axios.post(
+      `${process.env.API_URL}/qna-posts/${params.id}`,
+      transformedFormData,
       {
-        method: 'PUT',
         headers: {
           Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'multipart/form-data',
         },
-        body: transformedFormData,
       },
     );
 
-    if (!response.ok) {
-      throw new Error('Q&A 글 수정 실패');
-    }
-
-    const responseData = await response.json();
-    return NextResponse.json(responseData, { status: response.status });
-  } catch (error) {
-    console.error('API Route 에러:', error);
+    return NextResponse.json(response.data);
+  } catch (error: any) {
+    console.error('Q&A 글 수정 실패:', error);
     return NextResponse.json(
-      { message: 'Q&A 글 수정에 실패했습니다.' },
-      { status: 500 },
+      {
+        message: error.response?.data?.message || 'Q&A 글 수정에 실패했습니다.',
+      },
+      { status: error.response?.status || 500 },
     );
   }
 }

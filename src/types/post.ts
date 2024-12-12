@@ -6,16 +6,20 @@ export interface BasePost {
   createdAt: string;
   updatedAt: string;
   userId: number;
+  user: {
+    id: number;
+    username: string;
+  };
 }
 
 export type InfoPost = BasePost;
 export type QnAPost = BasePost;
 
 export interface PostResponse<T> {
-  data: T[];
+  content: T[];
   page: number;
   size: number;
-  total_pages: number;
+  totalPages: number;
 }
 
 export interface StudyPost {
@@ -35,11 +39,19 @@ export interface StudyPost {
   latitude?: number;
   longitude?: number;
   address?: string;
-  status: 'RECRUITING' | 'IN_PROGRESS' | 'CLOSED' | 'CANCELED';
+  status: 'RECRUITING' | 'CLOSED' | 'CANCELED';
   thumbnailImgUrl: string | null;
   maxParticipants: number;
   currentParticipants: number;
-  userId: number;
+  user: {
+    id: number;
+    nickname: string;
+    email: string;
+    profileImageUrl: string;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+  };
   createdAt: string;
   updatedAt: string;
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { StudyPost } from '@/types/study';
+import { BaseStudyPost } from '@/types/study';
 import { useAuthStore } from '@/store/authStore';
 import dayjs from 'dayjs';
 import Comments from './Comments';
@@ -19,7 +19,8 @@ export default function StudyDetailContent({
   studyId,
 }: StudyDetailContentProps) {
   const { isSignedIn, userInfo } = useAuthStore();
-  const [study, setStudy] = useState<StudyPost | null>(null);
+  const [study, setStudy] = useState<BaseStudyPost | null>(null);
+  const [participants, setParticipants] = useState<StudyParticipant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
@@ -46,7 +47,7 @@ export default function StudyDetailContent({
   if (isLoading) return <div>Loading...</div>;
   if (!study) return <div>스터디를 찾을 수 없습니다.</div>;
 
-  const isAuthor = isSignedIn && userInfo?.id === study.userId;
+  const isAuthor = isSignedIn && userInfo?.id === study.user?.id;
 
   const handleEdit = () => {
     router.push(`/community/study/edit/${studyId}`);
@@ -74,23 +75,53 @@ export default function StudyDetailContent({
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">{study.title}</h1>
-        {isAuthor && study.status === 'RECRUITING' && (
-          <div className="flex gap-2">
-            <button onClick={handleEdit} className="btn btn-primary">
-              수정하기
-            </button>
-            <button onClick={handleCancel} className="btn btn-error">
-              모집 취소
-            </button>
+      <div className="flex flex-col gap-4">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">{study.title}</h1>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500">
+              {study.createdAt.substring(0, 10)}
+            </span>
+            {isAuthor && study.status === 'RECRUITING' && (
+              <div className="flex gap-2">
+                <button onClick={handleEdit} className="btn btn-primary">
+                  수정하기
+                </button>
+                <button onClick={handleCancel} className="btn btn-error">
+                  모집 취소
+                </button>
+              </div>
+            )}
           </div>
-        )}
-      </div>
-      <div className="bg-base-100 shadow-xl rounded-lg p-6">
+        </div>
+
+        <div className="flex items-center gap-4 text-sm text-gray-500">
+          <span>작성자: {study.user?.nickname || '알 수 없음'}</span>
+        </div>
+
+        <div className="flex gap-8 mt-8">
+          <div className="flex-1 prose max-w-none whitespace-pre-wrap">
+            {study.description}
+          </div>
+
+          {study.thumbnailImgUrl && (
+            <div className="w-64 flex-shrink-0">
+              <img
+                src={study.thumbnailImgUrl}
+                alt="스터디 썸네일"
+                className="w-full h-auto rounded-lg shadow-lg"
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="divider" />
+
         {/* 스터디 기본 정보 */}
         <div className="mb-6">
           <div className="grid grid-cols-2 gap-4 text-sm text-base-content/70">
+            <p>스터디명: {study.studyName}</p>
+            <p>난이도: {study.difficulty}</p>
             <p>
               모집 기한: {dayjs(study.recruitmentPeriod).format('YYYY.MM.DD')}
               까지
@@ -99,30 +130,31 @@ export default function StudyDetailContent({
               모집 인원: {study.currentParticipants}/{study.maxParticipants}명
             </p>
             <p>
-              스터디 기간: {dayjs(study.startDate).format('YYYY.MM.DD')} ~
+              스터디 기간: {dayjs(study.startDate).format('YYYY.MM.DD')} ~{' '}
               {dayjs(study.endDate).format('YYYY.MM.DD')}
             </p>
+            <p>
+              스터디 시간: {study.startTime} ~ {study.endTime}
+            </p>
             <p>스터디 요일: {study.dayType.join(', ')}</p>
+            <p>진행 방식: {study.meetingType}</p>
           </div>
         </div>
 
-        {/* 스터디 상세 내용 */}
-        <div className="prose max-w-none mb-8">
-          <div dangerouslySetInnerHTML={{ __html: study.content }} />
-        </div>
-
-        {/* 참여자 목록 */}
-        <StudyParticipants studyId={studyId} />
+        {/* 모집 완료된 경우에만 참여자 목록 표시 */}
+        {study.status === 'CLOSED' && <StudyParticipants study={study} />}
 
         {/* 댓글 섹션 */}
         <Comments studyId={studyId} />
 
-        {/* 신청 섹션 */}
-        <StudyApplication
-          study={study}
-          isAuthor={isAuthor}
-          setStudy={setStudy}
-        />
+        {/* 모집 중일 때만 신청 섹션 표시 */}
+        {study.status === 'RECRUITING' && (
+          <StudyApplication
+            study={study}
+            isAuthor={isAuthor}
+            setStudy={setStudy}
+          />
+        )}
       </div>
       {study.meetingType === 'HYBRID' &&
         study.latitude &&

@@ -97,9 +97,15 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
       };
 
       if (isEdit && initialData) {
-        await axios.put(`/api/study-posts/${initialData.id}`, studyData);
+        await axios.post(`/api/study-posts/${initialData.id}`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        alert('스터디 글이 수정되었습니다!');
       } else {
         await axios.post('/api/study-posts', studyData);
+        alert('스터디 글이 작성되었습니다!');
       }
 
       router.push('/community/study');
@@ -108,6 +114,7 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
         isEdit ? '스터디 글 수정 실패:' : '스터디 글 작성 실패:',
         error,
       );
+      alert('스터디 글 작성에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsLoading(false);
     }

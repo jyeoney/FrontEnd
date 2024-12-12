@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
-import { StudyPost } from '@/types/study';
+import { StudyPost } from '@/types/post';
 
 interface StudyCardProps {
   post: StudyPost;

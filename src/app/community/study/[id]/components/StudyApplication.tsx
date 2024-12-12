@@ -1,7 +1,7 @@
 'use client';
 
-import { StudyPost } from '@/types/study';
-import { Application } from '@/types/application';
+import { StudyPost } from '@/types/post';
+import type { StudyApplication } from '@/types/study';
 import { useAuthStore } from '@/store/authStore';
 import { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
@@ -17,8 +17,10 @@ export function StudyApplication({
   setStudy: React.Dispatch<React.SetStateAction<StudyPost | null>>;
 }) {
   const { userInfo, isSignedIn } = useAuthStore();
-  const [applications, setApplications] = useState<Application[]>([]);
-  const [myApplication, setMyApplication] = useState<Application | null>(null);
+  const [applications, setApplications] = useState<StudyApplication[]>([]);
+  const [myApplication, setMyApplication] = useState<StudyApplication | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,7 +39,7 @@ export function StudyApplication({
           setApplications(data);
         } else {
           const myApp = data.find(
-            (app: Application) => app.userId === userInfo?.id,
+            (app: StudyApplication) => app.userId === userInfo?.id,
           );
           setMyApplication(myApp || null);
         }
