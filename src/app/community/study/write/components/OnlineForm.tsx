@@ -34,8 +34,8 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
   useEffect(() => {
     if (initialData && isEdit) {
       setSelectedDays(initialData.dayType);
-      if (initialData.thumbnail) {
-        setThumbnailPreview(initialData.thumbnail);
+      if (initialData.thumbnailImgUrl) {
+        setThumbnailPreview(initialData.thumbnailImgUrl);
       }
     }
   }, [initialData, isEdit]);

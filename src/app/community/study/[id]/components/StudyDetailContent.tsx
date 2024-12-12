@@ -100,7 +100,7 @@ export default function StudyDetailContent({
 
         <div className="flex gap-8 mt-8">
           <div className="flex-1 prose max-w-none whitespace-pre-wrap">
-            {study.description}
+            {study.description || '내용이 없습니다.'}
           </div>
 
           {study.thumbnailImgUrl && (

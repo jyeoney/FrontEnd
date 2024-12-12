@@ -9,12 +9,12 @@ import {
   SUBJECT_OPTIONS,
   DIFFICULTY_OPTIONS,
   DAY_KOREAN,
-  StudyPost,
+  BaseStudyPost,
 } from '@/types/study';
 import { Location } from '@/types/location';
 
 interface HybridFormProps {
-  initialData?: StudyPost;
+  initialData?: BaseStudyPost;
   isEdit?: boolean;
 }
 
@@ -31,12 +31,12 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
     if (initialData && isEdit) {
       setSelectedDays(initialData.dayType);
       setSelectedLocation({
-        latitude: initialData.latitude,
-        longitude: initialData.longitude,
-        address: initialData.address,
+        latitude: initialData.latitude || 0,
+        longitude: initialData.longitude || 0,
+        address: initialData.address || '',
       });
-      if (initialData.thumbnail) {
-        setThumbnailPreview(initialData.thumbnail);
+      if (initialData.thumbnailImgUrl) {
+        setThumbnailPreview(initialData.thumbnailImgUrl);
       }
     }
   }, [initialData, isEdit]);
@@ -331,7 +331,7 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
         </label>
         <textarea
           name="content"
-          defaultValue={initialData?.content}
+          defaultValue={initialData?.description}
           required
           className="textarea textarea-bordered h-32"
           placeholder="스터디에 대해 자세히 설명해주세요"
