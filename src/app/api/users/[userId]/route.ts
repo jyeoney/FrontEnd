@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
-import { cookies } from 'next/headers';
 
 export const PUT = async (
   request: NextRequest,
@@ -28,7 +27,9 @@ export const PUT = async (
     );
 
     if (response.status === 200) {
-      const updatedUserInfo = response.data;
+      const { isActive, createdAt, updatedAt, ...updatedUserInfo } =
+        response.data;
+
       return NextResponse.json(updatedUserInfo, { status: response.status });
     }
   } catch (error: any) {
