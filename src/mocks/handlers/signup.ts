@@ -9,7 +9,7 @@ export const signUpHandlers = [
         ctx.status(400),
         ctx.json({
           errorCode: 'INVALID_EMAIL',
-          message: '이메일을 입력해 주세요.',
+          errorMessage: '이메일을 입력해 주세요.',
         }),
       );
     }
@@ -19,7 +19,7 @@ export const signUpHandlers = [
         ctx.status(400),
         ctx.json({
           errorCode: 'EMAIL_ALREADY_REGISTERED',
-          message: '이미 사용 중인 이메일입니다.',
+          errorMessage: '이미 사용 중인 이메일입니다.',
         }),
       );
     }
@@ -37,7 +37,7 @@ export const signUpHandlers = [
         ctx.status(400),
         ctx.json({
           errorCode: 'INVALID_EMAIL',
-          message: '이메일을 입력해주세요.',
+          errorMessage: '이메일을 입력해주세요.',
         }),
       );
     }
@@ -61,7 +61,7 @@ export const signUpHandlers = [
         ctx.status(400),
         ctx.json({
           errorCode: 'INVALID_CODE',
-          message: '인증 코드를 입력해주세요.',
+          errorMessage: '인증 코드를 입력해주세요.',
         }),
       );
     }
@@ -70,7 +70,7 @@ export const signUpHandlers = [
         ctx.status(400),
         ctx.json({
           errorCode: 'VALIDATION_FAILED',
-          message: '인증 코드가 일치하지 않습니다.',
+          errorMessage: '인증 코드가 일치하지 않습니다.',
         }),
       );
     }
@@ -91,7 +91,7 @@ export const signUpHandlers = [
         ctx.status(400),
         ctx.json({
           errorCode: 'INVALID_NICKNAME',
-          message: '닉네임을 입력해주세요.',
+          errorMessage: '닉네임을 입력해주세요.',
         }),
       );
     }
@@ -101,7 +101,7 @@ export const signUpHandlers = [
         ctx.status(400),
         ctx.json({
           errorCode: 'NICKNAME_ALREADY_REGISTERED',
-          message: '이미 사용 중인 닉네임입니다.',
+          errorMessage: '이미 사용 중인 닉네임입니다.',
         }),
       );
     }
@@ -121,7 +121,7 @@ export const signUpHandlers = [
         ctx.status(400),
         ctx.json({
           errorCode: 'INVALID_EMAIL',
-          message: '이메일을 입력하세요.',
+          errorMessage: '이메일을 입력하세요.',
         }),
       );
     }
@@ -146,7 +146,7 @@ export const signUpHandlers = [
         ctx.status(400),
         ctx.json({
           errorCode: 'INVALID_NICKNAME',
-          message: '닉네임을 입력하세요.',
+          errorMessage: '닉네임을 입력하세요.',
         }),
       );
     }

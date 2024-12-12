@@ -1,12 +1,13 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { UserInfo, useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/store/authStore';
 import axios from 'axios';
 import CustomConfirm from '@/components/common/Confirm';
 import CustomAlert from '@/components/common/Alert';
+import { useRouter } from 'next/navigation';
 
 const UserInfoView = () => {
-  const { userInfo, setUserInfo } = useAuthStore();
+  const { userInfo, setUserInfo, resetStore } = useAuthStore();
   const [nickname, setNickname] = useState(userInfo?.nickname || '');
   const [profileImageUrl, setProfileImageUrl] = useState(
     userInfo?.profileImageUrl || '/default-profile-image.png',
@@ -19,6 +20,8 @@ const UserInfoView = () => {
   const [onConfirmCallback, setOnConfirmCallback] = useState<() => void>(
     () => () => {},
   );
+
+  const router = useRouter();
 
   useEffect(() => {
     if (userInfo) {
@@ -55,7 +58,8 @@ const UserInfoView = () => {
           const { status, data } = error.response;
           console.log('error:' + error.response);
           const message =
-            data?.message || '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+            data?.errorMessage ||
+            '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
 
           if (status === 404) {
             setAlertMessage(message);
@@ -121,7 +125,8 @@ const UserInfoView = () => {
           const { status, data } = error.response;
           console.log(`error: ${error.response.data}`);
           const message =
-            data?.message || '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+            data?.errorMessage ||
+            '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
 
           if (status === 404) {
             setAlertMessage(message);
@@ -165,6 +170,57 @@ const UserInfoView = () => {
     );
   };
 
+  const handleWithdrawalButtonClick = () => {
+    setConfirmMessage(
+      '회원 탈퇴를 진행하시겠습니까? 탈퇴 시 회원 정보 및 모든 데이터가 삭제되며 복구할 수 없습니다.',
+    );
+    setOnConfirmCallback(() => async () => {
+      try {
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/auth/withdrawal`,
+          {
+            headers: { 'Content-Type': 'application/json' },
+          },
+        );
+
+        if (response.status === 200) {
+          const updatedUserInfo = response.data;
+          resetStore();
+          router.push('/');
+          setAlertMessage(
+            '회원 탈퇴가 완료되었습니다. 이용해 주셔서 감사합니다.',
+          );
+          setShowAlert(true);
+        }
+      } catch (error: any) {
+        if (error.response) {
+          const { status, data } = error.response;
+          console.log('error:' + error.response);
+          const message =
+            data?.errorMessage ||
+            '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+          if (status === 400) {
+            setAlertMessage('잘못된 요청입니다.');
+          } else if (status === 404) {
+            setAlertMessage('사용자를 찾을 수 없습니다.');
+          } else {
+            setAlertMessage(
+              '서버에 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+            );
+          }
+        } else {
+          setAlertMessage(
+            '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+          );
+        }
+        setShowAlert(true);
+      } finally {
+        setShowConfirm(false);
+      }
+    });
+    setShowConfirm(true);
+  };
+
   const handleNicknameButtonClick = async () => {
     setConfirmMessage('닉네임을 변경하시겠습니까?');
     setOnConfirmCallback(() => async () => {
@@ -193,7 +249,8 @@ const UserInfoView = () => {
           const { status, data } = error.response;
           const errorCode = data?.errorCode;
           const message =
-            data?.message || '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+            data?.errorMessage ||
+            '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
 
           if (status === 404) {
             setAlertMessage(message);
@@ -275,7 +332,8 @@ const UserInfoView = () => {
       <div className="flex flex-col w-full md:w-2/3 space-y-6">
         <div className="space-y-4">
           <div className="flex flex-col md:flex-row items-center gap-4">
-            <label className="font-medium text-lg w-full md:w-1/3">
+            {/* 공통 라벨 스타일 추가 */}
+            <label className="font-medium text-lg w-32 md:w-1/3 text-right">
               닉네임
             </label>
             <input
@@ -290,17 +348,24 @@ const UserInfoView = () => {
             >
               닉네임 변경
             </button>
+            <button className="btn btn-secondary w-full md:w-auto">
+              비밀번호 변경
+            </button>
           </div>
 
           <div className="flex flex-col md:flex-row items-center gap-4">
-            <label className="font-medium text-lg w-full md:w-1/3">
+            {/* 동일한 라벨 너비로 정렬 */}
+            <label className="font-medium text-lg w-32 md:w-1/3 text-right">
               이메일
             </label>
             <div className="input input-bordered w-full cursor-not-allowed bg-gray-100 flex items-center justify-center">
               {userInfo?.email}
             </div>
-            <button className="btn btn-secondary w-full md:w-auto">
-              비밀번호 변경
+            <button
+              className="btn btn-accent w-full md:w-auto"
+              onClick={handleWithdrawalButtonClick}
+            >
+              회원 탈퇴
             </button>
           </div>
         </div>

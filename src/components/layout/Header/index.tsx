@@ -84,24 +84,23 @@ const Header = () => {
       console.log('data: ' + data);
 
       const message =
-        data?.message || '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+        data?.errorMessage || '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
       if (error.response) {
         if (status === 400) {
           setAlertMessage('로그아웃에 실패했습니다. 다시 시도해 주세요.');
-          setShowAlert(true);
-        } else if (status === 403) {
+        } else if (status === 404) {
           setAlertMessage('사용자를 찾을 수 없습니다.');
-          setShowAlert(true);
         } else {
-          setAlertMessage('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
-          setShowAlert(true);
+          setAlertMessage(
+            '서버에 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+          );
         }
       } else {
         setAlertMessage(
           '서버에 연결할 수 없습니다. 네트워크 상태를 확인해 주세요.',
         );
-        setShowAlert(true);
       }
+      setShowAlert(true);
     } finally {
       setShowConfirm(false);
     }

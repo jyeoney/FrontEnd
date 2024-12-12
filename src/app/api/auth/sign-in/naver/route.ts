@@ -1,9 +1,3 @@
-// import { NextRequest, NextResponse } from 'next/server';
-
-// export const GET = async (req: NextRequest) => {
-//   const kakaoAuthURL = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID}&redirect_uri=${process.env.KAKAO_REDIRECT_URI}`;
-//   return NextResponse.redirect(kakaoAuthURL);
-// };
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
@@ -20,7 +14,7 @@ export const POST = async (request: NextRequest) => {
 
   try {
     const response = await axios.post(
-      `${process.env.API_URL}/auth/sign-in/kakao`,
+      `${process.env.API_URL}/auth/sign-in/naver`,
       { code },
       {
         headers: {
@@ -31,7 +25,7 @@ export const POST = async (request: NextRequest) => {
 
     if (response.status === 200) {
       const { accessToken, refreshToken } = response.data;
-      const res = NextResponse.json({ message: '로그인 성공' });
+      const res = NextResponse.json({ message: '네이버 로그인 성공' });
       const apiUrl = process.env.API_URL;
 
       if (!apiUrl) {
@@ -54,7 +48,7 @@ export const POST = async (request: NextRequest) => {
   } catch (error: any) {
     if (error.response) {
       const { status } = error.response;
-      return NextResponse.json('카카오 로그인에 실패했습니다.', { status });
+      return NextResponse.json('네이버 로그인에 실패했습니다.', { status });
     }
     return NextResponse.json(
       { message: '네트워크 오류가 발생했습니다.' },
