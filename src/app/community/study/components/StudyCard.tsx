@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
-import { StudyPost } from '@/types/study';
+import { StudyPost } from '@/types/post';
 
 interface StudyCardProps {
   post: StudyPost;
@@ -12,7 +12,10 @@ export function StudyCard({ post }: StudyCardProps) {
   const router = useRouter();
 
   return (
-    <div className="card bg-base-100 shadow-xl">
+    <div
+      className="card bg-base-100 shadow-xl cursor-pointer"
+      onClick={() => router.push(`/community/study/${post.id}`)}
+    >
       <figure className="px-4 pt-4">
         <img
           src={post.thumbnailImgUrl || '/default-study-thumbnail.png'}
@@ -52,12 +55,7 @@ export function StudyCard({ post }: StudyCardProps) {
           </div>
         </div>
         <div className="card-actions justify-end mt-4">
-          <button
-            className="btn btn-primary btn-sm"
-            onClick={() => router.push(`/community/study/${post.id}`)}
-          >
-            상세보기
-          </button>
+          <button className="btn btn-primary btn-sm">상세보기</button>
         </div>
       </div>
     </div>
