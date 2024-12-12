@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import { QnAPost } from '@/types/post';
+import Comments from '@/app/community/study/[id]/components/Comments';
 
 interface QnADetailContentProps {
   postId: string;
@@ -89,6 +90,10 @@ export default function QnADetailContent({ postId }: QnADetailContentProps) {
             </button>
           </div>
         )}
+
+        <div className="mt-8">
+          <Comments studyId={postId} postType="QNA" />
+        </div>
       </div>
     </div>
   );

@@ -145,7 +145,7 @@ export default function StudyDetailContent({
         {study.status === 'CLOSED' && <StudyParticipants study={study} />}
 
         {/* 댓글 섹션 */}
-        <Comments studyId={studyId} />
+        <Comments studyId={studyId} postType="STUDY" />
 
         {/* 모집 중일 때만 신청 섹션 표시 */}
         {study.status === 'RECRUITING' && (
