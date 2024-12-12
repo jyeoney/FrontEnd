@@ -94,7 +94,7 @@ export function StudyApplication({
           ),
         );
 
-        if (newStatus === 'APPROVED' && study.status === 'IN_PROGRESS') {
+        if (newStatus === 'APPROVED' && study.status === 'RECRUITING') {
           const acceptedApplication = applications.find(
             app => app.signupId === applicationId,
           );

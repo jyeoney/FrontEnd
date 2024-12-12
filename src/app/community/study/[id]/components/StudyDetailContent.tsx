@@ -20,7 +20,6 @@ export default function StudyDetailContent({
 }: StudyDetailContentProps) {
   const { isSignedIn, userInfo } = useAuthStore();
   const [study, setStudy] = useState<BaseStudyPost | null>(null);
-  const [participants, setParticipants] = useState<StudyParticipant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
@@ -142,7 +141,9 @@ export default function StudyDetailContent({
         </div>
 
         {/* 모집 완료된 경우에만 참여자 목록 표시 */}
-        {study.status === 'CLOSED' && <StudyParticipants study={study} />}
+        {study.status === 'CLOSED' && (
+          <StudyParticipants study={study} studyId={study.id.toString()} />
+        )}
 
         {/* 댓글 섹션 */}
         <Comments studyId={studyId} postType="STUDY" />

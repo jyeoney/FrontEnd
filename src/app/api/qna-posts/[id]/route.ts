@@ -76,7 +76,7 @@ export async function DELETE(
   }
 
   try {
-    await axios.delete(`${process.env.API_BASE_URL}/qna-posts/${params.id}`, {
+    await axios.delete(`${process.env.API_URL}/qna-posts/${params.id}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },

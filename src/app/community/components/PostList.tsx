@@ -2,8 +2,9 @@
 
 import { debounce } from 'lodash';
 import { useCallback } from 'react';
-import { BasePost } from '@/types/post';
-interface PostListProps<T extends BasePost> {
+import { InfoPost, QnAPost } from '@/types/post';
+
+interface PostListProps<T extends InfoPost | QnAPost> {
   title: string;
   posts: T[];
   totalPages: number;
@@ -18,7 +19,7 @@ interface PostListProps<T extends BasePost> {
   isSignedIn?: boolean;
 }
 
-export function PostList<T extends BasePost>({
+export function PostList<T extends InfoPost | QnAPost>({
   title,
   posts,
   totalPages,

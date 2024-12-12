@@ -1,27 +1,40 @@
-export interface BasePost {
+// 공통으로 사용되는 User 인터페이스
+interface User {
   id: number;
-  title: string;
-  content: string;
-  thumbnailImgUrl?: string;
+  email: string;
+  profileImageUrl: string | null;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  userId: number;
-  user: {
-    id: number;
+}
+
+// 정보공유 게시글
+export interface InfoPost {
+  id: number;
+  userDto: User & {
+    nickname: string;
+  };
+  thumbnailImgUrl: string | null;
+  title: string;
+  description: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// QnA 게시글
+export interface QnAPost {
+  id: number;
+  user: User & {
     username: string;
   };
+  title: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  thumbnailImgUrl: string | null;
 }
 
-export type InfoPost = BasePost;
-export type QnAPost = BasePost;
-
-export interface PostResponse<T> {
-  content: T[];
-  page: number;
-  size: number;
-  totalPages: number;
-}
-
+// 스터디 게시글
 export interface StudyPost {
   id: number;
   title: string;
@@ -43,15 +56,17 @@ export interface StudyPost {
   thumbnailImgUrl: string | null;
   maxParticipants: number;
   currentParticipants: number;
-  user: {
-    id: number;
+  user: User & {
     nickname: string;
-    email: string;
-    profileImageUrl: string;
-    isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
   };
   createdAt: string;
   updatedAt: string;
+}
+
+// 페이지네이션 응답 인터페이스
+export interface PostResponse<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalPages: number;
 }

@@ -32,7 +32,7 @@ export default function InfoDetailContent({ postId }: InfoDetailContentProps) {
     fetchPost();
   }, [postId]);
 
-  const isAuthor = isSignedIn && userInfo?.id === post?.userId;
+  const isAuthor = isSignedIn && userInfo?.email === post?.userDto.email;
 
   if (!post) return <div>Loading...</div>;
 
@@ -51,7 +51,7 @@ export default function InfoDetailContent({ postId }: InfoDetailContentProps) {
 
         <div className="flex gap-8">
           <div className="flex-1 prose max-w-none">
-            <div dangerouslySetInnerHTML={{ __html: post.description }} />
+            <div dangerouslySetInnerHTML={{ __html: post.description || '' }} />
           </div>
 
           {post.thumbnailImgUrl && (
