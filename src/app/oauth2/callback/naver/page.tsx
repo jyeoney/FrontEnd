@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import CustomAlert from '@/components/common/Alert';
 
-const KakaoCallbackPage = () => {
+const NaverCallbackPage = () => {
   const searchParams = useSearchParams();
   const code = searchParams.get('code');
   console.log(`code: ${code}`);
@@ -16,9 +16,9 @@ const KakaoCallbackPage = () => {
   const [alertMessage, setAlertMessage] = useState('');
 
   useEffect(() => {
-    const sendKakaoAuthCode = async () => {
+    const sendNaverAuthCode = async () => {
       if (!code) {
-        setAlertMessage('카카오 인증 코드가 없습니다.');
+        setAlertMessage('네이버 인증 코드가 없습니다.');
         setShowAlert(true);
         router.push('/signin');
         return;
@@ -26,7 +26,7 @@ const KakaoCallbackPage = () => {
 
       try {
         const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/auth/sign-in/kakao`,
+          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/auth/sign-in/naver`,
           {
             code,
           },
@@ -56,7 +56,7 @@ const KakaoCallbackPage = () => {
             setShowAlert(true);
           } else {
             setAlertMessage(
-              '카카오 로그인에 실패했습니다. 다시 시도해 주세요.',
+              '네이버 로그인에 실패했습니다. 다시 시도해 주세요.',
             );
             setShowAlert(true);
           }
@@ -69,7 +69,7 @@ const KakaoCallbackPage = () => {
       }
     };
 
-    sendKakaoAuthCode();
+    sendNaverAuthCode();
   }, [code]);
 
   return (
@@ -84,4 +84,4 @@ const KakaoCallbackPage = () => {
   );
 };
 
-export default KakaoCallbackPage;
+export default NaverCallbackPage;

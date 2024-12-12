@@ -48,7 +48,7 @@ export interface StudyPost {
   endTime: string;
   meetingType: string;
   recruitmentPeriod: string;
-  description: string;
+  content: string;
   latitude?: number;
   longitude?: number;
   address?: string;

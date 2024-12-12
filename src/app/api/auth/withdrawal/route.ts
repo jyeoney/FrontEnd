@@ -8,7 +8,7 @@ export const POST = async (req: NextRequest) => {
   const accessToken = cookieStore.get('accessToken')?.value;
   try {
     await axios.post(
-      `${process.env.API_URL}/auth/sign-out`,
+      `${process.env.API_URL}/auth/withdrawal`,
       {},
       {
         headers: {
@@ -17,7 +17,7 @@ export const POST = async (req: NextRequest) => {
         },
       },
     );
-    const res = NextResponse.json({ message: '로그아웃 성공' });
+    const res = NextResponse.json({ message: '회원 탈퇴 성공' });
 
     // deleteCookie(res, 'accessToken');
     // deleteCookie(res, 'refreshToken');
@@ -25,7 +25,7 @@ export const POST = async (req: NextRequest) => {
     res.cookies.set('refreshToken', '', { maxAge: 0 });
 
     return NextResponse.json(
-      { message: '로그아웃 성공' },
+      { message: '회원 탈퇴 성공' },
       { headers: res.headers },
     );
   } catch (error: any) {

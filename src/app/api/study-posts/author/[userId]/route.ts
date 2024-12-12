@@ -8,7 +8,7 @@ export const GET = async (
   const { userId } = await params;
   try {
     const response = await axios.get(
-      `${process.env.API_URL}/study/author/${userId}`,
+      `${process.env.API_URL}/study-posts/author/${userId}`,
     );
 
     if (response.status === 200) {

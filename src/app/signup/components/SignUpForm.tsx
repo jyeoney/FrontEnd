@@ -71,9 +71,9 @@ const SignUpForm = () => {
   // 이메일 형식 확인
   const isValidEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  // 비밀번호 형식 확인
+  // 비밀번호 형식 확인 (비밀번호는 최소 8자 이상이며, 하나 이상의 영문자, 숫자, 특수문자가 포함되어야 함)
   const isValidPassword = (password: string) =>
-    /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+    /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&#^])[A-Za-z\d@$!%*?&]{8,}$/.test(
       password,
     );
 
@@ -91,8 +91,59 @@ const SignUpForm = () => {
     setPasswordCheckVisible(!passwordCheckVisible);
   };
 
-  // 이메일 중복 확인 및 인증번호 요청
   const handleAuthCodeSendClick = async () => {
+    try {
+      const authCodeResponse = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/email-send`,
+        {
+          email,
+        },
+        {
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
+
+      if (authCodeResponse.status === 200) {
+        setEmailSent(true);
+        setEmailMessage('인증번호가 발송되었습니다.');
+        setEmailMessageType('success');
+      } else {
+        setEmailMessage('인증번호 전송에 실패했습니다.');
+        setEmailMessageType('error');
+      }
+    } catch (error: any) {
+      if (error.response) {
+        const { status, data } = error.response;
+        console.log(`status: ${status}`);
+        const errorCode = data?.errorCode;
+        console.log(`errorRes: ${errorCode}`);
+
+        if (status === 400) {
+          if (errorCode === 'EMAIL_ALREADY_REGISTERED') {
+            setEmailMessage('이미 사용 중인 이메일입니다.');
+            setEmailMessageType('error');
+          } else {
+            setEmailMessage('잘못된 요청입니다. 다시 시도해주세요.');
+            setEmailMessageType('error');
+          }
+        } else if (status === 500 && errorCode === 'EMAIL_SEND_FAILED') {
+          setEmailMessage('인증번호 전송에 실패했습니다.');
+          setEmailMessageType('error');
+        } else {
+          setEmailMessage('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+          setEmailMessageType('error');
+        }
+      } else {
+        setEmailMessage(
+          '서버에 연결할 수 없습니다. 네트워크 상태를 확인해 주세요.',
+        );
+        setEmailMessageType('error');
+      }
+    }
+  };
+
+  // 이메일 중복 확인 및 인증번호 요청
+  const handleAuthCodeSendClickdd = async () => {
     // 이메일 형식 확인
     if (!isValidEmail(email)) {
       setEmailMessage('이메일 형식으로 입력해주세요.');
