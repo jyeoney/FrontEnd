@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
-import checkAuth from './app/middlewares/auth';
+import checkAuth from './app/middlewares/checkAuth';
 
-const middleware = (request: NextRequest) => {
-  const authResponse = checkAuth(request);
+const middleware = async (request: NextRequest) => {
+  const authResponse = await checkAuth(request);
   if (authResponse) {
     const requestCookieHeader = request.headers.get('cookie');
     console.log(`Request cookies: ${requestCookieHeader}`);
