@@ -2,15 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import { setCookie } from '@/utils/cookies';
-
-// const processRefreshToken = (request: NextRequest, refreshToken: string) => {
-//   console.log('accessToken 없음');
-//   const refreshRoute = new URL('/api/auth/token-reissue', request.url);
-//   const headers = new Headers({ 'Content-Type': 'application/json' });
-//   return NextResponse.rewrite(refreshRoute, { headers: headers });
-// };
-
-// export default processRefreshToken;
+import processAccessToken from './processAccessToken';
 
 const processRefreshToken = async (
   request: NextRequest,
@@ -45,34 +37,22 @@ const processRefreshToken = async (
         0,
       );
 
-      const res = NextResponse.json({ message: '토큰 갱신 성공' });
-
-      const setCookie = (
-        res: NextResponse,
-        name: string,
-        value: string,
-        maxAge: number,
-      ) => {
-        res.cookies.set(name, value, {
-          // secure: process.env.NODE_ENV === 'production', // https 일때만 전송
-          httpOnly: true, // 클라이언트 자바스크립트에서는 접근 불가(보안상의 이유)
-          secure: false,
-          path: '/', // 쿠키의 유효 경로
-          sameSite: 'strict',
-          maxAge,
-        });
-
-        console.log(`쿠키 설정됨: ${name} = ${value}`);
-      };
+      const res = NextResponse.next();
 
       setCookie(res, 'accessToken', accessToken, accessTokenMaxAge);
+
       res.headers.set('Authorization', `Bearer ${accessToken}`);
+
+      console.log('새로운 액세스토큰이 쿠키에 저장되었습니다.');
 
       // return (
       //   NextResponse.json({ message: '토큰 갱신 성공' }),
       //   { headers: res.headers }
       // );
-      return res;
+
+      // return res;
+      // return processAccessToken(request, accessToken);
+      return NextResponse.rewrite(request.url, { headers: res.headers });
     }
     return NextResponse.json(response.data, { status: response.status });
   } catch (error: any) {
@@ -86,28 +66,3 @@ const processRefreshToken = async (
 };
 
 export default processRefreshToken;
-
-// import { NextRequest, NextResponse } from 'next/server';
-// import axios from 'axios';
-// const processRefreshToken = async (refreshToken: string) => {
-//   try {
-//     const response = await axios.post(
-//       `${process.env.API_URL}/auth/token-reissue`,
-//       { refreshToken },
-//       {
-//         headers: { 'Content-Type': 'application/json' },
-//       },
-//     );
-
-//     if (response.status === 200) {
-//       return response.data;
-//     }
-
-//     throw new Error('accessToken 재발급에 실패했습니다.');
-//   } catch (error: any) {
-//     console.error('accessToken 재발급 중 오류가 발생했습니다.');
-//     throw error;
-//   }
-// };
-
-// export default processRefreshToken;
