@@ -1,12 +1,22 @@
+'use client';
+
 import { useGroupChat } from '@/hooks/useGroupChat';
 import MessageInput from './MessageInput';
 import { useEffect, useRef } from 'react';
 import { useAuthStore } from '@/store/authStore';
+import { useSearchParams } from 'next/navigation';
 interface ChatRoomProps {
   chatRoomId: string;
+  studyId: string;
 }
 
-const ChatRoom = ({ chatRoomId }: ChatRoomProps) => {
+const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
+  const searchParams = useSearchParams();
+  const studyName = searchParams.get('studyName');
+  // console.log('studyName:', studyName);
+  // console.log('chatRoomId:', chatRoomId);
+  // console.log('studyId:', studyId);
+
   const { messages, chatState, sendMessage, connect } =
     useGroupChat(chatRoomId);
   const { userInfo } = useAuthStore();
