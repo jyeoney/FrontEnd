@@ -6,10 +6,12 @@ export const GET = async (
   { params }: { params: { userId: string } },
 ) => {
   const { userId } = await params;
+  const url = new URL(request.url);
+  const page = url.searchParams.get('page') || '0';
 
   try {
     const response = await axios.get(
-      `${process.env.API_URL}/info-posts/author/${userId}?page=1`, // 백엔드 서버 URL
+      `${process.env.API_URL}/info-posts/author/${userId}?page=${page}`, // 백엔드 서버 URL
       {
         headers: {
           'Content-Type': 'application/json',
