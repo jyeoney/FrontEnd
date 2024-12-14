@@ -1,7 +1,5 @@
 'use client';
 
-import { debounce } from 'lodash';
-import { useCallback } from 'react';
 import { InfoPost, QnAPost } from '@/types/post';
 
 interface PostListProps<T extends InfoPost | QnAPost> {
@@ -11,7 +9,6 @@ interface PostListProps<T extends InfoPost | QnAPost> {
   currentPage: number;
   isLoading: boolean;
   onPageChange: (page: number) => void;
-  onSearch: (query: string) => void;
   renderPostCard: (post: T) => React.ReactNode;
   showFilters?: boolean;
   filterComponent?: React.ReactNode;
@@ -26,22 +23,12 @@ export function PostList<T extends InfoPost | QnAPost>({
   currentPage,
   isLoading,
   onPageChange,
-  onSearch,
   renderPostCard,
   showFilters = false,
   filterComponent,
   onWrite,
   isSignedIn,
 }: PostListProps<T>) {
-  const handleSearchInput = useCallback(
-    debounce((value: string) => {
-      if (value.length >= 2 || value.length === 0) {
-        onSearch(value);
-      }
-    }, 500),
-    [onSearch],
-  );
-
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-6">
@@ -51,23 +38,6 @@ export function PostList<T extends InfoPost | QnAPost>({
             글쓰기
           </button>
         )}
-      </div>
-
-      <div className="mb-6">
-        <form
-          className="flex gap-2 justify-end"
-          onSubmit={e => e.preventDefault()}
-        >
-          <input
-            type="text"
-            onChange={e => handleSearchInput(e.target.value)}
-            placeholder="검색..."
-            className="input input-bordered w-full max-w-xs"
-          />
-          <button type="submit" className="btn btn-primary">
-            검색
-          </button>
-        </form>
       </div>
 
       {/* 필터 영역 */}

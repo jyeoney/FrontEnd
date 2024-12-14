@@ -8,6 +8,7 @@ import { StudyResponse, BaseStudyPost } from '@/types/study';
 import { StudyFilter } from './StudyFilter';
 import { StudyCard } from './StudyCard';
 import KakaoMap from './KakaoMap';
+import SearchForm from '@/app/community/components/SearchForm';
 
 type FilterType = 'subjects' | 'status' | 'difficulty' | 'dayType';
 
@@ -52,6 +53,7 @@ export default function HybridStudyList() {
       'hybrid',
       {
         page,
+        title: searchParams.get('title'),
         selectedSubjects,
         selectedStatus,
         selectedDifficulty,
@@ -65,6 +67,11 @@ export default function HybridStudyList() {
         size: '12',
         meetingType: 'HYBRID',
       });
+
+      const title = searchParams.get('title');
+      if (title) {
+        params.append('title', title);
+      }
 
       if (userLocation) {
         params.append('latitude', userLocation.latitude.toString());
@@ -116,6 +123,10 @@ export default function HybridStudyList() {
 
   return (
     <div className="space-y-4">
+      <SearchForm
+        initialKeyword={searchParams.get('title') || ''}
+        placeholder="스터디 제목을 검색하세요"
+      />
       <StudyFilter
         selectedSubjects={selectedSubjects}
         selectedStatus={selectedStatus}

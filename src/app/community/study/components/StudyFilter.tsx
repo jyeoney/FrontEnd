@@ -29,7 +29,11 @@ interface StudyFilterProps {
   selectedStatus: string[];
   selectedDifficulty: string[];
   selectedDays: string[];
-  onFilterChange: (type: FilterType, value: string) => void;
+  onFilterChange: (
+    type: FilterType,
+    value: string,
+    isBitFlag?: boolean,
+  ) => void;
 }
 
 export function StudyFilter({
@@ -39,6 +43,10 @@ export function StudyFilter({
   selectedDays,
   onFilterChange,
 }: StudyFilterProps) {
+  const handleDayChange = (day: string) => {
+    onFilterChange('dayType', day, true);
+  };
+
   return (
     <div className="h-[330px] overflow-y-auto bg-base-200 p-4 rounded-lg">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -101,7 +109,7 @@ export function StudyFilter({
             {['월', '화', '수', '목', '금', '토', '일'].map(day => (
               <button
                 key={day}
-                onClick={() => onFilterChange('dayType', day)}
+                onClick={() => handleDayChange(day)}
                 className={`btn btn-sm ${
                   selectedDays.includes(day) ? 'btn-primary' : 'btn-outline'
                 }`}

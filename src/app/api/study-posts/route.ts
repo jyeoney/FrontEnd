@@ -21,16 +21,16 @@ export async function POST(req: NextRequest) {
       transformedFormData.append('file', file);
     }
 
-    // dayType 배열을 쉼표로 구분된 문자열로 변환
+    // dayType 처리
     const dayType = formData.get('dayType');
-    const parsedDayType = dayType ? JSON.parse(dayType as string) : [];
+    const dayTypeArray = dayType ? (dayType as string).split(',') : [];
 
     const fields = {
       title: formData.get('title'),
       studyName: formData.get('studyName'),
       subject: formData.get('subject'),
       difficulty: formData.get('difficulty'),
-      dayType: parsedDayType,
+      dayType: dayTypeArray,
       startDate: formData.get('startDate'),
       endDate: formData.get('endDate'),
       startTime: formData.get('startTime'),
@@ -52,7 +52,12 @@ export async function POST(req: NextRequest) {
     // FormData에 필드 추가
     Object.entries(fields).forEach(([key, value]) => {
       if (value !== undefined) {
-        transformedFormData.append(key, String(value));
+        if (key === 'dayType') {
+          // dayType은 JSON 문자열로 변환
+          transformedFormData.append(key, JSON.stringify(value));
+        } else {
+          transformedFormData.append(key, String(value));
+        }
       }
     });
 

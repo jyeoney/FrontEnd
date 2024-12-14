@@ -59,11 +59,7 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
     setIsLoading(true);
 
     try {
-      const formData = new FormData(e.currentTarget);
-      const maxMembers = formData.get('maxMembers');
-      if (maxMembers) {
-        formData.set('maxMembers', String(Number(maxMembers) + 1));
-      }
+      const formData = new FormData();
 
       if (selectedFile) {
         formData.append('file', selectedFile);
@@ -117,23 +113,28 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
             'recruitmentEndDate',
           ) as HTMLInputElement
         ).value,
-        maxParticipants: Number(
-          (e.currentTarget.elements.namedItem('maxMembers') as HTMLInputElement)
-            .value,
-        ),
+        maxParticipants:
+          Number(
+            (
+              e.currentTarget.elements.namedItem(
+                'maxMembers',
+              ) as HTMLInputElement
+            ).value,
+          ) + 1,
         description: (
           e.currentTarget.elements.namedItem(
             'description',
           ) as HTMLTextAreaElement
         ).value,
         userId: userInfo?.id,
+        status: initialData?.status || 'RECRUITING',
       };
 
       // FormData에 필드 추가
       Object.entries(requiredFields).forEach(([key, value]) => {
         if (value !== undefined) {
-          if (Array.isArray(value)) {
-            formData.append(key, JSON.stringify(value));
+          if (key === 'dayType' && Array.isArray(value)) {
+            formData.append(key, value.join(','));
           } else {
             formData.append(key, String(value));
           }
