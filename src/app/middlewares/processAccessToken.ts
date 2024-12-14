@@ -16,7 +16,7 @@ const processAccessToken = (request: NextRequest, accessToken: string) => {
 
   // 리퀘스트를 백엔드 서버로 리다이렉션
   return NextResponse.rewrite(apiUrl, {
-    headers: headers,
+    headers,
   });
 };
 

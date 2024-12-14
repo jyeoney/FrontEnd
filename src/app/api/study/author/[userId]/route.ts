@@ -2,13 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
 export const GET = async (
-  req: NextRequest,
+  request: NextRequest,
   { params }: { params: { userId: string } },
 ) => {
   const { userId } = await params;
+  const url = new URL(request.url);
+  const page = url.searchParams.get('page') || '0';
   try {
     const response = await axios.get(
-      `${process.env.API_URL}/study/author/${userId}`,
+      `${process.env.API_URL}/study/author/${userId}?page=${page}`,
     );
 
     if (response.status === 200) {

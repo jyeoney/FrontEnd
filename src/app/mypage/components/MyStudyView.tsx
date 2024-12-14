@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
-import { StudyPost } from '@/types/post';
+import { StudyPost, InfoPost, QnAPost } from '@/types/post';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuthStore } from '@/store/authStore';
@@ -11,37 +11,130 @@ import { MyStudyCardData } from './MyStudyCard';
 import { StudyCard } from '@/app/community/study/components/StudyCard';
 import MyInfoPostCard from './MyInfoPostCard';
 import MyQnAPostCard from './MyQnAPostCard';
-import { BasePost } from '@/types/post';
+import Pagination from './Pagination';
 
 interface MyStudyProps {
   post: StudyPost;
 }
 
 const MyStudyView = () => {
-  const { userInfo } = useAuthStore();
+  const { userInfo, isSignedIn, resetStore } = useAuthStore();
   const [activeTab, setActiveTab] = useState('myStudy'); // 기본값을 'myStudy'
   const [myStudies, setMyStudies] = useState<MyStudyCardData[]>([]);
   const [myStudyPosts, setMyStudyPosts] = useState<StudyPost[]>([]);
-  const [myInfoPosts, setMyInfoPosts] = useState<BasePost[]>([]);
-  const [myQnAPosts, setMyQnAPosts] = useState<BasePost[]>([]);
+  const [myInfoPosts, setMyInfoPosts] = useState<InfoPost[]>([]);
+  const [myQnAPosts, setMyQnAPosts] = useState<QnAPost[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    pageSize: 12,
+    totalElements: 0,
+  });
+
+  const router = useRouter();
+
+  // useEffect(() => {
+  //   if (isSignedIn === false) {
+  //     resetStore();
+  //     router.push('/signin');
+  //   }
+  // }, [isSignedIn]);
 
   useEffect(() => {
     // 마이페이지가 처음 로드될 때 'myStudy' 탭 클릭 상태
-    handleTabClick('myStudy');
-  }, []);
+    if (isSignedIn && userInfo?.id) {
+      handleTabClick('myStudy');
+    }
+  }, [isSignedIn, userInfo]);
 
-  const handleMyStudyTabClick = async () => {
+  // const handleTabClick = async (tab: string, page = 0) => {
+  //   setActiveTab(tab);
+  //   setError(null);
+  //   try {
+  //     let url = '';
+  //     if (tab === 'myStudy') {
+  //       url = `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/study/author/${userInfo?.id}?page=${page}`;
+  //     } else if (tab === 'myStudyPost') {
+  //       url = `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/study-posts/author/${userInfo?.id}?page=${page}`;
+  //     } else if (tab === 'myInfoPost') {
+  //       url = `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/info-posts/author/${userInfo?.id}?page=${page}`;
+  //     } else if (tab === 'myQnAPost') {
+  //       url = `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/qna-posts/author/${userInfo?.id}?page=${page}`;
+  //     }
+
+  //     const response = await axios.get(url, {
+  //       headers: { 'Content-Type': 'application/json' },
+  //     });
+  //     if (response.status === 200 && response.data) {
+  //       const data = response.data;
+
+  //       // Update the state based on the active tab
+  //       if (tab === 'myStudy') {
+  //         setMyStudies(data.content);
+  //       } else if (tab === 'myStudyPost') {
+  //         setMyStudyPosts(data.content);
+  //       } else if (tab === 'myInfoPost') {
+  //         setMyInfoPosts(data.content);
+  //       } else if (tab === 'myQnAPost') {
+  //         setMyQnAPosts(data.content);
+  //       }
+
+  //       // Update pagination state
+  //       setPagination({
+  //         currentPage: data.pageable.pageNumber,
+  //         totalPages: data.totalPages,
+  //       });
+  //     }
+  //   } catch (error: any) {
+  //     const message =
+  //       error.response?.data?.errorMessage ||
+  //       '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+  //     setError(message);
+  //   }
+  // };
+
+  // const handlePageChange = (newPage: number) => {
+  //   handleTabClick(activeTab, newPage);
+  // };
+
+  // 탭 클릭 핸들러
+  const handleTabClick = (tab: string, page = 0) => {
+    setActiveTab(tab);
+    setError(null);
+    if (tab === 'myStudy') {
+      handleMyStudyTabClick(page);
+    } else if (tab === 'myStudyPost') {
+      handleMyStudyPostTabClick(page);
+    } else if (tab === 'myInfoPost') {
+      handleMyInfoPostTabClick(page);
+    } else if (tab === 'myQnAPost') {
+      handleMyQnAPostTabClick(page);
+    }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    handleTabClick(activeTab, newPage);
+  };
+
+  const handleMyStudyTabClick = async (page: number) => {
     try {
       if (userInfo?.id) {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/study/author/${userInfo?.id}`,
+          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/study/author/${userInfo?.id}?page=${page}`,
         );
+
         if (response.status === 200 && response.data) {
           setMyStudies(response.data.content);
+
+          setPagination({
+            currentPage: response.data.pageable.pageNumber + 1,
+            pageSize: response.data.pageable.pageSize,
+            totalElements: response.data.totalElements,
+          });
         }
       }
     } catch (error: any) {
+      console.log('에러 상태코드', error.response.status);
       if (error.response) {
         const { status, data } = error.response;
         console.log('error:' + error.response);
@@ -49,102 +142,36 @@ const MyStudyView = () => {
           data?.errorMessage ||
           '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
         setError(message);
+        if (status === 401) {
+          console.log('토큰 문제 발생. 로그인이 필요합니다.');
+          router.push('/signin');
+          resetStore();
+        } else {
+          setError(message);
+        }
       } else {
         setError('내가 속한 스터디 목록을 불러오는 데 실패했습니다.');
       }
     }
-    const data = {
-      content: [
-        {
-          id: 25,
-          studyName: '코테',
-          subject: 'JOB_PREPARATION',
-          difficulty: 'HIGH',
-          dayType: ['화', '목'],
-          startDate: '2024-12-04',
-          endDate: '2024-12-22',
-          startTime: '19:00:00',
-          endTime: '21:00:00',
-          meetingType: 'HYBRID',
-          status: 'PENDING',
-          studyPostId: 97,
-          studyLeaderId: 11,
-          totalParticipants: 2,
-        },
-        {
-          id: 24,
-          studyName: '코테',
-          subject: 'JOB_PREPARATION',
-          difficulty: 'HIGH',
-          dayType: ['화', '목'],
-          startDate: '2024-12-04',
-          endDate: '2024-12-22',
-          startTime: '19:00:00',
-          endTime: '21:00:00',
-          meetingType: 'HYBRID',
-          status: 'PENDING',
-          studyPostId: 98,
-          studyLeaderId: 11,
-          totalParticipants: 2,
-        },
-        {
-          id: 23,
-          studyName: '코테',
-          subject: 'JOB_PREPARATION',
-          difficulty: 'HIGH',
-          dayType: ['화', '목'],
-          startDate: '2024-12-04',
-          endDate: '2024-12-22',
-          startTime: '19:00:00',
-          endTime: '21:00:00',
-          meetingType: 'HYBRID',
-          status: 'PENDING',
-          studyPostId: 96,
-          studyLeaderId: 11,
-          totalParticipants: 2,
-        },
-      ],
-      pageable: {
-        pageNumber: 0,
-        pageSize: 20,
-        sort: {
-          empty: true,
-          sorted: false,
-          unsorted: true,
-        },
-        offset: 0,
-        paged: true,
-        unpaged: false,
-      },
-      last: true,
-      totalPages: 1,
-      totalElements: 3,
-      first: true,
-      size: 20,
-      number: 0,
-      sort: {
-        empty: true,
-        sorted: false,
-        unsorted: true,
-      },
-      numberOfElements: 3,
-      empty: false,
-    };
-
-    // setMyStudies(data.content);
   };
 
-  const handleMyStudyPostTabClick = async () => {
+  const handleMyStudyPostTabClick = async (page: number) => {
     try {
       if (userInfo?.id) {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/study-posts/author/${userInfo?.id}`,
+          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/study-posts/author/${userInfo?.id}?page=${page}`,
           {
             headers: { 'Content-Type': 'application/json' },
           },
         );
         if (response.status === 200 && response.data) {
           setMyStudyPosts(response.data.content);
+
+          setPagination({
+            currentPage: response.data.pageable.pageNumber + 1,
+            pageSize: response.data.pageable.pageSize,
+            totalElements: response.data.totalElements,
+          });
           console.log('나의 스터디 모집 글 불러오기 성공했습니다.');
         }
       }
@@ -155,24 +182,36 @@ const MyStudyView = () => {
         const message =
           data?.errorMessage ||
           '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-        setError(message);
+        if (status === 401) {
+          console.log('토큰 문제 발생. 로그인이 필요합니다.');
+          router.push('/signin');
+          resetStore();
+        } else {
+          setError(message);
+        }
       } else {
         setError('나의 스터디 모집 글 목록을 불러오는 데 실패했습니다.');
       }
     }
   };
 
-  const handleMyInfoPostTabClick = async () => {
+  const handleMyInfoPostTabClick = async (page: number) => {
     try {
       if (userInfo?.id) {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/info-posts/author/${userInfo?.id}`,
+          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/info-posts/author/${userInfo?.id}?page=${page}`,
           {
             headers: { 'Content-Type': 'application/json' },
           },
         );
         if (response.status === 200 && response.data) {
           setMyInfoPosts(response.data.content);
+
+          setPagination({
+            currentPage: response.data.pageable.pageNumber + 1,
+            pageSize: response.data.pageable.pageSize,
+            totalElements: response.data.totalElements,
+          });
           console.log('나의 정보 공유 게시글 불러오기 성공했습니다.');
         }
       }
@@ -183,24 +222,36 @@ const MyStudyView = () => {
         const message =
           data?.errorMessage ||
           '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-        setError(message);
+        if (status === 401) {
+          console.log('토큰 문제 발생. 로그인이 필요합니다.');
+          router.push('/signin');
+          resetStore();
+        } else {
+          setError(message);
+        }
       } else {
         setError('나의 정보 공유 게시글 목록을 불러오는 데 실패했습니다.');
       }
     }
   };
 
-  const handleMyQnAPostTabClick = async () => {
+  const handleMyQnAPostTabClick = async (page: number) => {
     try {
       if (userInfo?.id) {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/qna-posts/author/${userInfo?.id}`,
+          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/qna-posts/author/${userInfo?.id}?page=${page}`,
           {
             headers: { 'Content-Type': 'application/json' },
           },
         );
         if (response.status === 200 && response.data) {
           setMyQnAPosts(response.data.content);
+
+          setPagination({
+            currentPage: response.data.pageable.pageNumber + 1,
+            pageSize: response.data.pageable.pageSize,
+            totalElements: response.data.totalElements,
+          });
           console.log('나의 Q&A 게시글 불러오기 성공했습니다.');
         }
       }
@@ -211,7 +262,13 @@ const MyStudyView = () => {
         const message =
           data?.errorMessage ||
           '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-        setError(message);
+        if (status === 401) {
+          console.log('토큰 문제 발생. 로그인이 필요합니다.');
+          router.push('/signin');
+          resetStore();
+        } else {
+          setError(message);
+        }
       } else {
         setError('나의 Q&A 게시글 목록을 불러오는 데 실패했습니다.');
       }
@@ -220,6 +277,13 @@ const MyStudyView = () => {
 
   // 탭 클릭 시 해당 탭의 내용을 보여주는 함수
   const renderTabContent = () => {
+    if (!isSignedIn) {
+      return (
+        <p className="col-span-full text-center text-gray-500">
+          로그인이 필요합니다.
+        </p>
+      );
+    }
     if (error) {
       return <p className="col-span-full text-center text-red-500">{error}</p>;
     }
@@ -228,41 +292,21 @@ const MyStudyView = () => {
       case 'myStudy':
         return (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {myStudies.length === 0 ? (
+            {!isSignedIn ? (
+              <p className="col-span-full text-center text-gray-500">
+                로그인이 필요합니다.
+              </p>
+            ) : !myStudies ? (
+              <p className="col-span-full text-center text-gray-500">
+                내가 속한 스터디를 불러오는 중입니다...
+              </p>
+            ) : myStudies.length === 0 ? (
               <p className="col-span-full text-center text-gray-500">
                 내가 속한 스터디가 없습니다.
               </p>
             ) : (
               myStudies.map(myStudy => (
                 <MyStudyCard key={myStudy.studyPostId} post={myStudy} />
-                // <div
-                //   key={myStudy.id}
-                //   className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow"
-                // >
-                //   <figure className="px-4 pt-4">
-                //     <img
-                //       src={myStudy.thumbnail || '/default-study-thumbnail.png'}
-                //       alt={myStudy.name}
-                //       className="rounded-xl h-48 w-full object-cover"
-                //     />
-                //   </figure>
-                //   <div className="card-body">
-                //     <h2 className="card-title text-lg font-bold">
-                //       {study.name}
-                //     </h2>
-                //     <p className="text-sm text-base-content/70 mt-2">
-                //       {study.description || '스터디 설명이 없습니다.'}
-                //     </p>
-                //     <div className="card-actions justify-end mt-4">
-                //       <button className="btn btn-primary btn-sm">
-                //         채팅방 열기
-                //       </button>
-                //       <button className="btn btn-secondary btn-sm">
-                //         스터디룸 보기
-                //       </button>
-                //     </div>
-                //   </div>
-                // </div>
               ))
             )}
           </div>
@@ -270,7 +314,15 @@ const MyStudyView = () => {
       case 'myStudyPost':
         return (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {myStudyPosts.length === 0 ? (
+            {!isSignedIn ? (
+              <p className="col-span-full text-center text-gray-500">
+                로그인이 필요합니다.
+              </p>
+            ) : !myStudyPosts ? (
+              <p className="col-span-full text-center text-gray-500">
+                작성한 스터디 모집 글을 불러오는 중입니다...
+              </p>
+            ) : myStudyPosts.length === 0 ? (
               <p className="col-span-full text-center text-gray-500">
                 작성한 스터디 모집 글이 없습니다.
               </p>
@@ -284,7 +336,15 @@ const MyStudyView = () => {
       case 'myInfoPost':
         return (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {myInfoPosts.length === 0 ? (
+            {!isSignedIn ? (
+              <p className="col-span-full text-center text-gray-500">
+                로그인이 필요합니다.
+              </p>
+            ) : !myInfoPosts ? (
+              <p className="col-span-full text-center text-gray-500">
+                작성한 정보 공유 게시글을 불러오는 중입니다...
+              </p>
+            ) : myInfoPosts.length === 0 ? (
               <p className="col-span-full text-center text-gray-500">
                 작성한 정보 공유 게시글이 없습니다.
               </p>
@@ -299,7 +359,15 @@ const MyStudyView = () => {
       case 'myQnAPost':
         return (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {myQnAPosts.length === 0 ? (
+            {!isSignedIn ? (
+              <p className="col-span-full text-center text-gray-500">
+                로그인이 필요합니다.
+              </p>
+            ) : !myQnAPosts ? (
+              <p className="col-span-full text-center text-gray-500">
+                작성한 Q&A 게시글을 불러오는 중입니다...
+              </p>
+            ) : myQnAPosts.length === 0 ? (
               <p className="col-span-full text-center text-gray-500">
                 작성한 Q&A 게시글이 없습니다.
               </p>
@@ -312,21 +380,6 @@ const MyStudyView = () => {
         );
       default:
         return <p>기타 탭에 대한 내용</p>;
-    }
-  };
-
-  // 탭 클릭 핸들러
-  const handleTabClick = (tab: string) => {
-    setActiveTab(tab);
-    setError(null);
-    if (tab === 'myStudy') {
-      handleMyStudyTabClick();
-    } else if (tab === 'myStudyPost') {
-      handleMyStudyPostTabClick();
-    } else if (tab === 'myInfoPost') {
-      handleMyInfoPostTabClick();
-    } else if (tab === 'myQnAPost') {
-      handleMyQnAPostTabClick();
     }
   };
 
@@ -367,7 +420,15 @@ const MyStudyView = () => {
         </button>
       </div>
       <div className="p-4 bg-base-200 rounded-lg shadow-md border-t-4 border-primary">
-        {renderTabContent()}
+        <div>
+          {renderTabContent()}
+          <Pagination
+            totalElements={pagination.totalElements} // 전체 게시물 수
+            pageSize={pagination.pageSize} // 한 페이지에 표시할 게시물 수
+            currentPage={pagination.currentPage} // 현재 페이지
+            onPageChange={handlePageChange} // 페이지 변경 함수
+          />
+        </div>
       </div>
     </div>
   );

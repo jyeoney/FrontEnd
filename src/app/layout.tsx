@@ -17,14 +17,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>): Promise<JSX.Element> {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get('accessToken')?.value;
-  console.log(accessToken);
-
-  // 사버에서 로그인 상태 확인
-  const isSignedIn = Boolean(accessToken);
-  console.log(isSignedIn);
-
   return (
     <html lang="ko" data-theme="pastel">
       <body className="min-h-screen bg-base-100 text-base-content">

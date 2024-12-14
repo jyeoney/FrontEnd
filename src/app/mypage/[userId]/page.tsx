@@ -1,30 +1,13 @@
+import { useAuthStore } from '@/store/authStore';
 import MyStudyView from '../components/MyStudyView';
 import UserInfoView from '../components/UserInfoView';
-import { cookies } from 'next/headers';
-// const fetchStudies = async (accessToken: string) => {
-//   const response = await axios.get(
-//     `${process.env.NEXT_PUBLIC_API_URL}/studies`,
-//     {
-//       headers: {
-//         Authorization: `Bearer ${accessToken}`,
-//       },
-//     },
-//   );
-//   return response.data;
-// };
-
-const studies = [
-  { id: '1', name: '알고리즘 스터디' },
-  { id: '2', name: '웹 개발 스터디' },
-];
 
 const MyPage = async () => {
   try {
-    // const studies = await fetchStudies(accessToken);
     return (
       <>
         <UserInfoView />
-        <MyStudyView studies={studies} />
+        <MyStudyView />
       </>
     );
   } catch (error) {

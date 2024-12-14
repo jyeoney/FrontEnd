@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
-export const GET = async (
+export const POST = async (
   request: NextRequest,
-  { params }: { params: { userId: string } },
+  { params }: { params: { studyId: string; userId: string } },
 ) => {
-  const { userId } = await params;
-  const url = new URL(request.url);
-  const page = url.searchParams.get('page') || '0';
+  const { studyId, userId } = await params;
 
   try {
-    const response = await axios.get(
-      `${process.env.API_URL}/qna-posts/author/${userId}?page=${page}`, // 백엔드 서버 URL
+    const response = await axios.post(
+      `${process.env.API_URL}/chat/study/${studyId}/participant/${userId}`, // 백엔드 서버 URL
+      {},
       {
         headers: {
           'Content-Type': 'application/json',

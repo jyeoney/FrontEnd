@@ -9,4 +9,8 @@ export const IGNORED_PATHS = [
   '/api/study-posts/*',
   '/api/qna-posts/*',
   '/api/info-posts/*',
+  '/api/auth/sign-out',
+  '/api/auth/status',
+  '/api/auth/token-reissue',
+  '/api/study/author/*',
 ];
