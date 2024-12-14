@@ -34,7 +34,7 @@ export default function InfoEditPage() {
         }
 
         setTitle(post.title);
-        setContent(post.content);
+        setContent(post.description);
         if (post.thumbnailImgUrl) {
           setFilePreview(post.thumbnailImgUrl);
         }
@@ -64,8 +64,8 @@ export default function InfoEditPage() {
 
     const formData = new FormData();
     formData.append('title', title);
-    formData.append('content', content);
-
+    formData.append('description', content);
+    formData.append('userId', userInfo?.id.toString() || '');
     // 새로운 파일이 첨부된 경우
     if (selectedFile) {
       formData.append('file', selectedFile);
@@ -87,7 +87,7 @@ export default function InfoEditPage() {
     }
 
     try {
-      await axios.put(`/api/info-posts/${params.id}`, formData, {
+      await axios.post(`/api/info-posts/${params.id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

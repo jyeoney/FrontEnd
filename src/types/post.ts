@@ -6,14 +6,13 @@ interface User {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  nickname: string;
 }
 
 // 정보공유 게시글
 export interface InfoPost {
   id: number;
-  user: User & {
-    nickname: string;
-  };
+  user: User;
   thumbnailImgUrl: string | null;
   title: string;
   description: string | null;
@@ -24,9 +23,7 @@ export interface InfoPost {
 // QnA 게시글
 export interface QnAPost {
   id: number;
-  user: User & {
-    nickname: string;
-  };
+  user: User;
   title: string;
   content: string;
   createdAt: string;
@@ -56,9 +53,7 @@ export interface StudyPost {
   thumbnailImgUrl: string | null;
   maxParticipants: number;
   currentParticipants: number;
-  user: User & {
-    nickname: string;
-  };
+  user: User;
   createdAt: string;
   updatedAt: string;
 }

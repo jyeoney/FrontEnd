@@ -30,7 +30,7 @@ export default function LocationSearch({
 
   useEffect(() => {
     const loadKakaoMap = () => {
-      if (window.kakao && window.kakao.maps) {
+      if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
         initializeMap();
         return;
       }
@@ -41,6 +41,10 @@ export default function LocationSearch({
 
       script.onload = () => {
         window.kakao.maps.load(() => {
+          if (!window.kakao.maps.services) {
+            console.error('Kakao maps services library not loaded');
+            return;
+          }
           initializeMap();
         });
       };
