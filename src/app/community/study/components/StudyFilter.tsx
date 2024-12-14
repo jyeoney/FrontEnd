@@ -1,5 +1,7 @@
 'use client';
 
+import { ReadonlyURLSearchParams } from 'next/navigation';
+
 type FilterType = 'subjects' | 'status' | 'difficulty' | 'dayType';
 
 // 영어 Enum -> 한글 표시용 매핑
@@ -24,21 +26,46 @@ const SUBJECT_DISPLAY = {
   ETC: '기타',
 } as const;
 
+const DAY_BIT_FLAGS = {
+  월: 1,
+  화: 2,
+  수: 4,
+  목: 8,
+  금: 16,
+  토: 32,
+  일: 64,
+} as const;
+
 interface StudyFilterProps {
   selectedSubjects: string[];
   selectedStatus: string[];
   selectedDifficulty: string[];
   selectedDays: string[];
-  onFilterChange: (type: FilterType, value: string) => void;
+  searchParams: ReadonlyURLSearchParams;
+  onFilterChange: (
+    type: FilterType,
+    value: string,
+    isBitFlag?: boolean,
+  ) => void;
 }
 
 export function StudyFilter({
   selectedSubjects,
   selectedStatus,
   selectedDifficulty,
-  selectedDays,
+  searchParams,
   onFilterChange,
 }: StudyFilterProps) {
+  const handleDayChange = (day: string) => {
+    onFilterChange('dayType', day, true);
+  };
+
+  const isSelected = (day: string) => {
+    const currentBitFlag = Number(searchParams.get('dayType') || '0');
+    const dayBit = DAY_BIT_FLAGS[day as keyof typeof DAY_BIT_FLAGS];
+    return (currentBitFlag & dayBit) !== 0;
+  };
+
   return (
     <div className="h-[330px] overflow-y-auto bg-base-200 p-4 rounded-lg">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -101,9 +128,9 @@ export function StudyFilter({
             {['월', '화', '수', '목', '금', '토', '일'].map(day => (
               <button
                 key={day}
-                onClick={() => onFilterChange('dayType', day)}
+                onClick={() => handleDayChange(day)}
                 className={`btn btn-sm ${
-                  selectedDays.includes(day) ? 'btn-primary' : 'btn-outline'
+                  isSelected(day) ? 'btn-primary' : 'btn-outline'
                 }`}
               >
                 {day}

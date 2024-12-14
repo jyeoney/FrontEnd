@@ -29,7 +29,7 @@ export function StudyCard({ post }: StudyCardProps) {
           <div className="flex justify-between">
             <span>모집 인원:</span>
             <span>
-              {post.currentParticipants}/{post.maxParticipants}명
+              {post.currentParticipants + 1}/{post.maxParticipants}명
             </span>
           </div>
           <div className="flex justify-between">

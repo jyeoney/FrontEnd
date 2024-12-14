@@ -126,7 +126,8 @@ export default function StudyDetailContent({
               까지
             </p>
             <p>
-              모집 인원: {study.currentParticipants}/{study.maxParticipants}명
+              모집 인원: {study.currentParticipants + 1}/{study.maxParticipants}
+              명
             </p>
             <p>
               스터디 기간: {dayjs(study.startDate).format('YYYY.MM.DD')} ~{' '}

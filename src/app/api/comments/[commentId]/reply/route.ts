@@ -1,20 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+// import { cookies } from 'next/headers';
 import axios from 'axios';
 
 export async function POST(
   req: NextRequest,
   { params }: { params: { commentId: string } },
 ) {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get('accessToken')?.value;
+  // const cookieStore = await cookies();
+  // const accessToken = cookieStore.get('accessToken')?.value;
 
-  if (!accessToken) {
-    return NextResponse.json(
-      { message: '인증이 필요합니다.' },
-      { status: 401 },
-    );
-  }
+  // if (!accessToken) {
+  //   return NextResponse.json(
+  //     { message: '인증이 필요합니다.' },
+  //     { status: 401 },
+  //   );
+  // }
 
   try {
     const body = await req.json();
@@ -26,11 +26,11 @@ export async function POST(
         is_secret: body.is_secret,
         content: body.content,
       },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
+      // {
+      //   headers: {
+      //     Authorization: `Bearer ${accessToken}`,
+      //   },
+      // },
     );
 
     return NextResponse.json(response.data);

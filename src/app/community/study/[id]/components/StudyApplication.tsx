@@ -93,20 +93,14 @@ export function StudyApplication({
               : app,
           ),
         );
-
-        if (newStatus === 'APPROVED' && study.status === 'RECRUITING') {
-          const acceptedApplication = applications.find(
-            app => app.signupId === applicationId,
-          );
-          if (acceptedApplication) {
-            await axios.post(`/api/study/${study.id}/participants`, {
-              participantId: acceptedApplication.userId,
-            });
-          }
-        }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('신청 상태 변경 실패:', error);
+      if (error.response?.data?.errorMessage) {
+        alert(error.response.data.errorMessage);
+      } else {
+        alert('신청 상태 변경에 실패했습니다.');
+      }
     }
   };
 

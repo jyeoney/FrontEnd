@@ -6,8 +6,19 @@ import axios from 'axios';
 import { PostResponse, StudyPost } from '@/types/post';
 import { StudyFilter } from './StudyFilter';
 import { StudyCard } from './StudyCard';
+import SearchForm from '@/app/community/components/SearchForm';
 
 type FilterType = 'subjects' | 'status' | 'difficulty' | 'dayType';
+
+const DAY_BIT_FLAGS = {
+  월: 1,
+  화: 2,
+  수: 4,
+  목: 8,
+  금: 16,
+  토: 32,
+  일: 64,
+} as const;
 
 export default function OnlineStudyList() {
   const router = useRouter();
@@ -26,6 +37,7 @@ export default function OnlineStudyList() {
       'online',
       {
         page,
+        title: searchParams.get('title'),
         selectedSubjects,
         selectedStatus,
         selectedDifficulty,
@@ -38,6 +50,11 @@ export default function OnlineStudyList() {
         size: '12',
         meetingType: 'ONLINE',
       });
+
+      const title = searchParams.get('title');
+      if (title) {
+        params.append('title', title);
+      }
 
       selectedSubjects.forEach(subject => params.append('subject[]', subject));
       selectedStatus.forEach(status => params.append('status[]', status));
@@ -56,22 +73,39 @@ export default function OnlineStudyList() {
 
   const handleFilterChange = (type: FilterType, value: string) => {
     const newSearchParams = new URLSearchParams(searchParams);
-    const currentValues = searchParams.getAll(type);
 
-    if (currentValues.includes(value)) {
-      // 값이 이미 있으면 제거
-      newSearchParams.delete(type);
-      currentValues
-        .filter(v => v !== value)
-        .forEach(v => newSearchParams.append(type, v));
+    if (type === 'dayType') {
+      let currentBitFlag = Number(searchParams.get('dayType') || '0');
+      const dayBit = DAY_BIT_FLAGS[value as keyof typeof DAY_BIT_FLAGS];
+
+      // 비트 토글
+      if ((currentBitFlag & dayBit) !== 0) {
+        // 비트가 이미 있으면 제거
+        currentBitFlag &= ~dayBit;
+      } else {
+        // 비트가 없으면 추가
+        currentBitFlag |= dayBit;
+      }
+
+      if (currentBitFlag > 0) {
+        newSearchParams.set('dayType', currentBitFlag.toString());
+      } else {
+        newSearchParams.delete('dayType');
+      }
     } else {
-      // 값이 없으면 추가
-      newSearchParams.append(type, value);
+      // 기존 로직 유지
+      const currentValues = searchParams.getAll(type);
+      if (currentValues.includes(value)) {
+        newSearchParams.delete(type);
+        currentValues
+          .filter(v => v !== value)
+          .forEach(v => newSearchParams.append(type, v));
+      } else {
+        newSearchParams.append(type, value);
+      }
     }
 
-    // 페이지 초기화
     newSearchParams.set('page', '0');
-
     router.push(`?${newSearchParams.toString()}`);
   };
 
@@ -83,7 +117,12 @@ export default function OnlineStudyList() {
 
   return (
     <div className="space-y-4">
+      <SearchForm
+        initialKeyword={searchParams.get('title') || ''}
+        placeholder="스터디 제목을 검색하세요"
+      />
       <StudyFilter
+        searchParams={searchParams}
         selectedSubjects={selectedSubjects}
         selectedStatus={selectedStatus}
         selectedDifficulty={selectedDifficulty}

@@ -19,19 +19,13 @@ interface OnlineFormProps {
 
 export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
   const router = useRouter();
-  const { userInfo } = useAuthStore();
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [thumbnailPreview, setThumbnailPreview] = useState<string>('');
-  const { isSignedIn } = useAuthStore();
   const [studyStartDate, setStudyStartDate] = useState<string>('');
   const [recruitmentEndDate, setRecruitmentEndDate] = useState<string>('');
-
-  useEffect(() => {
-    if (!isSignedIn) {
-      router.push('/signin');
-    }
-  }, [isSignedIn]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const { userInfo } = useAuthStore();
 
   useEffect(() => {
     if (initialData && isEdit) {
@@ -51,6 +45,7 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setThumbnailPreview(reader.result as string);
@@ -64,11 +59,23 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
     setIsLoading(true);
 
     try {
-      const formData = new FormData(e.currentTarget);
-      const maxMembers = formData.get('maxMembers');
-      if (maxMembers) {
-        formData.set('maxMembers', String(Number(maxMembers) + 1));
+      const formData = new FormData();
+
+      if (selectedFile) {
+        formData.append('file', selectedFile);
+      } else if (
+        thumbnailPreview &&
+        thumbnailPreview !==
+          'https://devonoffbucket.s3.ap-northeast-2.amazonaws.com/default/thumbnail.png'
+      ) {
+        formData.append('thumbnailImgUrl', thumbnailPreview);
+      } else {
+        formData.append(
+          'thumbnailImgUrl',
+          'https://devonoffbucket.s3.ap-northeast-2.amazonaws.com/default/thumbnail.png',
+        );
       }
+
       const requiredFields = {
         title: (e.currentTarget.elements.namedItem('title') as HTMLInputElement)
           .value,
@@ -106,21 +113,28 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
             'recruitmentEndDate',
           ) as HTMLInputElement
         ).value,
-        maxParticipants: Number(
-          (e.currentTarget.elements.namedItem('maxMembers') as HTMLInputElement)
-            .value,
-        ),
+        maxParticipants:
+          Number(
+            (
+              e.currentTarget.elements.namedItem(
+                'maxMembers',
+              ) as HTMLInputElement
+            ).value,
+          ) + 1,
         description: (
-          e.currentTarget.elements.namedItem('content') as HTMLTextAreaElement
+          e.currentTarget.elements.namedItem(
+            'description',
+          ) as HTMLTextAreaElement
         ).value,
         userId: userInfo?.id,
+        status: initialData?.status || 'RECRUITING',
       };
 
       // FormData에 필드 추가
       Object.entries(requiredFields).forEach(([key, value]) => {
         if (value !== undefined) {
-          if (Array.isArray(value)) {
-            formData.append(key, JSON.stringify(value));
+          if (key === 'dayType' && Array.isArray(value)) {
+            formData.append(key, value.join(','));
           } else {
             formData.append(key, String(value));
           }
@@ -128,31 +142,43 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
       });
 
       if (isEdit && initialData) {
-        await axios.put(`/api/study-posts/${initialData.id}`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-        alert('스터디 글이 수정되었습니다!');
+        try {
+          await axios.post(`/api/study-posts/${initialData.id}`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+          alert('스터디 글이 수정되었습니다!');
+          router.push(`/community/study/${initialData.id}`);
+        } catch (error: any) {
+          console.error('스터디 글 수정 실패:', error);
+          alert(
+            error.response?.data?.message ||
+              '스터디 글 수정에 실패했습니다. 다시 시도해주세요.',
+          );
+          return;
+        }
       } else {
-        const response = await axios.post('/api/study-posts', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-
-        if (response.status === 200) {
+        try {
+          await axios.post('/api/study-posts', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
           alert('스터디 글이 작성되었습니다!');
+          router.push('/community/study');
+        } catch (error: any) {
+          console.error('스터디 글 작성 실패:', error);
+          alert(
+            error.response?.data?.message ||
+              '스터디 글 작성에 실패했습니다. 다시 시도해주세요.',
+          );
+          return;
         }
       }
-
-      router.push('/community/study');
-    } catch (error) {
-      console.error(
-        isEdit ? '스터디 글 수정 실패:' : '스터디 글 작성 실패:',
-        error,
-      );
-      alert('스터디 글 작성에 실패했습니다. 다시 시도해주세요.');
+    } catch (error: any) {
+      console.error('요청 실패:', error);
+      alert('요청 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
       setIsLoading(false);
     }
@@ -257,6 +283,7 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
           required
           className="input input-bordered"
           min={dayjs().format('YYYY-MM-DD')}
+          onChange={e => setRecruitmentEndDate(e.target.value)}
         />
       </div>
 
@@ -271,7 +298,7 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
             defaultValue={initialData?.startDate}
             required
             className="input input-bordered flex-1"
-            min={dayjs(recruitmentEndDate).format('YYYY-MM-DD')}
+            min={dayjs(recruitmentEndDate).format('YYYY-MM-DD')} // 모집 마감일 이후로 제한
             onChange={e => setStudyStartDate(e.target.value)}
           />
           <span className="self-center">~</span>
@@ -358,7 +385,7 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
           <span className="label-text">스터디 소개</span>
         </label>
         <textarea
-          name="content"
+          name="description"
           defaultValue={initialData?.description}
           required
           className="textarea textarea-bordered h-32"

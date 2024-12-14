@@ -29,6 +29,7 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
   const [thumbnailPreview, setThumbnailPreview] = useState<string>('');
   const [studyStartDate, setStudyStartDate] = useState<string>('');
   const [recruitmentEndDate, setRecruitmentEndDate] = useState<string>('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { userInfo } = useAuthStore();
   useEffect(() => {
     if (initialData && isEdit) {
@@ -53,6 +54,7 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setThumbnailPreview(reader.result as string);
@@ -66,15 +68,21 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
     setIsLoading(true);
 
     try {
-      const formData = new FormData(e.currentTarget);
-      const thumbnail = formData.get('thumbnail') as File;
+      const formData = new FormData();
 
-      let thumbnailUrl = '';
-      if (thumbnail && thumbnail.size > 0) {
-        const imageFormData = new FormData();
-        imageFormData.append('image', thumbnail);
-        const response = await axios.post('/api/upload', imageFormData);
-        thumbnailUrl = response.data.url;
+      if (selectedFile) {
+        formData.append('file', selectedFile);
+      } else if (
+        thumbnailPreview &&
+        thumbnailPreview !==
+          'https://devonoffbucket.s3.ap-northeast-2.amazonaws.com/default/thumbnail.png'
+      ) {
+        formData.append('thumbnailImgUrl', thumbnailPreview);
+      } else {
+        formData.append(
+          'thumbnailImgUrl',
+          'https://devonoffbucket.s3.ap-northeast-2.amazonaws.com/default/thumbnail.png',
+        );
       }
 
       const requiredFields = {
@@ -114,10 +122,14 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
             'recruitmentEndDate',
           ) as HTMLInputElement
         ).value,
-        maxParticipants: Number(
-          (e.currentTarget.elements.namedItem('maxMembers') as HTMLInputElement)
-            .value,
-        ),
+        maxParticipants:
+          Number(
+            (
+              e.currentTarget.elements.namedItem(
+                'maxMembers',
+              ) as HTMLInputElement
+            ).value,
+          ) + 1,
         description: (
           e.currentTarget.elements.namedItem(
             'description',
@@ -127,32 +139,19 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
         latitude: selectedLocation?.latitude,
         longitude: selectedLocation?.longitude,
         address: selectedLocation?.address,
-        thumbnail: thumbnailUrl || '',
+        status: initialData?.status || 'RECRUITING',
       };
 
-      const maxMembers = formData.get('maxMembers');
-      const studyData = {
-        title: formData.get('title'),
-        studyName: formData.get('studyName'),
-        description: formData.get('description'),
-        subject: formData.get('subject'),
-        difficulty: formData.get('difficulty'),
-        recruitmentStartDate: dayjs().format('YYYY-MM-DD'),
-        recruitmentEndDate: formData.get('recruitmentEndDate'),
-        studyStartDate: formData.get('studyStartDate'),
-        studyEndDate: formData.get('studyEndDate'),
-        maxParticipants: maxMembers ? Number(maxMembers) + 1 : 2,
-        startTime: formData.get('meetingStartTime') as string,
-        endTime: formData.get('meetingEndTime') as string,
-        status: 'RECRUITING',
-        meetingType: 'HYBRID',
-        dayType: selectedDays,
-        latitude: selectedLocation?.latitude,
-        longitude: selectedLocation?.longitude,
-        address: selectedLocation?.address,
-        thumbnail: thumbnailUrl || '/default-study-thumbnail.png',
-        userId: userInfo?.id,
-      };
+      // FormData에 필드 추가
+      Object.entries(requiredFields).forEach(([key, value]) => {
+        if (value !== undefined) {
+          if (key === 'dayType' && Array.isArray(value)) {
+            formData.append(key, value.join(','));
+          } else {
+            formData.append(key, String(value));
+          }
+        }
+      });
 
       if (isEdit && initialData) {
         await axios.post(`/api/study-posts/${initialData.id}`, formData, {
@@ -161,9 +160,17 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
           },
         });
         alert('스터디 글이 수정되었습니다!');
+        router.push(`/community/study/${initialData.id}`);
       } else {
-        await axios.post('/api/study-posts', studyData);
-        alert('스터디 글이 작성되었습니다!');
+        const response = await axios.post('/api/study-posts', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        if (response.status === 200) {
+          alert('스터디 글이 작성되었습니다!');
+        }
       }
 
       router.push('/community/study');
@@ -184,13 +191,27 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
         <label className="label">
           <span className="label-text">썸네일 이미지</span>
         </label>
-        <input
-          type="file"
-          name="thumbnail"
-          accept="image/*"
-          onChange={handleThumbnailChange}
-          className="file-input file-input-bordered w-full"
-        />
+        <div className="flex gap-2 items-center">
+          <input
+            type="file"
+            name="file"
+            accept="image/*"
+            onChange={handleThumbnailChange}
+            className="file-input file-input-bordered w-full"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              setThumbnailPreview(
+                'https://devonoffbucket.s3.ap-northeast-2.amazonaws.com/default/thumbnail.png',
+              );
+              setSelectedFile(null);
+            }}
+            className="btn btn-secondary"
+          >
+            기본 이미지로 변경
+          </button>
+        </div>
         {thumbnailPreview && (
           <div className="mt-2">
             <img
