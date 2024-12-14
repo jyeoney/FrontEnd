@@ -1,11 +1,11 @@
 'use client';
 
-import { BasePost } from '@/types/post';
+import { InfoPost } from '@/types/post';
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 
 interface MyPostCardProps {
-  post: BasePost;
+  post: InfoPost;
 }
 
 const MyInfoPostCard = ({ post }: MyPostCardProps) => {

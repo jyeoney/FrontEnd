@@ -18,7 +18,7 @@ export const setCookie = (
     httpOnly: true, // 클라이언트 자바스크립트에서는 접근 불가(보안상의 이유)
     secure: false,
     path: '/', // 쿠키의 유효 경로
-    sameSite: 'strict',
+    sameSite: 'lax',
     maxAge,
   });
 
@@ -31,7 +31,7 @@ export const deleteCookie = (res: NextResponse, name: string) => {
     httpOnly: true,
     secure: false,
     path: '/', // 쿠키의 유효 경로
-    sameSite: 'strict',
+    sameSite: 'lax',
     maxAge: 0,
     // expires: new Date(0),
   });

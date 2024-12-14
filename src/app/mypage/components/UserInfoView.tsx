@@ -131,6 +131,10 @@ const UserInfoView = () => {
           if (status === 404) {
             setAlertMessage(message);
             setShowAlert(true);
+          } else if (status === 401) {
+            console.log('토큰 문제 발생. 로그인이 필요합니다.');
+            router.push('/signin');
+            resetStore();
           } else {
             setAlertMessage(
               '프로필 이미지를 변경하지 못했습니다. 잠시 후 다시 시도해주세요.',
@@ -332,7 +336,6 @@ const UserInfoView = () => {
       <div className="flex flex-col w-full md:w-2/3 space-y-6">
         <div className="space-y-4">
           <div className="flex flex-col md:flex-row items-center gap-4">
-            {/* 공통 라벨 스타일 추가 */}
             <label className="font-medium text-lg w-32 md:w-1/3 text-right">
               닉네임
             </label>
@@ -354,7 +357,6 @@ const UserInfoView = () => {
           </div>
 
           <div className="flex flex-col md:flex-row items-center gap-4">
-            {/* 동일한 라벨 너비로 정렬 */}
             <label className="font-medium text-lg w-32 md:w-1/3 text-right">
               이메일
             </label>

@@ -5,7 +5,39 @@ import { cookies } from 'next/headers';
 
 export const POST = async (req: NextRequest) => {
   const cookieStore = await cookies();
-  const accessToken = cookieStore.get('accessToken')?.value;
+  let accessToken = cookieStore.get('accessToken')?.value;
+  if (!accessToken) {
+    const refreshToken = cookieStore.get('refreshToken')?.value;
+    if (!refreshToken) {
+      return NextResponse.json(
+        { message: '로그아웃이 완료되었습니다.' },
+        { status: 200 },
+      );
+    }
+    try {
+      const reissueResponse = await axios.post(
+        `${process.env.API_URL}/auth/token-reissue`, // 백엔드로 바로 요청
+        {
+          refreshToken,
+        },
+      );
+
+      if (reissueResponse.status === 200) {
+        accessToken = reissueResponse.data.accessToken;
+      } else {
+        return NextResponse.json(
+          { errorMessage: 'sign-out route.ts 액세스 토큰 재발급 실패' },
+          { status: 500 },
+        );
+      }
+    } catch (error) {
+      return NextResponse.json(
+        { errorMessage: 'catch 문 액세스 토큰 재발급 실패' },
+        { status: 500 },
+      );
+    }
+  }
+
   try {
     await axios.post(
       `${process.env.API_URL}/auth/sign-out`,
@@ -17,17 +49,12 @@ export const POST = async (req: NextRequest) => {
         },
       },
     );
-    const res = NextResponse.json({ message: '로그아웃 성공' });
+    const res = NextResponse.json({ message: '로그아웃이 완료되었습니다.' });
 
-    // deleteCookie(res, 'accessToken');
-    // deleteCookie(res, 'refreshToken');
-    res.cookies.set('accessToken', '', { maxAge: 0 });
-    res.cookies.set('refreshToken', '', { maxAge: 0 });
+    deleteCookie(res, 'accessToken');
+    deleteCookie(res, 'refreshToken');
 
-    return NextResponse.json(
-      { message: '로그아웃 성공' },
-      { headers: res.headers },
-    );
+    return res;
   } catch (error: any) {
     if (error.response) {
       const { status, data } = error.response;
@@ -35,7 +62,7 @@ export const POST = async (req: NextRequest) => {
     }
 
     return NextResponse.json(
-      { message: '네트워크 오류가 발생했습니다.' },
+      { errorMessage: '네트워크 오류가 발생했습니다.' },
       { status: 500 },
     );
   }

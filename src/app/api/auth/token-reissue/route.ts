@@ -11,7 +11,7 @@ export const POST = async (req: NextRequest) => {
 
   if (!refreshToken) {
     return NextResponse.json(
-      { message: '리프레시 토큰이 없습니다.' },
+      { errorMessage: '리프레시 토큰이 없습니다.' },
       { status: 401 },
     );
   }
@@ -40,12 +40,12 @@ export const POST = async (req: NextRequest) => {
         0,
       );
 
-      const res = NextResponse.json({ message: '토큰 갱신 성공' });
+      const res = NextResponse.json({ message: 'route.ts 토큰 갱신 성공' });
 
       setCookie(res, 'accessToken', accessToken, accessTokenMaxAge);
       res.headers.set('Authorization', `Bearer ${accessToken}`);
       return (
-        NextResponse.json({ message: '토큰 갱신 성공' }),
+        NextResponse.json({ message: 'route.ts 토큰 갱신 성공' }),
         { headers: res.headers }
       );
     }

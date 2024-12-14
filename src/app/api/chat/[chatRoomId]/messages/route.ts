@@ -3,15 +3,13 @@ import axios from 'axios';
 
 export const GET = async (
   request: NextRequest,
-  { params }: { params: { userId: string } },
+  { params }: { params: { chatRoomId: string } },
 ) => {
-  const { userId } = await params;
-  const url = new URL(request.url);
-  const page = url.searchParams.get('page') || '0';
+  const { chatRoomId } = await params;
 
   try {
     const response = await axios.get(
-      `${process.env.API_URL}/qna-posts/author/${userId}?page=${page}`, // 백엔드 서버 URL
+      `${process.env.API_URL}/chat/${chatRoomId}/messages`, // 백엔드 서버 URL
       {
         headers: {
           'Content-Type': 'application/json',

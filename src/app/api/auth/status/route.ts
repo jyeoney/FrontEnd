@@ -1,32 +1,15 @@
-import { NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
-import axios from 'axios';
+import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from 'next/server';
 
-export const GET = async (req: Request) => {
-  const cookies = req.headers.get('cookie');
+export async function GET(req: NextRequest) {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get('accessToken')?.value;
+  const refreshToken = cookieStore.get('refreshToken')?.value;
 
-  const accessToken = cookies?.match(/accessToken=([^;]+)/)?.[1];
-  if (!accessToken) {
-    return NextResponse.json({ isSignedIn: false }, { status: 401 });
+  // 쿠키에 토큰이 있으면 로그인 상태, 없으면 로그아웃 상태
+  if (accessToken || refreshToken) {
+    return NextResponse.json({ isSignedIn: true });
+  } else {
+    return NextResponse.json({ isSignedIn: false });
   }
-
-  try {
-    const decoded = jwt.verify(accessToken, process.env.JWT_SECRET!);
-
-    const response = await axios.get(
-      `${process.env.API_BASE_URL}/auth/status`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-
-    return NextResponse.json({
-      isSignedIn: true,
-      user: response.data.user,
-    });
-  } catch (error) {
-    return NextResponse.json({ isSignedIn: false }, { status: 401 });
-  }
-};
+}

@@ -25,29 +25,44 @@ const Header = () => {
   const pathname = usePathname();
   const router = useRouter();
 
-  // 초기 로그인 상태를 클라이언트 상태로 설정
   // useEffect(() => {
-  //   setIsSignedIn(initialSignedIn);
-
-  //   // if (initialSignedIn) {
-  //   //   const mockUserInfo = {
-  //   //     id: 1,
-  //   //     nickname: 'testuser',
-  //   //     email: 'test@example.com',
-  //   //     profileImageUrl: 'https://via.placeholder.com/150',
-  //   //   };
-  //   //   setUserInfo(mockUserInfo);
-  //   // } else {
-  //   //   setUserInfo(null);
-  //   // }
-  // }, [initialSignedIn, setIsSignedIn, setUserInfo]);
-
-  // useEffect(() => {
-  //   // 상태 복원
-  //   const storedSignedIn = useAuthStore.getState().isSignedIn;
-  //   setIsSignedIn(storedSignedIn);
-  //   setIsLoading(false); // 로딩 완료
+  //   setIsSignedIn(isSignedIn);
+  //   console.log('isSignedIn:', isSignedIn);
   // }, []);
+
+  // useEffect(() => {
+  //   const checkAuthStatus = async () => {
+  //     try {
+  //       const response = await axios.get('/api/auth/status');
+  //       console.log('isSignedIn참', response.data.isSignedIn);
+  //       if (response.data.isSignedIn === true) {
+  //         setIsSignedIn(true);
+  //       } else {
+  //         setIsSignedIn(false);
+  //         resetStore();
+  //         router.push('/signin');
+  //       }
+  //     } catch (error: any) {
+  //       console.log('isSignedIn 문제', error.response.data.isSignedIn);
+  //       console.error('인증 상태 확인 실패', error);
+  //       // setIsSignedIn(false);
+  //       // resetStore();
+  //       // router.push('/signin');
+  //     }
+  //   };
+
+  //   if (!isSignedIn) {
+  //     checkAuthStatus(); // isSignedIn이 false일 때만 인증 상태 확인
+  //   }
+  // }, [isSignedIn, setIsSignedIn, resetStore, router]);
+
+  useEffect(() => {
+    // 상태 복원
+    const storedSignedIn = useAuthStore.getState().isSignedIn;
+    console.log('로그인 상태는', storedSignedIn);
+    setIsSignedIn(storedSignedIn);
+    setIsLoading(false); // 로딩 완료
+  }, []);
 
   useEffect(() => {
     console.log(`닉네임: ${userInfo?.nickname}`);
@@ -78,15 +93,20 @@ const Header = () => {
         router.push('/');
         setAlertMessage('로그아웃이 완료되었습니다.');
         setShowAlert(true);
+      } else {
+        setAlertMessage('액세스 토큰이 없어 로그아웃을 할 수 없습니다.'); // 삭제 예정
+        setShowAlert(true);
       }
     } catch (error: any) {
       const { status, data } = error.response;
-      console.log('data: ' + data);
+      console.log('data: ' + data.errorMessage);
 
       const message =
         data?.errorMessage || '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
       if (error.response) {
-        if (status === 400) {
+        if (status === 401) {
+          setAlertMessage('액세스 토큰이 없어 로그아웃을 할 수 없습니다.'); // 삭제 예정
+        } else if (status === 400) {
           setAlertMessage('로그아웃에 실패했습니다. 다시 시도해 주세요.');
         } else if (status === 404) {
           setAlertMessage('사용자를 찾을 수 없습니다.');
@@ -133,21 +153,8 @@ const Header = () => {
           >
             Q&A
           </Link>
-          <Link
-            href="/studyroom"
-            className={`btn join-item ${isActive('/studyroom')}`}
-          >
-            스터디룸
-          </Link>
-          <Link
-            href="/chat/1"
-            className={`btn join-item ${isActive('/chat/1')}`}
-          >
-            채팅
-          </Link>
         </div>
       </div>
-
       <div className="navbar-end lg:hidden">
         <button
           className="btn btn-ghost text-base-content"
@@ -169,7 +176,6 @@ const Header = () => {
           </svg>
         </button>
       </div>
-
       <div className={`navbar-end ${isNavOpen ? 'block' : 'hidden'} lg:hidden`}>
         <div className="flex flex-col items-center space-y-2">
           <Link
@@ -190,15 +196,30 @@ const Header = () => {
           >
             Q&A
           </Link>
-          <Link href="/studyroom" className={`btn ${isActive('/studyroom')}`}>
-            스터디룸
-          </Link>
-          <Link href="/chat/1" className={`btn ${isActive('/chat/1')}`}>
-            채팅
-          </Link>
+          {isSignedIn ? (
+            <>
+              <Link href={`/mypage/${userInfo?.id}`} className="btn btn-ghost">
+                마이페이지
+              </Link>
+              <button
+                className="btn btn-ghost text-base-content"
+                onClick={showSignOutConfirm}
+              >
+                로그아웃
+              </button>
+            </>
+          ) : (
+            <>
+              <Link href="/signin" className="btn btn-ghost text-base-content">
+                로그인
+              </Link>
+              <Link href="/signup" className="btn btn-ghost text-base-content">
+                회원가입
+              </Link>
+            </>
+          )}
         </div>
       </div>
-
       <div className="navbar-end hidden lg:flex">
         {isSignedIn ? (
           <>
@@ -233,7 +254,7 @@ const Header = () => {
 
       {showAlert && (
         <CustomAlert
-          message="로그아웃이 완료되었습니다."
+          message={alertMessage}
           onClose={() => setShowAlert(false)}
         />
       )}
