@@ -122,6 +122,7 @@ export default function OnlineStudyList() {
         placeholder="스터디 제목을 검색하세요"
       />
       <StudyFilter
+        searchParams={searchParams}
         selectedSubjects={selectedSubjects}
         selectedStatus={selectedStatus}
         selectedDifficulty={selectedDifficulty}
