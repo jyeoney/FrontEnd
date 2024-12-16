@@ -51,3 +51,13 @@ export const DAY_KOREAN = {
   SATURDAY: '토',
   SUNDAY: '일',
 } as const;
+
+export type StudyDifficulty = 'HIGH' | 'MEDIUM' | 'LOW';
+
+export type StudySubject =
+  | 'CONCEPT_LEARNING'
+  | 'PROJECT'
+  | 'CHALLENGE'
+  | 'CERTIFICATION'
+  | 'JOB_PREPARATION'
+  | 'ETC';

@@ -2,6 +2,21 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+declare global {
+  interface Window {
+    kakao: {
+      maps: {
+        load: (callback: () => void) => void;
+        services: { Places: new () => any; Status: { OK: string } };
+        LatLng: new (lat: number, lng: number) => any;
+        Map: new (container: HTMLElement, options: any) => any;
+        Marker: new (options: any) => any;
+        LatLngBounds: new () => any;
+      };
+    };
+  }
+}
+
 interface KakaoMapProps {
   studies: Array<{
     latitude: number;
