@@ -56,7 +56,7 @@ export const POST = async (req: NextRequest) => {
     }
 
     return NextResponse.json(
-      { message: '네트워크 오류가 발생했습니다.' },
+      { errorMessage: '네트워크 오류가 발생했습니다.' },
       { status: 500 },
     );
   }
