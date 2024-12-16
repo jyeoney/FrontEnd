@@ -9,14 +9,14 @@ export default function VideoRoom() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // URL 파라미터에서 roomId와 camKey를 가져옴
-  const roomIdParam = searchParams.get('roomId');
-  const camKeyParam = searchParams.get('camKey');
+  // URL 파라미터에서 studyId와 nickname을 가져옴
+  const studyIdParam = searchParams.get('studyId');
+  const nicknameParam = searchParams.get('nickname');
 
-  // roomId와 myKey ref 초기화
-  const roomId = useRef(roomIdParam || '1');
+  // studyId와 myKey ref 초기화
+  const studyId = useRef(studyIdParam || '1');
   const myKey = useRef(
-    camKeyParam || Math.random().toString(36).substring(2, 11),
+    nicknameParam || Math.random().toString(36).substring(2, 11),
   );
 
   // 주요 상태 및 참조 변수들
@@ -35,7 +35,7 @@ export default function VideoRoom() {
     pc.createAnswer().then(answer => {
       pc.setLocalDescription(answer);
       stompClient.current.send(
-        `/app/peer/answer/${otherKey}/${roomId.current}`,
+        `/app/peer/answer/${otherKey}/${studyId.current}`,
         {},
         JSON.stringify({
           key: myKey.current,
@@ -66,7 +66,7 @@ export default function VideoRoom() {
       const label = document.createElement('span');
       label.className =
         'absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded';
-      label.textContent = `참가자 ${otherKeyList.current.indexOf(otherKey) + 1}`;
+      label.textContent = otherKey;
 
       videoContainer.appendChild(video);
       videoContainer.appendChild(label);
@@ -115,7 +115,7 @@ export default function VideoRoom() {
         if (event.candidate) {
           console.log('ICE candidate');
           stompClient.current?.send(
-            `/app/peer/iceCandidate/${otherKey}/${roomId.current}`,
+            `/app/peer/iceCandidate/${otherKey}/${studyId.current}`,
             {},
             JSON.stringify({
               key: myKey.current,
@@ -227,14 +227,14 @@ export default function VideoRoom() {
 
     stompClient.current.connect(
       {
-        studyId: roomId.current,
-        userId: myKey.current,
+        studyId: studyId.current,
+        nickname: myKey.current,
       },
       function () {
         console.log('Connected to WebRTC server');
 
         stompClient.current.subscribe(
-          `/topic/peer/iceCandidate/${myKey.current}/${roomId.current}`,
+          `/topic/peer/iceCandidate/${myKey.current}/${studyId.current}`,
           (candidate: any) => {
             const key = JSON.parse(candidate.body).key;
             const message = JSON.parse(candidate.body).body;
@@ -249,7 +249,7 @@ export default function VideoRoom() {
         );
 
         stompClient.current.subscribe(
-          `/topic/peer/offer/${myKey.current}/${roomId.current}`,
+          `/topic/peer/offer/${myKey.current}/${studyId.current}`,
           (offer: any) => {
             const key = JSON.parse(offer.body).key;
             const message = JSON.parse(offer.body).body;
@@ -266,7 +266,7 @@ export default function VideoRoom() {
         );
 
         stompClient.current.subscribe(
-          `/topic/peer/answer/${myKey.current}/${roomId.current}`,
+          `/topic/peer/answer/${myKey.current}/${studyId.current}`,
           async (answer: any) => {
             try {
               const key = JSON.parse(answer.body).key;
@@ -309,6 +309,10 @@ export default function VideoRoom() {
         });
       },
     );
+    setTimeout(() => {
+      startStreaming(); // 자동으로 스트리밍 시작
+      console.log('startStreaming');
+    }, 3000);
   };
 
   const startStreaming = async () => {
@@ -346,7 +350,7 @@ export default function VideoRoom() {
             await pc.setLocalDescription(offer);
 
             stompClient.current?.send(
-              `/app/peer/offer/${key}/${roomId.current}`,
+              `/app/peer/offer/${key}/${studyId.current}`,
               {},
               JSON.stringify({
                 key: myKey.current,
@@ -470,7 +474,7 @@ export default function VideoRoom() {
       if (stompClient.current?.connected) {
         // 1. 서버에 알림
         await stompClient.current.send(
-          `/app/send/end/${roomId.current}/${myKey.current}`,
+          `/app/send/end/${studyId.current}/${myKey.current}`,
           {},
           {},
         );
@@ -525,17 +529,6 @@ export default function VideoRoom() {
   // UI 렌더링
   return (
     <div className="p-4">
-      <div className="flex justify-between items-center mb-4 max-w-7xl mx-auto">
-        <button
-          type="button"
-          id="startStreamBtn"
-          onClick={startStreaming}
-          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
-        >
-          스터디룸 입장
-        </button>
-      </div>
-
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {/* 로컬 비디오 */}

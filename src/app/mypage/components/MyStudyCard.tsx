@@ -125,7 +125,7 @@ const MyStudyCard = ({ post }: MyStudyCardProps) => {
             onClick={e => {
               e.stopPropagation();
               router.push(
-                `/studyroom?roomId=${post.id}&camKey=${userInfo?.id}`,
+                `/studyroom?studyId=${post.id}&nickname=${userInfo?.nickname}`,
               );
             }}
           >
