@@ -15,20 +15,15 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
+    const postType = body.postType.toLowerCase();
+    const postId = body.postId;
+
     const response = await axios.post(
-      `${process.env.API_URL}/comments`,
+      `${process.env.API_URL}/${postType}-posts/${postId}/comments`,
       {
-        post_id: body.post_id,
-        post_type: body.post_type,
-        is_secret: body.is_secret,
         content: body.content,
-        ...(body.reply_to && { reply_to: body.reply_to }),
+        isSecret: body.isSecret,
       },
-      // {
-      //   headers: {
-      //     Authorization: `Bearer ${accessToken}`,
-      //   },
-      // },
     );
 
     return NextResponse.json(response.data);

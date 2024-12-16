@@ -45,6 +45,32 @@ interface Comment {
   replies: Comment[];
 }
 
+const getCommentsEndpoint = (postType: string, postId: string) => {
+  switch (postType) {
+    case 'STUDY':
+      return `/study-posts/${postId}/comments`;
+    case 'INFO':
+      return `/info-posts/${postId}/comments`;
+    case 'QNA':
+      return `/qna-posts/${postId}/comments`;
+    default:
+      throw new Error('Invalid post type');
+  }
+};
+
+const getReplyEndpoint = (postType: string) => {
+  switch (postType) {
+    case 'STUDY':
+      return `/study-posts/comments`;
+    case 'INFO':
+      return `/info-posts/comments`;
+    case 'QNA':
+      return `/qna-posts/comments`;
+    default:
+      throw new Error('Invalid post type');
+  }
+};
+
 export default function Comments({ studyId, postType }: CommentsProps) {
   const { isSignedIn } = useAuthStore();
   const [comments, setComments] = useState<Comment[]>([]);
@@ -57,7 +83,7 @@ export default function Comments({ studyId, postType }: CommentsProps) {
     const fetchComments = async () => {
       try {
         const response = await axios.get<CommentResponse>(
-          `${process.env.NEXT_PUBLIC_API_URL}/comments?post_id=${studyId}&post_type=${postType}&page=${page + 1}&size=5`,
+          `${process.env.NEXT_PUBLIC_API_URL}${getCommentsEndpoint(postType, studyId)}?page=${page + 1}&size=5`,
         );
         if (response.status === 200) {
           const { content: commentData, totalPages: total } = response.data;
@@ -84,13 +110,11 @@ export default function Comments({ studyId, postType }: CommentsProps) {
     try {
       const response = await axios.post(
         replyTo
-          ? `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/comments/${replyTo}/reply`
-          : `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/comments`,
+          ? `${process.env.NEXT_PUBLIC_API_ROUTE_URL}${getReplyEndpoint(postType)}/${replyTo}`
+          : `${process.env.NEXT_PUBLIC_API_ROUTE_URL}${getCommentsEndpoint(postType, studyId)}`,
         {
-          post_id: studyId,
-          post_type: postType,
-          is_secret: false,
           content: content,
+          isSecret: false,
         },
       );
 

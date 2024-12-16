@@ -18,19 +18,14 @@ export async function POST(
 
   try {
     const body = await req.json();
+    const postType = body.post_type.toLowerCase();
+
     const response = await axios.post(
-      `${process.env.API_URL}/comments/${params.commentId}/reply`,
+      `${process.env.API_URL}/${postType}-posts/comments/${params.commentId}`,
       {
-        post_id: body.post_id,
-        post_type: body.post_type,
-        is_secret: body.is_secret,
         content: body.content,
+        isSecret: body.isSecret,
       },
-      // {
-      //   headers: {
-      //     Authorization: `Bearer ${accessToken}`,
-      //   },
-      // },
     );
 
     return NextResponse.json(response.data);
