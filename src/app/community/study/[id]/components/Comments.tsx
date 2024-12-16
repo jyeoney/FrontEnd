@@ -76,6 +76,7 @@ export default function Comments({ studyId, postType }: CommentsProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [content, setContent] = useState('');
   const [replyTo, setReplyTo] = useState<number | null>(null);
+  const [replyToUser, setReplyToUser] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
@@ -83,7 +84,7 @@ export default function Comments({ studyId, postType }: CommentsProps) {
     const fetchComments = async () => {
       try {
         const response = await axios.get<CommentResponse>(
-          `${process.env.NEXT_PUBLIC_API_URL}${getCommentsEndpoint(postType, studyId)}?page=${page + 1}&size=5`,
+          `${process.env.NEXT_PUBLIC_API_URL}/${postType.toLowerCase()}-posts/${studyId}/comments?page=${page}`,
         );
         if (response.status === 200) {
           const { content: commentData, totalPages: total } = response.data;
@@ -138,11 +139,17 @@ export default function Comments({ studyId, postType }: CommentsProps) {
         }
         setContent('');
         setReplyTo(null);
+        setReplyToUser(null);
         setPage(0);
       }
     } catch (error) {
       console.error('댓글 작성 실패:', error);
     }
+  };
+
+  const handleReplyClick = (commentId: number, userNickname: string) => {
+    setReplyTo(commentId);
+    setReplyToUser(userNickname);
   };
 
   const CommentItem = ({
@@ -165,7 +172,12 @@ export default function Comments({ studyId, postType }: CommentsProps) {
         <p className="mb-2">{comment.content}</p>
         {isSignedIn && !isReply && (
           <button
-            onClick={() => setReplyTo(comment.id)}
+            onClick={() =>
+              handleReplyClick(
+                comment.id,
+                comment.user?.nickname || comment.userDto?.nickname || '',
+              )
+            }
             className="text-sm text-primary hover:underline"
           >
             답글 달기
@@ -195,15 +207,23 @@ export default function Comments({ studyId, postType }: CommentsProps) {
             placeholder="댓글을 입력하세요..."
             rows={3}
           />
-          <div className="flex justify-end mt-2">
-            {replyTo && (
-              <button
-                type="button"
-                onClick={() => setReplyTo(null)}
-                className="btn btn-ghost mr-2"
-              >
-                답글 취소
-              </button>
+          <div className="flex justify-end mt-2 items-center">
+            {replyTo && replyToUser && (
+              <>
+                <span className="text-sm text-gray-600 mr-2">
+                  @{replyToUser}님에게 답글 작성
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReplyTo(null);
+                    setReplyToUser(null);
+                  }}
+                  className="btn btn-ghost mr-2"
+                >
+                  답글 취소
+                </button>
+              </>
             )}
             <button type="submit" className="btn btn-primary">
               {replyTo ? '답글 작성' : '댓글 작성'}
