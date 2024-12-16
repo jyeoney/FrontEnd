@@ -1,34 +1,117 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import axios from 'axios';
+import { User } from '@/types/post';
+
+// interface ChatMessage {
+//   profileImg?: string;
+//   chatRoomId: string;
+//   sender: string;
+//   content: string;
+//   timestamp: string;
+//   imgUrl?: string;
+// }
 
 interface ChatMessage {
-  profileImg?: string;
-  chatRoomId: string;
-  sender: string;
+  id: number;
+  chatRoomId: number;
   content: string;
   timestamp: string;
-  imgUrl?: string;
+  user: User;
 }
 
 interface ChatState {
   isConnected: boolean;
-  isConnecting: boolean;
+  // isConnecting: boolean;
   error: string | null;
 }
 
+const fetchChatMessages = async ({
+  pageParam,
+  chatRoomId,
+}: {
+  pageParam: number;
+  chatRoomId: string;
+}): Promise<{
+  messages: ChatMessage[];
+  page: number;
+  hasNextPage: boolean;
+}> => {
+  const size = 20;
+  try {
+    const response = await axios.get(
+      `${process.env.NEXT_PUBLIC_CHAT_SOCKET_URL}/chat/${chatRoomId}/messages`,
+      {
+        params: { page: pageParam, size },
+      },
+    );
+
+    const messages = response.data.content as ChatMessage[];
+    const page = response.data.pageable.number;
+    const last = response.data.last;
+
+    return {
+      messages,
+      page,
+      hasNextPage: !last,
+    };
+  } catch (error) {
+    console.error('이전 메시지를 로드하는 데 실패했습니다.');
+    // return {
+    //   messages: [], // 빈 배열 반환
+    //   page: pageParam, // 현재 페이지 반환
+    //   hasNextPage: false, // 더 이상 페이지가 없다고 표시
+    // };
+    console.error('이전 메시지를 로드하는 데 실패했습니다.');
+    throw new Error(
+      '이전 메시지를 로드하는 데 실패했습니다. 다시 시도해주세요.',
+    );
+  }
+};
+
 export const useGroupChat = (chatRoomId: string) => {
-  const stompClient = useRef<Client | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const {
+    data: fetchedData,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery(
+    ['chatMessages', chatRoomId],
+    ({ pageParam = 0 }) => fetchChatMessages({ pageParam, chatRoomId }),
+    {
+      getNextPageParam: (lastPage: any) =>
+        lastPage.last ? undefined : lastPage.page + 1,
+    },
+
+    // onError: (error: any) => {
+    //   setChatState(prev => ({
+    //     ...prev,
+    //     error: error.message
+    //   }))
+    // }
+  );
+
+  const messages: ChatMessage[] =
+    fetchedData?.pages
+      .flatMap(page => page.messages)
+      .reduce((uniqueMessages: ChatMessage[], message: ChatMessage) => {
+        if (!uniqueMessages.some(m => m.id === message.id)) {
+          uniqueMessages.push(message);
+        }
+        return uniqueMessages;
+      }, [] as ChatMessage[]) || [];
+
+  const stompClient = useRef<Client | null>(null); // stompClient는 STOMP 클라이언트를 생성한 후, WebSocket 연결을 관리
+  // const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatState, setChatState] = useState<ChatState>({
     isConnected: false, // 현재 연결 상태
-    isConnecting: false, // 연결 시도 중인지 여부
+    // isConnecting: false, // 연결 시도 중인지 여부
     error: null, // 에러 발생 시 에러 정보 저장
   });
 
   const isConnecting = useRef(false);
-  const token = useRef<string>('token'); // 실제 토큰 관리 로직으로 대체 필요
 
   const connect = useCallback(async () => {
     console.log('connect 함수 호출됨', {
@@ -46,7 +129,7 @@ export const useGroupChat = (chatRoomId: string) => {
     }
 
     isConnecting.current = true;
-    setChatState(prev => ({ ...prev, isConnecting: true, error: null }));
+    setChatState(prev => ({ ...prev, error: null }));
 
     try {
       const socket = new SockJS(
@@ -58,10 +141,11 @@ export const useGroupChat = (chatRoomId: string) => {
 
       await new Promise<void>((resolve, reject) => {
         const client = new Client({
-          webSocketFactory: () => socket,
-          reconnectDelay: 5000,
-          heartbeatIncoming: 4000,
-          heartbeatOutgoing: 4000,
+          webSocketFactory: () => socket, // SockJS를 사용하여 WebSocket 연결 생성
+          reconnectDelay: 5000, // SockJS를 사용하여 WebSocket 연결 생성
+          heartbeatIncoming: 4000, // SockJS를 사용하여 WebSocket 연결 생성
+          heartbeatOutgoing: 4000, // SockJS를 사용하여 WebSocket 연결 생성
+
           debug: msg => {
             console.log('STOMP Debug:', msg);
           },
@@ -76,16 +160,21 @@ export const useGroupChat = (chatRoomId: string) => {
             client.subscribe(`/topic/chat/${chatRoomId}`, messageOutput => {
               console.log('메시지 구독 성공');
               const newMessage = JSON.parse(messageOutput.body) as ChatMessage;
-              setMessages(prev => [...prev, newMessage]);
+              // setMessages(prev => [...prev, newMessage]);
+              fetchNextPage();
             });
 
             setChatState({
               isConnected: true,
-              isConnecting: false,
               error: null,
             });
             isConnecting.current = false;
             resolve();
+          },
+
+          onDisconnect: () => {
+            console.log('WebSocket 연결 해제됨');
+            setChatState(prev => ({ ...prev, isConnected: false }));
           },
 
           onStompError: frame => {
@@ -94,6 +183,7 @@ export const useGroupChat = (chatRoomId: string) => {
               body: frame.body,
               command: frame.command,
             });
+
             reject(
               new Error(frame.headers.message || '연결 오류가 발생했습니다.'),
             );
@@ -102,7 +192,7 @@ export const useGroupChat = (chatRoomId: string) => {
 
         stompClient.current = client;
         console.log('client.activate() 호출 전');
-        client.activate();
+        client.activate(); // 웹소켓 연결이 시작됨 -> 연결이 성공하면 onConnect 콜백이 실행됨
         console.log('client.activate() 호출 후');
       });
     } catch (error) {
@@ -110,9 +200,9 @@ export const useGroupChat = (chatRoomId: string) => {
         error,
         time: new Date().toISOString(),
       });
+
       setChatState(prev => ({
         ...prev,
-        isConnecting: false,
         error:
           error instanceof Error
             ? error.message
@@ -124,23 +214,48 @@ export const useGroupChat = (chatRoomId: string) => {
   }, [chatRoomId]);
 
   // 이전 메시지 로드 함수
-  const loadPreviousMessages = useCallback(async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_CHAT_SOCKET_URL}/chat/${chatRoomId}/messages`,
-      );
-      const previousMessages = response.data;
-      console.log('Previous messages:', previousMessages);
-      const messagesWithUserNames = previousMessages.map((msg: any) => ({
-        ...msg,
-        senderName: msg.sender || '알 수 없는 유저',
-        timestamp: msg.timestamp,
-      }));
-      setMessages(messagesWithUserNames);
-    } catch (error) {
-      console.error('이전 메시지 로드 실패:', error);
-    }
-  }, [chatRoomId]);
+  // const loadPreviousMessages = useCallback(async () => {
+  //   const size = 20;
+  //   try {
+  //     const response = await axios.get(
+  //       `${process.env.NEXT_PUBLIC_CHAT_SOCKET_URL}/chat/${chatRoomId}/messages`,
+  //       {
+  //         params: { page, size },
+  //       },
+  //     );
+  //     const previousMessages: ChatMessage[] = response.data.messages.map(
+  //       (msg: any) => ({
+  //         messageId: msg.id,
+  //         chatRoomId: msg.chatRoomId,
+  //         content: msg.content,
+  //         timestamp: new Date(msg.createdAt).toLocaleTimeString('ko-KR', {
+  //           hour: '2-digit',
+  //           minute: '2-digit',
+  //         }),
+  //         user: {
+  //           id: msg.user.id,
+  //           email: msg.userEmail,
+  //           profileImageUrl: msg.userProfileImageUrl,
+  //           isActive: msg.isActive,
+  //           createdAt: msg.createdAt,
+  //           updatedAt: msg.updatedAt,
+  //           nickname: msg.nickname || '알 수 없는 사용자',
+  //         },
+  //       }),
+  //     );
+  //     console.log('Previous messages:', previousMessages);
+  //     setMessages(prev => [...previousMessages, ...prev]);
+  //     // setMessages(previousMessages);
+
+  //     if (previousMessages.length < size) {
+  //       setHasMore(false);
+  //     }
+
+  //     setPage(prevPage => prevPage + 1);
+  //   } catch (error) {
+  //     console.error('이전 메시지 로드 실패:', error);
+  //   }
+  // }, [chatRoomId, page, hasMore]);
 
   // 메시지 전송 함수 (서버로 메시지를 보내는 역할)
   const sendMessage = async (content: string, file?: File) => {
@@ -158,7 +273,7 @@ export const useGroupChat = (chatRoomId: string) => {
       try {
         const response = await axios.post('/photo', formData, {
           headers: {
-            Authorization: 'Bearer' + token.current,
+            // Authorization: 'Bearer' + token.current,
             'Content-Type': 'multipart/form-data',
           },
         });
@@ -202,7 +317,8 @@ export const useGroupChat = (chatRoomId: string) => {
         console.log('initChat 시작');
         await connect();
         console.log('connect 완료');
-        await loadPreviousMessages();
+        // await loadPreviousMessages();
+        await fetchNextPage();
         console.log('이전 메시지 로드 완료');
       } catch (error) {
         console.error('초기화 실패:', error);
@@ -219,12 +335,15 @@ export const useGroupChat = (chatRoomId: string) => {
         stompClient.current.deactivate();
       }
     };
-  }, [chatRoomId, connect, loadPreviousMessages]);
+  }, [chatRoomId, connect]);
 
   return {
     messages,
     chatState,
     sendMessage,
     connect,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
   };
 };
