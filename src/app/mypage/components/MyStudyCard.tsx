@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 import { useAuthStore } from '@/store/authStore';
-import axios from 'axios';
 
 interface MyStudyCardProps {
   post: MyStudyCardData;
@@ -125,7 +124,9 @@ const MyStudyCard = ({ post }: MyStudyCardProps) => {
             className="btn btn-accent btn-sm"
             onClick={e => {
               e.stopPropagation();
-              router.push(`/community/study/${post.id}`);
+              router.push(
+                `/studyroom?roomId=${post.id}&camKey=${userInfo?.id}`,
+              );
             }}
           >
             스터디룸

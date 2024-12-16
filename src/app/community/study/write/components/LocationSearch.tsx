@@ -14,7 +14,20 @@ interface LocationSearchProps {
 
 declare global {
   interface Window {
-    kakao: any;
+    kakao: {
+      maps: {
+        load: (callback: () => void) => void;
+        services: {
+          Places: new () => any;
+          Status: {
+            OK: string;
+          };
+        };
+        LatLng: new (lat: number, lng: number) => any;
+        Map: new (container: HTMLElement, options: any) => any;
+        Marker: new (options: any) => any;
+      };
+    };
   }
 }
 
@@ -28,51 +41,78 @@ export default function LocationSearch({
   const [marker, setMarker] = useState<any>(null);
   const [places, setPlaces] = useState<any>(null);
 
-  useEffect(() => {
-    const loadKakaoMap = () => {
-      if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
-        initializeMap();
-        return;
+  const loadKakaoMap = () => {
+    return new Promise<void>((resolve, reject) => {
+      const existingScript = document.getElementById('kakao-maps-sdk');
+      if (existingScript) {
+        if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
+          resolve();
+          return;
+        }
       }
 
       const script = document.createElement('script');
+      script.id = 'kakao-maps-sdk';
       script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY}&libraries=services&autoload=false`;
       script.async = true;
 
       script.onload = () => {
         window.kakao.maps.load(() => {
-          if (!window.kakao.maps.services) {
-            console.error('Kakao maps services library not loaded');
-            return;
-          }
-          initializeMap();
+          // services 라이브러리가 로드될 때까지 대기
+          const checkServices = () => {
+            if (window.kakao.maps.services) {
+              resolve();
+            } else {
+              setTimeout(checkServices, 100);
+            }
+          };
+          checkServices();
         });
       };
 
+      script.onerror = reject;
       document.head.appendChild(script);
-    };
+    });
+  };
 
-    const initializeMap = () => {
+  useEffect(() => {
+    let isSubscribed = true;
+
+    const initMap = async () => {
       if (!mapRef.current) return;
 
-      const options = {
-        center: new window.kakao.maps.LatLng(37.5665, 126.978),
-        level: 3,
-      };
+      try {
+        await loadKakaoMap();
+        if (!isSubscribed) return;
 
-      const mapInstance = new window.kakao.maps.Map(mapRef.current, options);
-      const markerInstance = new window.kakao.maps.Marker({
-        position: options.center,
-      });
-      const placesInstance = new window.kakao.maps.services.Places();
+        const options = {
+          center: new window.kakao.maps.LatLng(37.5665, 126.978),
+          level: 3,
+        };
 
-      markerInstance.setMap(mapInstance);
-      setMap(mapInstance);
-      setMarker(markerInstance);
-      setPlaces(placesInstance);
+        const mapInstance = new window.kakao.maps.Map(mapRef.current, options);
+        const markerInstance = new window.kakao.maps.Marker({
+          position: options.center,
+        });
+        const placesInstance = new window.kakao.maps.services.Places();
+
+        markerInstance.setMap(mapInstance);
+        setMap(mapInstance);
+        setMarker(markerInstance);
+        setPlaces(placesInstance);
+      } catch (error) {
+        console.error('카카오맵 초기화 실패:', error);
+      }
     };
 
-    loadKakaoMap();
+    initMap();
+
+    return () => {
+      isSubscribed = false;
+      if (marker) {
+        marker.setMap(null);
+      }
+    };
   }, []);
 
   const handleSearch = (e: React.MouseEvent | React.KeyboardEvent) => {

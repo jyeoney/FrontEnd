@@ -3,18 +3,27 @@
 import { useEffect, useRef, useState } from 'react';
 import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function VideoRoom() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // URL 파라미터에서 roomId와 camKey를 가져옴
+  const roomIdParam = searchParams.get('roomId');
+  const camKeyParam = searchParams.get('camKey');
+
+  // roomId와 myKey ref 초기화
+  const roomId = useRef(roomIdParam || '1');
+  const myKey = useRef(
+    camKeyParam || Math.random().toString(36).substring(2, 11),
+  );
 
   // 주요 상태 및 참조 변수들
-  const myKey = useRef(Math.random().toString(36).substring(2, 11)); // 사용자 고유 키
   const pcListMap = useRef(new Map()); // WebRTC 연결을 저장하는 맵
   const otherKeyList = useRef<string[]>([]); // 다른 참가자들의 키 목록
   const localStream = useRef<MediaStream>(); // 로컬 미디어 스트림
   const stompClient = useRef<any>(null); // WebSocket 클라이언트
-  const roomId = useRef('2'); // 채팅방 ID
 
   // 비디오/오디오/화면공유 상태 관리
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
@@ -218,8 +227,8 @@ export default function VideoRoom() {
 
     stompClient.current.connect(
       {
-        roomId: roomId.current,
-        camKey: myKey.current,
+        studyId: roomId.current,
+        userId: myKey.current,
       },
       function () {
         console.log('Connected to WebRTC server');
