@@ -111,12 +111,9 @@ export default function HybridStudyList() {
       let currentBitFlag = Number(searchParams.get('dayType') || '0');
       const dayBit = DAY_BIT_FLAGS[value as keyof typeof DAY_BIT_FLAGS];
 
-      // 비트 토글
       if ((currentBitFlag & dayBit) !== 0) {
-        // 비트가 이미 있으면 제거
         currentBitFlag &= ~dayBit;
       } else {
-        // 비트가 없으면 추가
         currentBitFlag |= dayBit;
       }
 
@@ -126,15 +123,12 @@ export default function HybridStudyList() {
         newSearchParams.delete('dayType');
       }
     } else {
-      // 기존 로직 유지
-      const currentValues = searchParams.getAll(type);
-      if (currentValues.includes(value)) {
+      const currentValue = searchParams.get(type);
+
+      if (currentValue === value) {
         newSearchParams.delete(type);
-        currentValues
-          .filter(v => v !== value)
-          .forEach(v => newSearchParams.append(type, v));
       } else {
-        newSearchParams.append(type, value);
+        newSearchParams.set(type, value);
       }
     }
 
