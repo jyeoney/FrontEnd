@@ -28,28 +28,8 @@ const checkAuth = async (request: NextRequest) => {
   }
 
   if (refreshToken) {
-    // const refreshResponse = await processRefreshToken(request, refreshToken);
-    // const newAccessToken = refreshResponse.cookies.get('accessToken')?.value;
-    // if (newAccessToken) {
-    //   return processAccessToken(request, newAccessToken);
-    // }
-    // return handleRedirectToSignIn(request);
-
     return await processRefreshToken(request, refreshToken);
-
-    // const refreshResponse = await processRefreshToken(request, refreshToken);
-    // if (refreshResponse.status === 200) {
-    // const newAccessToken = refreshResponse.headers
-    //   .get('Authorization')
-    //   ?.replace('Bearer ', '');
-    // if (newAccessToken) {
-    //   return processAccessToken(request, newAccessToken);
-    // }
-    // refreshResponse.headers.append('Set-Cookie', `accessToken=${newAccessToken}; Path=/; HttpOnly; Secure; SameSite=Strict`)
   }
-
-  // return refreshResponse;
-  // }
 
   return handleRedirectToSignIn(request);
 };

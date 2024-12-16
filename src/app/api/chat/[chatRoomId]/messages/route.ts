@@ -6,11 +6,18 @@ export const GET = async (
   { params }: { params: { chatRoomId: string } },
 ) => {
   const { chatRoomId } = await params;
+  const searchParams = request.nextUrl.searchParams;
+  const page = searchParams.get('page');
+  const size = searchParams.get('size');
 
   try {
     const response = await axios.get(
       `${process.env.API_URL}/chat/${chatRoomId}/messages`, // 백엔드 서버 URL
       {
+        params: {
+          page,
+          size,
+        },
         headers: {
           'Content-Type': 'application/json',
         },
@@ -18,9 +25,7 @@ export const GET = async (
     );
 
     if (response.status === 200) {
-      if (response.status === 200) {
-        return NextResponse.json(response.data, { status: response.status });
-      }
+      return NextResponse.json(response.data, { status: response.status });
     }
   } catch (error: any) {
     if (error.response) {

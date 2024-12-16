@@ -1,5 +1,3 @@
-// 'use client';
-
 import ChatRoom from '@/app/chat/components/ChatRoom';
 
 const ChatPage = async ({
@@ -7,14 +5,6 @@ const ChatPage = async ({
 }: {
   params: { chatRoomId: string; studyId: string };
 }) => {
-  // const validChatRoomId = chatRoomId as string;
-
-  // useEffect(() => {
-  //   if (!chatRoomId) {
-  //     console.log('chatRoomId가 없습니다.');
-  //   }
-  // }, [chatRoomId]);
-
   const { chatRoomId, studyId } = await params;
 
   return (
@@ -23,7 +13,6 @@ const ChatPage = async ({
 
       <div className="mt-4">
         <ChatRoom chatRoomId={chatRoomId} studyId={studyId} />
-        {/* <ChatRoom /> */}
       </div>
     </div>
   );

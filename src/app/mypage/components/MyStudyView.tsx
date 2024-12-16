@@ -1,7 +1,6 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import dayjs from 'dayjs';
 import { StudyPost, InfoPost, QnAPost } from '@/types/post';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
@@ -12,10 +11,6 @@ import { StudyCard } from '@/app/community/study/components/StudyCard';
 import MyInfoPostCard from './MyInfoPostCard';
 import MyQnAPostCard from './MyQnAPostCard';
 import Pagination from './Pagination';
-
-interface MyStudyProps {
-  post: StudyPost;
-}
 
 const MyStudyView = () => {
   const { userInfo, isSignedIn, resetStore } = useAuthStore();

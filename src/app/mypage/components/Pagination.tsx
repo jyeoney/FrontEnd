@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 interface PaginationProps {
   totalElements: number;
   pageSize: number;

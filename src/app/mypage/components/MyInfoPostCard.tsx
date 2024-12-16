@@ -36,7 +36,7 @@ const MyInfoPostCard = ({ post }: MyPostCardProps) => {
           </div>
           <div className="flex justify-between">
             <span>내용:</span>
-            <span>{post.content}</span>
+            <span>{post.description}</span>
           </div>
           <div className="flex justify-between">
             <span>작성일:</span>

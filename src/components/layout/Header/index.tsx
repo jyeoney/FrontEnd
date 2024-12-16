@@ -10,8 +10,7 @@ import CustomConfirm from '@/components/common/Confirm';
 import CustomAlert from '@/components/common/Alert';
 
 const Header = () => {
-  const { isSignedIn, setIsSignedIn, setUserInfo, userInfo, resetStore } =
-    useAuthStore();
+  const { isSignedIn, setIsSignedIn, userInfo, resetStore } = useAuthStore();
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
