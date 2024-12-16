@@ -19,9 +19,7 @@ export const POST = async (
     );
 
     if (response.status === 200) {
-      if (response.status === 200) {
-        return NextResponse.json(response.data, { status: response.status });
-      }
+      return NextResponse.json(response.data, { status: response.status });
     }
   } catch (error: any) {
     if (error.response) {

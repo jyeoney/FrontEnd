@@ -1,4 +1,3 @@
-import { useAuthStore } from '@/store/authStore';
 import MyStudyView from '../components/MyStudyView';
 import UserInfoView from '../components/UserInfoView';
 

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import { setCookie } from '@/utils/cookies';
-import processAccessToken from './processAccessToken';
 
 const processRefreshToken = async (
   request: NextRequest,
