@@ -22,8 +22,7 @@ const MyInfoPostCard = ({ post }: MyPostCardProps) => {
     >
       <figure className="px-4 pt-4">
         <img
-          // src={post?.thumbnailImgUrl || '/default-study-thumbnail.png'}
-          src="/default-study-thumbnail.png"
+          src={post?.thumbnailImgUrl || '/default-study-thumbnail.png'}
           alt={post.title}
           className="rounded-xl h-48 w-full object-cover"
         />

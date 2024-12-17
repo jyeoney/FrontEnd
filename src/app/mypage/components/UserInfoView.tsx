@@ -188,7 +188,6 @@ const UserInfoView = () => {
         );
 
         if (response.status === 200) {
-          const updatedUserInfo = response.data;
           resetStore();
           router.push('/');
           setAlertMessage(
@@ -198,11 +197,8 @@ const UserInfoView = () => {
         }
       } catch (error: any) {
         if (error.response) {
-          const { status, data } = error.response;
+          const { status } = error.response;
           console.log('error:' + error.response);
-          const message =
-            data?.errorMessage ||
-            '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
           if (status === 400) {
             setAlertMessage('잘못된 요청입니다.');
           } else if (status === 404) {
