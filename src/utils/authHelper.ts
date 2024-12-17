@@ -39,7 +39,8 @@ export const handleUserInfo = async (
       throw new Error('사용자 정보 조회에 실패했습니다.');
     }
 
-    const { isActive, createdAt, updatedAt, ...userInfo } = userResponse.data;
+    const { id, nickname, email, profileImageUrl } = userResponse.data;
+    const userInfo = { id, nickname, email, profileImageUrl };
 
     // 3. 쿠키 설정
     const currentTime = Math.trunc(Date.now() / 1000);
