@@ -1,9 +1,14 @@
 import QnADetailContent from '@/app/community/components/QnADetailContent';
 
-export default async function QnADetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  return <QnADetailContent postId={params.id} />;
-}
+type QnADetailPageProps = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
+const QnADetailPage = async ({ params }: QnADetailPageProps) => {
+  const { id } = await params;
+  return <QnADetailContent postId={id} />;
+};
+
+export default QnADetailPage;

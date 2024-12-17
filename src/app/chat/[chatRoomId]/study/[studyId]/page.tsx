@@ -1,10 +1,13 @@
 import ChatRoom from '@/app/chat/components/ChatRoom';
 
-const ChatPage = async ({
-  params,
-}: {
-  params: { chatRoomId: string; studyId: string };
-}) => {
+type ChatPageProps = {
+  params: Promise<{
+    chatRoomId: string;
+    studyId: string;
+  }>;
+};
+
+const ChatPage = async ({ params }: ChatPageProps) => {
   const { chatRoomId, studyId } = await params;
 
   return (
