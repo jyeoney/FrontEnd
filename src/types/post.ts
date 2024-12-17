@@ -1,11 +1,11 @@
 // 공통으로 사용되는 User 인터페이스
 export interface User {
   id: number;
-  email: string;
-  profileImageUrl: string | null;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  email?: string;
+  profileImageUrl?: string | null;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
   nickname: string;
 }
 
