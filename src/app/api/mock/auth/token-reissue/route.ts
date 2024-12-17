@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import { setCookie } from '@/utils/cookies';
 
-export const POST = async (req: NextRequest) => {
+export const POST = async () => {
   const cookiesList = await cookies();
   const refreshToken = cookiesList.get('refreshToken')?.value;
 
@@ -33,7 +33,7 @@ export const POST = async (req: NextRequest) => {
     setCookie(res, 'accessToken', newAccessToken, accessTokenMaxAge);
 
     return res;
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         message: '리프레시 토큰이 유효하지 않거나 만료되었습니다.',

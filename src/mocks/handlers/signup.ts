@@ -55,7 +55,7 @@ export const signUpHandlers = [
 
   // 인증번호 확인
   rest.post('/api/auth/email-auth/code', async (req, res, ctx) => {
-    const { email, certificationNumber } = await req.json();
+    const { certificationNumber } = await req.json();
     if (!certificationNumber) {
       return res(
         ctx.status(400),
