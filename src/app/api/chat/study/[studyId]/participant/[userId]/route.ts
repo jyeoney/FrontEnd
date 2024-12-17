@@ -3,9 +3,11 @@ import axios from 'axios';
 
 export const POST = async (
   request: NextRequest,
-  { params }: { params: { studyId: string; userId: string } },
+  // { params }: { params: { studyId: string; userId: string } },
 ) => {
-  const { studyId, userId } = await params;
+  // const { studyId, userId } = await params;
+  const { pathname } = request.nextUrl;
+  const [, , studyId, userId] = pathname.split('/');
 
   try {
     const response = await axios.post(

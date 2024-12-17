@@ -43,10 +43,7 @@ export const POST = async (req: NextRequest) => {
 
       setCookie(res, 'accessToken', accessToken, accessTokenMaxAge);
       res.headers.set('Authorization', `Bearer ${accessToken}`);
-      return (
-        NextResponse.json({ message: 'route.ts 토큰 갱신 성공' }),
-        { headers: res.headers }
-      );
+      return res;
     }
     return NextResponse.json(response.data, { status: response.status });
   } catch (error: any) {
