@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import { setCookie } from '@/utils/cookies';
