@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
-export const GET = async (
-  request: NextRequest,
-  { params }: { params: { userId: string } },
-) => {
-  const { userId } = await params;
+export const GET = async (request: NextRequest) => {
+  const userId = request.nextUrl.pathname.split('/')[4];
   const url = new URL(request.url);
   const page = url.searchParams.get('page') || '0';
+
   try {
     const response = await axios.get(
       `${process.env.API_URL}/study-posts/author/${userId}?page=${page}`,

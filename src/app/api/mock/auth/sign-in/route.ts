@@ -2,7 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { setCookie } from '@/utils/cookies';
 
-export const mockUserInfo = {
+interface MockUserInfo {
+  id: number;
+  email: string;
+  nickname: string;
+  profileImageUrl: string;
+}
+
+const mockUserInfo: MockUserInfo = {
   id: 1,
   email: 'test@example.com',
   nickname: 'testUser',
@@ -34,12 +41,7 @@ export const POST = async (req: NextRequest) => {
 
     const res = NextResponse.json({
       message: '로그인 성공',
-      userInfo: {
-        id: mockUserInfo.id,
-        nickname: mockUserInfo.nickname,
-        email: mockUserInfo.email,
-        profileImageUrl: mockUserInfo.profileImageUrl,
-      },
+      userInfo: mockUserInfo,
     });
 
     setCookie(res, 'accessToken', accessToken, accessTokenMaxAge);

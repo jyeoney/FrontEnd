@@ -2,13 +2,11 @@ import axios from 'axios';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function GET(request: NextRequest) {
   try {
+    const id = request.nextUrl.pathname.split('/')[3];
     const response = await axios.get(
-      `${process.env.API_URL}/study-posts/${params.id}`,
+      `${process.env.API_URL}/study-posts/${id}`,
     );
     return NextResponse.json(response.data);
   } catch (error: any) {
@@ -20,12 +18,10 @@ export async function GET(
   }
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function POST(request: NextRequest) {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
+  const id = request.nextUrl.pathname.split('/')[3];
 
   if (!accessToken) {
     return NextResponse.json(
@@ -35,9 +31,9 @@ export async function POST(
   }
 
   try {
-    const formData = await req.formData();
+    const formData = await request.formData();
     const response = await axios.post(
-      `${process.env.API_URL}/study-posts/${params.id}`,
+      `${process.env.API_URL}/study-posts/${id}`,
       formData,
       {
         headers: {
