@@ -53,7 +53,7 @@ export const POST = async (req: NextRequest) => {
       message: '프로필 이미지가 변경되었습니다.',
       mockUserInfo,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: '프로필 이미지 처리 중 오류가 발생했습니다.' },
       { status: 500 },
@@ -61,7 +61,7 @@ export const POST = async (req: NextRequest) => {
   }
 };
 
-export const DELETE = async (req: NextRequest) => {
+export const DELETE = async () => {
   return NextResponse.json({
     message: '프로필 이미지가 삭제되었습니다.',
     mockUserInfo,

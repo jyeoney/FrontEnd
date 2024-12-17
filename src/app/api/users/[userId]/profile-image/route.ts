@@ -25,8 +25,8 @@ export const POST = async (
     );
 
     if (response.status === 200) {
-      const { isActive, createdAt, updatedAt, ...updatedUserInfo } =
-        response.data;
+      const { id, nickname, email, profileImageUrl } = response.data;
+      const updatedUserInfo = { id, nickname, email, profileImageUrl };
       console.log('response data:', updatedUserInfo);
       return NextResponse.json(updatedUserInfo, { status: response.status });
     }
