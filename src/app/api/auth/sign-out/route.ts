@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import axios from 'axios';
 import { deleteCookie } from '@/utils/cookies';
 import { cookies } from 'next/headers';
 
-export const POST = async (req: NextRequest) => {
+export const POST = async () => {
   const cookieStore = await cookies();
   let accessToken = cookieStore.get('accessToken')?.value;
   if (!accessToken) {
@@ -32,7 +32,7 @@ export const POST = async (req: NextRequest) => {
       }
     } catch (error) {
       return NextResponse.json(
-        { errorMessage: 'catch 문 액세스 토큰 재발급 실패' },
+        { errorMessage: 'catch 문 액세스 토큰 재발급 실패', error },
         { status: 500 },
       );
     }

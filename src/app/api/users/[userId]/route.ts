@@ -27,9 +27,8 @@ export const PUT = async (
     );
 
     if (response.status === 200) {
-      const { isActive, createdAt, updatedAt, ...updatedUserInfo } =
-        response.data;
-
+      const { id, nickname, email, profileImageUrl } = response.data;
+      const updatedUserInfo = { id, nickname, email, profileImageUrl };
       return NextResponse.json(updatedUserInfo, { status: response.status });
     }
   } catch (error: any) {

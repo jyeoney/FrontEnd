@@ -19,7 +19,7 @@ const Header = () => {
   const [onConfirmCallback, setOnConfirmCallback] = useState<() => void>(
     () => () => {},
   );
-  const [isLoading, setIsLoading] = useState(true);
+  const [, setIsLoading] = useState(true);
 
   const pathname = usePathname();
   const router = useRouter();
@@ -100,8 +100,8 @@ const Header = () => {
       const { status, data } = error.response;
       console.log('data: ' + data.errorMessage);
 
-      const message =
-        data?.errorMessage || '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+      // const message =
+      //   data?.errorMessage || '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
       if (error.response) {
         if (status === 401) {
           setAlertMessage('액세스 토큰이 없어 로그아웃을 할 수 없습니다.'); // 삭제 예정

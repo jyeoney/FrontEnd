@@ -60,7 +60,7 @@ const fetchChatMessages = async ({
     //   hasNextPage: !last,
     // };
   } catch (error) {
-    console.error('이전 메시지를 로드하는 데 실패했습니다.');
+    console.error('이전 메시지를 로드하는 데 실패했습니다.', error);
 
     return {
       messages: [], // 빈 배열 반환

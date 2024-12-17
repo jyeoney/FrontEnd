@@ -10,7 +10,7 @@ const MyPage = async () => {
       </>
     );
   } catch (error) {
-    console.error('내가 속한 스터디 목록 가져오기 실패');
+    console.error('내가 속한 스터디 목록 가져오기 실패', error);
     return (
       <>
         <h1>데이터 로딩 실패</h1>

@@ -30,6 +30,7 @@ interface Comment {
   content: string;
   createdAt: string;
   updatedAt: string;
+  isSecret?: boolean;
   user?: {
     id: number;
     nickname: string;
@@ -66,6 +67,19 @@ const getReplyEndpoint = (postType: string) => {
       return `/info-posts/comments`;
     case 'QNA':
       return `/qna-posts/comments`;
+    default:
+      throw new Error('Invalid post type');
+  }
+};
+
+const getCommentEndpoint = (postType: string, commentId: number) => {
+  switch (postType) {
+    case 'STUDY':
+      return `/study-posts/comments/${commentId}`;
+    case 'INFO':
+      return `/info-posts/comments/${commentId}`;
+    case 'QNA':
+      return `/qna-posts/comments/${commentId}`;
     default:
       throw new Error('Invalid post type');
   }
@@ -158,41 +172,128 @@ export default function Comments({ studyId, postType }: CommentsProps) {
   }: {
     comment: Comment;
     isReply?: boolean;
-  }) => (
-    <div className="mb-4">
-      <div className="bg-base-200 p-4 rounded-lg">
-        <div className="flex justify-between mb-2">
-          <span className="font-semibold">
-            {comment.user?.nickname || comment.userDto?.nickname}
-          </span>
-          <span className="text-sm text-gray-500">
-            {dayjs.utc(comment.createdAt).tz().format('YYYY.MM.DD HH:mm')}
-          </span>
+  }) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [editContent, setEditContent] = useState(comment.content);
+    const { userInfo } = useAuthStore();
+
+    const isCommentAuthor =
+      userInfo?.id === (comment.user?.id || comment.userDto?.id);
+
+    const handleEdit = async () => {
+      try {
+        await axios.put(
+          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}${getCommentEndpoint(postType, comment.id)}`,
+          {
+            content: editContent,
+            isSecret: comment.isSecret,
+          },
+        );
+
+        setComments(prev =>
+          prev.map(c =>
+            c.id === comment.id ? { ...c, content: editContent } : c,
+          ),
+        );
+        setIsEditing(false);
+      } catch (error) {
+        console.error('댓글 수정 실패:', error);
+      }
+    };
+
+    const handleDelete = async () => {
+      if (!window.confirm('정말로 삭제하시겠습니까?')) return;
+
+      try {
+        await axios.delete(
+          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}${getCommentEndpoint(postType, comment.id)}`,
+        );
+        setComments(prev => prev.filter(c => c.id !== comment.id));
+      } catch (error) {
+        console.error('댓글 삭제 실패:', error);
+      }
+    };
+
+    return (
+      <div className="mb-4">
+        <div className="bg-base-200 p-4 rounded-lg">
+          <div className="flex justify-between mb-2">
+            <span className="font-semibold">
+              {comment.user?.nickname || comment.userDto?.nickname}
+            </span>
+            <span className="text-sm text-gray-500">
+              {dayjs.utc(comment.createdAt).tz().format('YYYY.MM.DD HH:mm')}
+            </span>
+          </div>
+
+          {isEditing ? (
+            <div>
+              <textarea
+                value={editContent}
+                onChange={e => setEditContent(e.target.value)}
+                className="w-full p-2 border rounded"
+              />
+              <div className="flex gap-2 mt-2">
+                <button onClick={handleEdit} className="btn btn-primary btn-sm">
+                  저장
+                </button>
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="btn btn-ghost btn-sm"
+                >
+                  취소
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <p className="mb-2">{comment.content}</p>
+              <div className="flex gap-2">
+                {isSignedIn && !isReply && (
+                  <button
+                    onClick={() =>
+                      handleReplyClick(
+                        comment.id,
+                        comment.user?.nickname ||
+                          comment.userDto?.nickname ||
+                          '',
+                      )
+                    }
+                    className="text-sm text-primary hover:underline"
+                  >
+                    답글 달기
+                  </button>
+                )}
+                {isCommentAuthor && (
+                  <>
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="text-sm text-blue-500 hover:underline"
+                    >
+                      수정
+                    </button>
+                    <button
+                      onClick={handleDelete}
+                      className="text-sm text-red-500 hover:underline"
+                    >
+                      삭제
+                    </button>
+                  </>
+                )}
+              </div>
+            </>
+          )}
         </div>
-        <p className="mb-2">{comment.content}</p>
-        {isSignedIn && !isReply && (
-          <button
-            onClick={() =>
-              handleReplyClick(
-                comment.id,
-                comment.user?.nickname || comment.userDto?.nickname || '',
-              )
-            }
-            className="text-sm text-primary hover:underline"
-          >
-            답글 달기
-          </button>
+        {comment.replies && comment.replies.length > 0 && (
+          <div className="ml-8 mt-2">
+            {comment.replies.map((reply: Comment) => (
+              <CommentItem key={reply.id} comment={reply} isReply={true} />
+            ))}
+          </div>
         )}
       </div>
-      {comment.replies && comment.replies.length > 0 && (
-        <div className="ml-8 mt-2">
-          {comment.replies.map((reply: Comment) => (
-            <CommentItem key={reply.id} comment={reply} isReply={true} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="mt-8">

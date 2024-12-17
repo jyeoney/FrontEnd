@@ -39,7 +39,7 @@ export const handleUserInfo = async (
       throw new Error('사용자 정보 조회에 실패했습니다.');
     }
 
-    const { id, nickname, email, profileImageUrl } = userResponse.data;
+    const { id, nickname, email, profileImageUrl } = userResponse.data; // 필요한 필드만 추출
     const userInfo = { id, nickname, email, profileImageUrl };
 
     // 3. 쿠키 설정

@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import axios from 'axios';
-import { deleteCookie } from '@/utils/cookies';
 import { cookies } from 'next/headers';
 
-export const POST = async (req: NextRequest) => {
+export const POST = async () => {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
   try {
