@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 import { StudyPost } from '@/types/post';
+import Image from 'next/image';
 
 interface StudyCardProps {
   post: StudyPost;
@@ -17,9 +18,11 @@ export function StudyCard({ post }: StudyCardProps) {
       onClick={() => router.push(`/community/study/${post.id}`)}
     >
       <figure className="px-4 pt-4">
-        <img
+        <Image
           src={post.thumbnailImgUrl || '/default-study-thumbnail.png'}
           alt={post.title}
+          width={500}
+          height={300}
           className="rounded-xl h-48 w-full object-cover"
         />
       </figure>

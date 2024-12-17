@@ -3,6 +3,7 @@
 import { InfoPost } from '@/types/post';
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
+import Image from 'next/image';
 
 interface MyPostCardProps {
   post: InfoPost;
@@ -21,9 +22,11 @@ const MyInfoPostCard = ({ post }: MyPostCardProps) => {
       onClick={() => router.push(`/community/info/${post.id}`)}
     >
       <figure className="px-4 pt-4">
-        <img
+        <Image
           src={post?.thumbnailImgUrl || '/default-study-thumbnail.png'}
           alt={post.title}
+          width={500}
+          height={300}
           className="rounded-xl h-48 w-full object-cover"
         />
       </figure>
