@@ -2,12 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import axios from 'axios';
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { signupId: string } },
-) {
+export async function PATCH(request: NextRequest) {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
+  const signupId = request.nextUrl.pathname.split('/')[3];
 
   if (!accessToken) {
     return NextResponse.json(
@@ -17,7 +15,7 @@ export async function PATCH(
   }
 
   try {
-    const status = req.nextUrl.searchParams.get('newStatus');
+    const status = request.nextUrl.searchParams.get('newStatus');
 
     if (!status || !['APPROVED', 'REJECTED'].includes(status)) {
       return NextResponse.json(
@@ -27,7 +25,7 @@ export async function PATCH(
     }
 
     const response = await axios.patch(
-      `${process.env.API_URL}/study-signup/${params.signupId}?newStatus=${status}`,
+      `${process.env.API_URL}/study-signup/${signupId}?newStatus=${status}`,
       {},
       {
         headers: {
@@ -46,12 +44,10 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { signupId: string } },
-) {
+export async function DELETE(request: NextRequest) {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
+  const signupId = request.nextUrl.pathname.split('/')[3];
 
   if (!accessToken) {
     return NextResponse.json(
@@ -62,7 +58,7 @@ export async function DELETE(
 
   try {
     const response = await axios.delete(
-      `${process.env.API_URL}/study-signup/${params.signupId}`,
+      `${process.env.API_URL}/study-signup/${signupId}`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,

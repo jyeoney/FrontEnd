@@ -1,27 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-// import { cookies } from 'next/headers';
 import axios from 'axios';
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { commentId: string } },
-) {
-  // const cookieStore = await cookies();
-  // const accessToken = cookieStore.get('accessToken')?.value;
-
-  // if (!accessToken) {
-  //   return NextResponse.json(
-  //     { message: '인증이 필요합니다.' },
-  //     { status: 401 },
-  //   );
-  // }
-
+export async function POST(request: NextRequest) {
   try {
-    const body = await req.json();
+    const commentId = request.nextUrl.pathname.split('/')[3];
+    const body = await request.json();
     const postType = body.post_type.toLowerCase();
 
     const response = await axios.post(
-      `${process.env.API_URL}/${postType}-posts/comments/${params.commentId}`,
+      `${process.env.API_URL}/${postType}-posts/comments/${commentId}`,
       {
         content: body.content,
         isSecret: body.isSecret,

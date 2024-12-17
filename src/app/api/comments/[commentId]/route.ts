@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { commentId: string } },
-) {
+export async function PUT(request: NextRequest) {
   try {
-    const body = await req.json();
+    const commentId = request.nextUrl.pathname.split('/')[3];
+    const body = await request.json();
     const postType = body.post_type.toLowerCase();
 
     const response = await axios.put(
-      `${process.env.API_URL}/${postType}-posts/comments/${params.commentId}`,
+      `${process.env.API_URL}/${postType}-posts/comments/${commentId}`,
       {
         content: body.content,
         isSecret: body.isSecret,
@@ -26,16 +24,14 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { commentId: string } },
-) {
+export async function DELETE(request: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
+    const commentId = request.nextUrl.pathname.split('/')[3];
+    const { searchParams } = new URL(request.url);
     const postType = searchParams.get('post_type')?.toLowerCase();
 
     await axios.delete(
-      `${process.env.API_URL}/${postType}-posts/comments/${params.commentId}`,
+      `${process.env.API_URL}/${postType}-posts/comments/${commentId}`,
     );
 
     return NextResponse.json({ message: '댓글이 삭제되었습니다.' });

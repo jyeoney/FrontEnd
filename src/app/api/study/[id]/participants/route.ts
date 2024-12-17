@@ -2,12 +2,10 @@ import axios from 'axios';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function GET(request: NextRequest) {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
+  const id = request.nextUrl.pathname.split('/')[3];
 
   if (!accessToken) {
     return NextResponse.json(
@@ -18,7 +16,7 @@ export async function GET(
 
   try {
     const response = await axios.get(
-      `${process.env.API_URL}/study/${params.id}/participants`,
+      `${process.env.API_URL}/study/${id}/participants`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
