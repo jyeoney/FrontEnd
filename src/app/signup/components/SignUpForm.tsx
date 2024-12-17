@@ -37,7 +37,7 @@ const SignUpForm = () => {
   >('');
 
   const [timer, setTimer] = useState(180);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [, setIsTimerRunning] = useState(false);
 
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [passwordCheckVisible, setPasswordCheckVisible] = useState(false);

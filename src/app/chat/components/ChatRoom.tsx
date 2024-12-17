@@ -35,7 +35,7 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
     sendMessage,
     chatState,
     connect,
-  } = useGroupChat(chatRoomId);
+  } = useGroupChat({ chatRoomId, userId });
 
   const { ref, inView } = useInView({
     triggerOnce: false,
@@ -45,24 +45,43 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
   const handleFetchPreviousMessages = async () => {
     if (!hasNextPage || isFetchingNextPage || !chatContainerRef.current) return;
 
-    const previousScrollTop = chatContainerRef.current.scrollTop;
-
     try {
+      const previousScrollHeight = chatContainerRef.current.scrollHeight;
+      const previousScrollTop = chatContainerRef.current.scrollTop;
+
       await fetchNextPage();
-      setLoadError(null);
+
+      // 스크롤 위치 조정 - 새로운 메시지 로드 후 스크롤 유지
+      if (chatContainerRef.current) {
+        const newScrollHeight = chatContainerRef.current.scrollHeight;
+        chatContainerRef.current.scrollTop =
+          newScrollHeight - previousScrollHeight + previousScrollTop;
+      }
     } catch (error) {
+      console.error('이전 메시지 로드 실패:', error);
       setLoadError('이전 메시지를 가져오는 데 실패했습니다.');
     }
-
-    chatContainerRef.current.scrollTop =
-      chatContainerRef.current.scrollHeight - previousScrollTop;
   };
+  useEffect(() => {
+    console.log('메시지 변경 감지:', messages);
+  }, [messages]);
 
   useEffect(() => {
-    if (inView) {
+    const shouldLoadMore =
+      inView && hasNextPage && !isFetchingNextPage && !loadError;
+
+    console.log('Load previous messages conditions:', {
+      inView,
+      hasNextPage,
+      isFetchingNextPage,
+      loadError,
+      shouldLoadMore,
+    });
+
+    if (shouldLoadMore) {
       handleFetchPreviousMessages();
     }
-  }, [inView]);
+  }, [inView, hasNextPage, isFetchingNextPage, loadError]);
 
   // // 스크롤 맨 아래로 이동
   // useEffect(() => {
@@ -113,11 +132,16 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
         className="flex-1 overflow-y-auto space-y-4 pb-4"
       >
         {isFetchingNextPage && (
-          <div className="text-center text-gray-500">로딩 중...</div>
+          <div className="text-center text-gray-500 py-2">
+            이전 메시지 로딩 중...
+          </div>
         )}
-
         {loadError && !isFetchingNextPage && (
           <div className="text-center text-red-500">{loadError}</div>
+        )}
+
+        {messages.length === 0 && !isFetchingNextPage && (
+          <div className="text-center text-gray-500">메시지가 없습니다.</div>
         )}
 
         {messages.map((msg, idx) => {

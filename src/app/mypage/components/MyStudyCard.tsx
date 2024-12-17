@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 import { useAuthStore } from '@/store/authStore';
+import axios from 'axios';
 
 interface MyStudyCardProps {
   post: MyStudyCardData;
@@ -91,31 +92,33 @@ const MyStudyCard = ({ post }: MyStudyCardProps) => {
             className="btn btn-primary btn-sm"
             onClick={async e => {
               e.stopPropagation();
-              router.push(
-                `/chat/${1}/study/${1}?studyName=${encodeURIComponent('코테 스터디')}`,
-              );
-              // try {
-              //   const response = await axios.post(
-              //     `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/chat/study/${post.id}/participant/${userInfo?.id}`,
-              //     {},
-              //     {
-              //       headers: { 'Content-Type': 'application/json' },
-              //     },
-              //   );
-              //   if (response.status === 200) {
-              //     const { chatRoomId, studyId, studyName } = response.data;
-
-              //   } else {
-              //     alert(
-              //       '채팅방에 참여할 수 없습니다. 잠시 후 다시 시도해주세요.',
-              //     );
-              //   }
-              // } catch (error) {
-              //   console.error('채팅방 참가 중 오류 발생:', error);
-              //   alert(
-              //     '채팅방 참가 중 오류가 발생했습니다. 관리자에게 문의하세요.',
-              //   );
-              // }
+              // router.push(
+              //   `/chat/${1}/study/${1}?studyName=${encodeURIComponent('코테 스터디')}`,
+              // );
+              try {
+                const response = await axios.post(
+                  `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/chat/study/${post.id}/participant/${userInfo?.id}`,
+                  {},
+                  {
+                    headers: { 'Content-Type': 'application/json' },
+                  },
+                );
+                if (response.status === 200) {
+                  const { chatRoomId, studyId, studyName } = response.data;
+                  router.push(
+                    `/chat/${chatRoomId}/study/${studyId}?studyName=${studyName}`,
+                  );
+                } else {
+                  alert(
+                    '채팅방에 참여할 수 없습니다. 잠시 후 다시 시도해주세요.',
+                  );
+                }
+              } catch (error) {
+                console.error('채팅방 참가 중 오류 발생:', error);
+                alert(
+                  '채팅방 참가 중 오류가 발생했습니다. 관리자에게 문의하세요.',
+                );
+              }
             }}
           >
             채팅
