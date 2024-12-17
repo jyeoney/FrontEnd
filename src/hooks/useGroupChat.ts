@@ -1,117 +1,133 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import axios from 'axios';
 import { User } from '@/types/post';
 
-// interface ChatMessage {
-//   profileImg?: string;
-//   chatRoomId: string;
-//   sender: string;
-//   content: string;
-//   timestamp: string;
-//   imgUrl?: string;
-// }
+interface UseGroupChatParams {
+  chatRoomId: string;
+  userId: number;
+}
 
 interface ChatMessage {
   id: number;
   chatRoomId: number;
   content: string;
+  createdAt: string;
   timestamp: string;
   user: User;
 }
 
 interface ChatState {
   isConnected: boolean;
-  // isConnecting: boolean;
   error: string | null;
 }
 
 const fetchChatMessages = async ({
   pageParam,
   chatRoomId,
+  signal,
 }: {
   pageParam: number;
   chatRoomId: string;
+  signal: AbortSignal;
 }): Promise<{
   messages: ChatMessage[];
   page: number;
   hasNextPage: boolean;
 }> => {
-  const size = 20;
   try {
     const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_CHAT_SOCKET_URL}/chat/${chatRoomId}/messages`,
+      `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/chat/${chatRoomId}/messages`,
       {
-        params: { page: pageParam, size },
+        params: { page: pageParam },
+        signal,
       },
     );
-
-    const messages = response.data.content as ChatMessage[];
-    const page = response.data.pageable.number;
-    const last = response.data.last;
-
+    const { content, pageable, last } = response.data;
     return {
-      messages,
-      page,
-      hasNextPage: !last,
+      messages: content.map((msg: ChatMessage) => ({
+        ...msg,
+        timestamp: msg.createdAt, // createdAt 필드를 timestamp로 매핑
+      })),
+      page: pageable.pageNumber,
+      hasNextPage: !last, // last 필드를 hasNextPage로 사용
     };
+    // return {
+    //   messages: content || [],
+    //   page: pageable.pageNumber,
+    //   hasNextPage: !last,
+    // };
   } catch (error) {
     console.error('이전 메시지를 로드하는 데 실패했습니다.');
-    // return {
-    //   messages: [], // 빈 배열 반환
-    //   page: pageParam, // 현재 페이지 반환
-    //   hasNextPage: false, // 더 이상 페이지가 없다고 표시
-    // };
-    console.error('이전 메시지를 로드하는 데 실패했습니다.');
-    throw new Error(
-      '이전 메시지를 로드하는 데 실패했습니다. 다시 시도해주세요.',
-    );
+
+    return {
+      messages: [], // 빈 배열 반환
+      page: pageParam, // 현재 페이지 반환
+      hasNextPage: false, // 더 이상 페이지가 없다고 표시
+    };
   }
 };
 
-export const useGroupChat = (chatRoomId: string) => {
+export const useGroupChat = ({ chatRoomId, userId }: UseGroupChatParams) => {
   const {
     data: fetchedData,
     hasNextPage,
     fetchNextPage,
     isFetchingNextPage,
-  } = useInfiniteQuery(
-    ['chatMessages', chatRoomId],
-    ({ pageParam = 0 }) => fetchChatMessages({ pageParam, chatRoomId }),
-    {
-      getNextPageParam: (lastPage: any) =>
-        lastPage.last ? undefined : lastPage.page + 1,
-    },
+  } = useInfiniteQuery({
+    queryKey: ['chatMessages', chatRoomId], // queryKey를 객체 형태로 제공
+    queryFn: async ({
+      pageParam = 0,
+      signal,
+    }: {
+      pageParam: number;
+      signal: AbortSignal;
+    }) => fetchChatMessages({ pageParam, chatRoomId, signal }),
+    getNextPageParam: (lastPage: any) =>
+      lastPage.hasNextPage ? lastPage.page + 1 : undefined, // hasNextPage가 true일 때만 페이지 추가
+    initialPageParam: 0,
+  });
 
-    // onError: (error: any) => {
-    //   setChatState(prev => ({
-    //     ...prev,
-    //     error: error.message
-    //   }))
-    // }
-  );
+  console.log('isFetchingNextPage: ', isFetchingNextPage);
 
-  const messages: ChatMessage[] =
-    fetchedData?.pages
-      .flatMap(page => page.messages)
-      .reduce((uniqueMessages: ChatMessage[], message: ChatMessage) => {
-        if (!uniqueMessages.some(m => m.id === message.id)) {
-          uniqueMessages.push(message);
-        }
+  useEffect(() => {
+    if (fetchedData) {
+      const allMessages = fetchedData.pages.flatMap(page => page.messages);
+      setMessages(prevMessages => {
+        // 중복 제거 및 정렬
+        const uniqueMessages = Array.from(
+          new Map(
+            [...prevMessages, ...allMessages].map(m => [m.id, m]),
+          ).values(),
+        ).sort(
+          (a, b) =>
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+        );
+
+        console.log('Updated messages:', uniqueMessages);
         return uniqueMessages;
-      }, [] as ChatMessage[]) || [];
+      });
+    }
+  }, [fetchedData]);
 
   const stompClient = useRef<Client | null>(null); // stompClient는 STOMP 클라이언트를 생성한 후, WebSocket 연결을 관리
-  // const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatState, setChatState] = useState<ChatState>({
     isConnected: false, // 현재 연결 상태
-    // isConnecting: false, // 연결 시도 중인지 여부
     error: null, // 에러 발생 시 에러 정보 저장
   });
 
   const isConnecting = useRef(false);
+
+  const messagesWithoutDuplicates = useMemo(() => {
+    // 중복 제거 및 정렬 로직
+    return Array.from(new Map(messages.map(m => [m.id, m])).values()).sort(
+      (a, b) =>
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+    );
+  }, [messages]);
 
   const connect = useCallback(async () => {
     console.log('connect 함수 호출됨', {
@@ -157,12 +173,37 @@ export const useGroupChat = (chatRoomId: string) => {
               clientConnected: client.connected,
             });
 
-            client.subscribe(`/topic/chat/${chatRoomId}`, messageOutput => {
-              console.log('메시지 구독 성공');
-              const newMessage = JSON.parse(messageOutput.body) as ChatMessage;
-              // setMessages(prev => [...prev, newMessage]);
-              fetchNextPage();
-            });
+            try {
+              client.subscribe(`/topic/chat/${chatRoomId}`, messageOutput => {
+                console.log('WebSocket 메시지 수신:', messageOutput.body);
+
+                const newMessage = JSON.parse(
+                  messageOutput.body,
+                ) as ChatMessage;
+
+                // timestamp 필드 보장
+                newMessage.timestamp = newMessage.createdAt;
+
+                setMessages(prevMessages => {
+                  // 중복 체크 로직 유지
+                  const isDuplicate = prevMessages.some(
+                    msg => msg.id === newMessage.id,
+                  );
+                  if (isDuplicate) return prevMessages;
+
+                  const updatedMessages = [...prevMessages, newMessage].sort(
+                    (a, b) =>
+                      new Date(a.timestamp).getTime() -
+                      new Date(b.timestamp).getTime(),
+                  );
+
+                  console.log('메시지 상태 업데이트:', updatedMessages);
+                  return updatedMessages;
+                });
+              });
+            } catch (error) {
+              console.error('구독 실패:', error);
+            }
 
             setChatState({
               isConnected: true,
@@ -288,7 +329,7 @@ export const useGroupChat = (chatRoomId: string) => {
 
     if (content || imgUrl) {
       const messagePayload = {
-        sender: 'user1',
+        senderId: userId,
         content,
       };
 
@@ -306,39 +347,38 @@ export const useGroupChat = (chatRoomId: string) => {
   };
 
   useEffect(() => {
-    console.log('useEffect 실행', {
-      time: new Date().toISOString(),
+    console.log('useEffect 트리거', {
       chatRoomId,
-      isFirstRender: stompClient.current === null,
+      isConnected: stompClient.current?.connected,
+      hasNextPage,
+      isFetchingNextPage,
     });
 
     const initChat = async () => {
       try {
         console.log('initChat 시작');
-        await connect();
-        console.log('connect 완료');
-        // await loadPreviousMessages();
-        await fetchNextPage();
-        console.log('이전 메시지 로드 완료');
+
+        // 연결 상태 명시적 확인
+        if (!stompClient.current?.connected) {
+          console.log('연결 시도');
+          await connect();
+        }
+
+        // 페이지 로드 조건 명시적 확인
+        if (!isFetchingNextPage && hasNextPage) {
+          console.log('이전 메시지 로드 시도');
+          await fetchNextPage();
+        }
       } catch (error) {
-        console.error('초기화 실패:', error);
+        console.error('초기화 중 오류:', error);
       }
     };
 
     initChat();
-
-    return () => {
-      console.log('cleanup 실행', {
-        wasConnected: stompClient.current?.connected,
-      });
-      if (stompClient.current?.connected) {
-        stompClient.current.deactivate();
-      }
-    };
-  }, [chatRoomId, connect]);
+  }, [chatRoomId, connect, fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   return {
-    messages,
+    messages: messagesWithoutDuplicates,
     chatState,
     sendMessage,
     connect,

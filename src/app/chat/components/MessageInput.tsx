@@ -8,6 +8,7 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const messageInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,6 +23,10 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
       console.error('Failed to send message:', error);
     } finally {
       setIsLoading(false);
+
+      if (messageInputRef.current) {
+        messageInputRef.current.focus();
+      }
     }
   };
 
@@ -47,11 +52,13 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
         </button>
         <input
           type="text"
+          ref={messageInputRef}
           value={content}
           onChange={e => setContent(e.target.value)}
           placeholder="메시지를 입력하세요..."
           className="flex-1 input input-bordered bg-white"
           disabled={isLoading}
+          autoFocus
         />
         <button type="submit" className="btn btn-primary" disabled={isLoading}>
           {isLoading ? '전송 중...' : '전송'}

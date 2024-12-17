@@ -8,7 +8,6 @@ export const GET = async (
   const { chatRoomId } = await params;
   const searchParams = request.nextUrl.searchParams;
   const page = searchParams.get('page');
-  const size = searchParams.get('size');
 
   try {
     const response = await axios.get(
@@ -16,7 +15,6 @@ export const GET = async (
       {
         params: {
           page,
-          size,
         },
         headers: {
           'Content-Type': 'application/json',
