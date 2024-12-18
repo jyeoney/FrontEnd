@@ -61,7 +61,7 @@ const Header = () => {
     console.log('로그인 상태는', storedSignedIn);
     setIsSignedIn(storedSignedIn);
     setIsLoading(false); // 로딩 완료
-  }, []);
+  }, [setIsSignedIn]);
 
   useEffect(() => {
     console.log(`닉네임: ${userInfo?.nickname}`);
