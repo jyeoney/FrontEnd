@@ -8,3 +8,10 @@
     @apply text-base-content;
   }
 }
+
+@media (max-width: 768px) {
+  .nickname {
+    max-width: 70px; /* 더 짧게 */
+    font-size: 0.75rem; /* 폰트 크기 감소 */
+  }
+}

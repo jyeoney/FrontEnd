@@ -1,14 +1,17 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import { cookies } from 'next/headers';
 
-export const POST = async () => {
+export const POST = async (req: NextRequest) => {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
+
+  const { password } = await req.json();
+
   try {
     await axios.post(
       `${process.env.API_URL}/auth/withdrawal`,
-      {},
+      { password },
       {
         headers: {
           'Content-Type': 'application/json',
