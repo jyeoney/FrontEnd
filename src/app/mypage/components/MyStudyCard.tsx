@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 import { useAuthStore } from '@/store/authStore';
 import axios from 'axios';
+import Image from 'next/image';
 
 interface MyStudyCardProps {
   post: MyStudyCardData;
@@ -41,9 +42,11 @@ const MyStudyCard = ({ post }: MyStudyCardProps) => {
       onClick={() => router.push(`/community/study/${post.studyPostId}`)}
     >
       <figure className="px-4 pt-4">
-        <img
+        <Image
           src={post.thumbnailImgUrl || '/default-study-thumbnail.png'}
           alt={post.studyName}
+          width={500}
+          height={300}
           className="rounded-xl h-48 w-full object-cover"
         />
       </figure>
