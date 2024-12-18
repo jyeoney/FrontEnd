@@ -5,6 +5,7 @@ import axios from 'axios';
 import CustomConfirm from '@/components/common/Confirm';
 import CustomAlert from '@/components/common/Alert';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 const UserInfoView = () => {
   const { userInfo, setUserInfo, resetStore } = useAuthStore();
@@ -13,6 +14,10 @@ const UserInfoView = () => {
     userInfo?.profileImageUrl || '/default-profile-image.png',
   );
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+
+  const [password, setPassword] = useState('');
+  const [isPasswordRequired, setIsPasswordRequired] = useState(false);
+
   const [showConfirm, setShowConfirm] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [confirmMessage, setConfirmMessage] = useState('');
@@ -176,9 +181,16 @@ const UserInfoView = () => {
 
   const handleWithdrawalButtonClick = () => {
     setConfirmMessage(
-      '회원 탈퇴를 진행하시겠습니까? 탈퇴 시 회원 정보 및 모든 데이터가 삭제되며 복구할 수 없습니다.',
+      '회원 탈퇴를 진행하시겠습니까? \n 탈퇴 시 회원 정보 및 모든 데이터가 삭제되며 복구할 수 없습니다.',
     );
+    setIsPasswordRequired(true);
     setOnConfirmCallback(() => async () => {
+      if (isPasswordRequired && !password) {
+        setAlertMessage('비밀번호를 입력해주세요.');
+        setShowAlert(true);
+        return;
+      }
+
       try {
         const response = await axios.post(
           `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/auth/withdrawal`,
@@ -193,6 +205,9 @@ const UserInfoView = () => {
           setAlertMessage(
             '회원 탈퇴가 완료되었습니다. 이용해 주셔서 감사합니다.',
           );
+          setShowAlert(true);
+        } else {
+          setAlertMessage('다시 시도해 주세요.');
           setShowAlert(true);
         }
       } catch (error: any) {
@@ -216,6 +231,8 @@ const UserInfoView = () => {
         setShowAlert(true);
       } finally {
         setShowConfirm(false);
+        setPassword('');
+        setIsPasswordRequired(false);
       }
     });
     setShowConfirm(true);
@@ -282,9 +299,11 @@ const UserInfoView = () => {
     <div className="flex flex-col md:flex-row gap-8 p-8 max-w-4xl mx-auto">
       <div className="flex flex-col items-center w-full md:w-1/3 border-r pr-4">
         <div className="relative">
-          <img
+          <Image
             src={profileImageUrl || '/default-avatar.png'}
             alt="Profile"
+            width={500}
+            height={300}
             className="w-32 h-32 rounded-full object-cover border"
           />
         </div>
@@ -372,9 +391,22 @@ const UserInfoView = () => {
         <CustomConfirm
           message={confirmMessage}
           onConfirm={onConfirmCallback}
-          onCancel={() => setShowConfirm(false)}
+          onCancel={() => {
+            setShowConfirm(false);
+            setPassword('');
+          }}
+          requirePasswordInput={isPasswordRequired} // 비밀번호 필드 활성화 여부
+          inputValue={password} // 비밀번호 state와 연결
+          onInputChange={setPassword} // 비밀번호 입력 핸들러
         />
       )}
+      {/* {showConfirm && (
+        <CustomConfirm
+          message={confirmMessage}
+          onConfirm={onConfirmCallback}
+          onCancel={() => setShowConfirm(false)}
+        />
+      )} */}
       {showAlert && (
         <CustomAlert
           message={alertMessage}
