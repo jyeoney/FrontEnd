@@ -87,7 +87,15 @@ export const useGroupChat = ({ chatRoomId, userId }: UseGroupChatParams) => {
     }) => fetchChatMessages({ pageParam, chatRoomId, signal }),
     getNextPageParam: (lastPage: any) =>
       lastPage.hasNextPage ? lastPage.page + 1 : undefined, // hasNextPage가 true일 때만 페이지 추가
+    // getNextPageParam: (lastPage: any, allPages: any[]) => {
+    // 현재 로드된 페이지 수를 기준으로 다음 페이지 결정
+    // if (allPages.length === 1) return 1;
+    // return lastPage.hasNextPage ? allPages.length : undefined;
+    // },
     initialPageParam: 0,
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60,
+    maxPages: 1,
   });
 
   console.log('isFetchingNextPage: ', isFetchingNextPage);
@@ -121,10 +129,17 @@ export const useGroupChat = ({ chatRoomId, userId }: UseGroupChatParams) => {
 
   const isConnecting = useRef(false);
 
+  // const messagesWithoutDuplicates = useMemo(() => {
+  //   // 중복 제거 및 정렬 로직
+  //   return Array.from(new Map(messages.map(m => [m.id, m])).values()).sort(
+  //     (a, b) =>
+  //       new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+  //   );
+  // }, [messages]);
   const messagesWithoutDuplicates = useMemo(() => {
-    // 중복 제거 및 정렬 로직
     return Array.from(new Map(messages.map(m => [m.id, m])).values()).sort(
       (a, b) =>
+        // 오래된 메시지가 앞으로 오도록 역순 정렬
         new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
     );
   }, [messages]);
@@ -365,10 +380,10 @@ export const useGroupChat = ({ chatRoomId, userId }: UseGroupChatParams) => {
         }
 
         // 페이지 로드 조건 명시적 확인
-        if (!isFetchingNextPage && hasNextPage) {
-          console.log('이전 메시지 로드 시도');
-          await fetchNextPage();
-        }
+        // if (!isFetchingNextPage && hasNextPage) {
+        //   console.log('이전 메시지 로드 시도');
+        //   await fetchNextPage();
+        // }
       } catch (error) {
         console.error('초기화 중 오류:', error);
       }

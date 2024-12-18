@@ -70,18 +70,19 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
     const shouldLoadMore =
       inView && hasNextPage && !isFetchingNextPage && !loadError;
 
-    console.log('Load previous messages conditions:', {
+    console.log('이전 메시지 로드 조건', {
       inView,
       hasNextPage,
       isFetchingNextPage,
       loadError,
       shouldLoadMore,
+      currentMessageCount: messages.length,
     });
 
     if (shouldLoadMore) {
       handleFetchPreviousMessages();
     }
-  }, [inView, hasNextPage, isFetchingNextPage, loadError]);
+  }, [inView, hasNextPage, isFetchingNextPage, loadError, messages.length]);
 
   // // 스크롤 맨 아래로 이동
   // useEffect(() => {
@@ -180,7 +181,12 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
                       alt={`${msg.user.id}'s profile`}
                       className="w-8 h-8 rounded-full"
                     />
-                    <div className="text-xs text-gray-600">{msg.user.id}</div>
+                    <div
+                      className="text-xs text-gray-600 truncate max-w-[100px] nickname"
+                      title={msg.user.nickname}
+                    >
+                      {msg.user.nickname}
+                    </div>
                   </div>
                 )}
 
@@ -232,7 +238,12 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
                       alt="My profile"
                       className="w-8 h-8 rounded-full"
                     />
-                    <div className="text-xs text-gray-600">{msg.user.id}</div>
+                    <div
+                      className="text-xs text-gray-600 truncate max-w-[100px] nickname"
+                      title={msg.user.nickname}
+                    >
+                      {msg.user.nickname}
+                    </div>
                   </div>
                 )}
               </div>
