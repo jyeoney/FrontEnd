@@ -107,6 +107,7 @@ const SignUpForm = () => {
         setEmailSent(true);
         setEmailMessage('인증번호가 발송되었습니다.');
         setEmailMessageType('success');
+        setTimer(180);
       } else {
         setEmailMessage('인증번호 전송에 실패했습니다.');
         setEmailMessageType('error');
@@ -162,24 +163,30 @@ const SignUpForm = () => {
       }
     } catch (error: any) {
       if (error.response) {
-        const { status, data } = error.response;
-        const errorCode = data?.errorCode;
+        const { data } = error.response;
+        const message = data?.errorMessage;
 
-        if (status === 400) {
-          if (errorCode === 'EMAIL_VERIFICATION_FAILED') {
-            setAuthCodeMessage('인증 코드가 만료되었습니다.');
-            setAuthCodeMessageType('error');
-          } else if (errorCode === 'VALIDATION_FAILED') {
-            setAuthCodeMessage('인증 코드가 일치하지 않습니다.');
-            setAuthCodeMessageType('error');
-          } else {
-            setAuthCodeMessage('잘못된 요청입니다. 다시 시도해주세요.');
-            setAuthCodeMessageType('error');
-          }
-        } else {
-          setAuthCodeMessage('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
-          setAuthCodeMessageType('error');
-        }
+        // const { status, data } = error.response;
+        // const errorCode = data?.errorCode;
+        // const message = data?.errorMessage
+
+        // if (status === 400) {
+        //   if (errorCode === 'EMAIL_VERIFICATION_FAILED') {
+        //     setAuthCodeMessage('인증 코드가 만료되었습니다.');
+        //     setAuthCodeMessageType('error');
+        //   } else if (errorCode === 'VALIDATION_FAILED') {
+        //     setAuthCodeMessage('인증 코드가 일치하지 않습니다.');
+        //     setAuthCodeMessageType('error');
+        //   } else {
+        //     setAuthCodeMessage('잘못된 요청입니다. 다시 시도해주세요.');
+        //     setAuthCodeMessageType('error');
+        //   }
+        // } else {
+        //   setAuthCodeMessage('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+        //   setAuthCodeMessageType('error');
+        // }
+        setAuthCodeMessage(message);
+        setAuthCodeMessageType('error');
       } else {
         setAuthCodeMessage(
           '서버에 연결할 수 없습니다. 네트워크 상태를 확인해 주세요.',

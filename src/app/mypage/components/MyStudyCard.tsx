@@ -10,6 +10,8 @@ import {
   convertDifficultyToKorean,
   convertStudyStatus,
 } from '@/utils/study';
+import CustomAlert from '@/components/common/Alert';
+import { useState } from 'react';
 
 interface MyStudyCardProps {
   post: MyStudyCardData;
@@ -35,6 +37,9 @@ export interface MyStudyCardData {
 const MyStudyCard = ({ post }: MyStudyCardProps) => {
   const router = useRouter();
   const { userInfo } = useAuthStore();
+
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
   // 시간에서 :00을 제거하는 함수
   const formatTime = (time: string) => {
@@ -117,15 +122,17 @@ const MyStudyCard = ({ post }: MyStudyCardProps) => {
                     `/chat/${chatRoomId}/study/${studyId}?studyName=${studyName}`,
                   );
                 } else {
-                  alert(
+                  setAlertMessage(
                     '채팅방에 참여할 수 없습니다. 잠시 후 다시 시도해주세요.',
                   );
+                  setShowAlert(true);
                 }
               } catch (error) {
                 console.error('채팅방 참가 중 오류 발생:', error);
-                alert(
+                setAlertMessage(
                   '채팅방 참가 중 오류가 발생했습니다. 관리자에게 문의하세요.',
                 );
+                setShowAlert(true);
               }
             }}
           >
@@ -144,6 +151,12 @@ const MyStudyCard = ({ post }: MyStudyCardProps) => {
           </button>
         </div>
       </div>
+      {showAlert && (
+        <CustomAlert
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
     </div>
   );
 };

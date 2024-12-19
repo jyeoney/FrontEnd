@@ -16,10 +16,6 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
   const studyName = searchParams.get('studyName');
   console.log('studyId: ', studyId, 'studyName: ', studyName);
 
-  // console.log('studyName:', studyName);
-  // console.log('chatRoomId:', chatRoomId);
-  // console.log('studyId:', studyId);
-
   const { userInfo } = useAuthStore();
   const userId = userInfo?.id || 111;
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -39,7 +35,7 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
 
   const { ref, inView } = useInView({
     triggerOnce: false,
-    threshold: 0.1,
+    threshold: 0,
   });
 
   const handleFetchPreviousMessages = async () => {
@@ -62,26 +58,27 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
       setLoadError('이전 메시지를 가져오는 데 실패했습니다.');
     }
   };
+
   useEffect(() => {
     console.log('메시지 변경 감지:', messages);
   }, [messages]);
+  const shouldLoadMore =
+    inView && hasNextPage && !isFetchingNextPage && !loadError;
 
   useEffect(() => {
-    const shouldLoadMore =
-      inView && hasNextPage && !isFetchingNextPage && !loadError;
-
-    console.log('Load previous messages conditions:', {
+    console.log('이전 메시지 로드 조건', {
       inView,
       hasNextPage,
       isFetchingNextPage,
       loadError,
       shouldLoadMore,
+      currentMessageCount: messages.length,
     });
 
     if (shouldLoadMore) {
       handleFetchPreviousMessages();
     }
-  }, [inView, hasNextPage, isFetchingNextPage, loadError]);
+  }, [shouldLoadMore]);
 
   // // 스크롤 맨 아래로 이동
   // useEffect(() => {
@@ -180,7 +177,12 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
                       alt={`${msg.user.id}'s profile`}
                       className="w-8 h-8 rounded-full"
                     />
-                    <div className="text-xs text-gray-600">{msg.user.id}</div>
+                    <div
+                      className="text-xs text-gray-600 truncate max-w-[100px] nickname"
+                      title={msg.user.nickname}
+                    >
+                      {msg.user.nickname}
+                    </div>
                   </div>
                 )}
 
@@ -232,7 +234,12 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
                       alt="My profile"
                       className="w-8 h-8 rounded-full"
                     />
-                    <div className="text-xs text-gray-600">{msg.user.id}</div>
+                    <div
+                      className="text-xs text-gray-600 truncate max-w-[100px] nickname"
+                      title={msg.user.nickname}
+                    >
+                      {msg.user.nickname}
+                    </div>
                   </div>
                 )}
               </div>
