@@ -16,7 +16,7 @@ export const setCookie = (
   res.cookies.set(name, value, {
     // secure: process.env.NODE_ENV === 'production', // https 일때만 전송
     httpOnly: true, // 클라이언트 자바스크립트에서는 접근 불가(보안상의 이유)
-    secure: false,
+    secure: true,
     path: '/', // 쿠키의 유효 경로
     sameSite: 'lax',
     maxAge,
@@ -29,7 +29,7 @@ export const deleteCookie = (res: NextResponse, name: string) => {
   res.cookies.set(name, '', {
     // secure: process.env.NODE_ENV === 'production', // https 일때만 전송
     httpOnly: true,
-    secure: false,
+    secure: true,
     path: '/', // 쿠키의 유효 경로
     sameSite: 'lax',
     maxAge: 0,
