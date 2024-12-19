@@ -4,7 +4,10 @@ import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 import { StudyPost } from '@/types/post';
 import Image from 'next/image';
-
+import {
+  convertSubjectToKorean,
+  convertDifficultyToKorean,
+} from '@/utils/study';
 interface StudyCardProps {
   post: StudyPost;
 }
@@ -37,11 +40,11 @@ export function StudyCard({ post }: StudyCardProps) {
           </div>
           <div className="flex justify-between">
             <span>주제:</span>
-            <span>{post.subject}</span>
+            <span>{convertSubjectToKorean(post.subject)}</span>
           </div>
           <div className="flex justify-between">
             <span>난이도:</span>
-            <span>{post.difficulty}</span>
+            <span>{convertDifficultyToKorean(post.difficulty)}</span>
           </div>
           <div className="flex justify-between">
             <span>기간:</span>

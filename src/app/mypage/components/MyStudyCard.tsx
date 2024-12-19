@@ -5,6 +5,11 @@ import dayjs from 'dayjs';
 import { useAuthStore } from '@/store/authStore';
 import axios from 'axios';
 import Image from 'next/image';
+import {
+  convertSubjectToKorean,
+  convertDifficultyToKorean,
+  convertStudyStatus,
+} from '@/utils/study';
 
 interface MyStudyCardProps {
   post: MyStudyCardData;
@@ -62,15 +67,15 @@ const MyStudyCard = ({ post }: MyStudyCardProps) => {
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span>상태:</span>
-            <span>{post.status}</span>
+            <span>{convertStudyStatus(post.status)}</span>
           </div>
           <div className="flex justify-between">
             <span>주제:</span>
-            <span>{post.subject}</span>
+            <span>{convertSubjectToKorean(post.subject)}</span>
           </div>
           <div className="flex justify-between">
             <span>난이도:</span>
-            <span>{post.difficulty}</span>
+            <span>{convertDifficultyToKorean(post.difficulty)}</span>
           </div>
           <div className="flex justify-between">
             <span>요일:</span>
