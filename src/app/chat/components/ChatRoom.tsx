@@ -16,10 +16,6 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
   const studyName = searchParams.get('studyName');
   console.log('studyId: ', studyId, 'studyName: ', studyName);
 
-  // console.log('studyName:', studyName);
-  // console.log('chatRoomId:', chatRoomId);
-  // console.log('studyId:', studyId);
-
   const { userInfo } = useAuthStore();
   const userId = userInfo?.id || 111;
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -39,7 +35,7 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
 
   const { ref, inView } = useInView({
     triggerOnce: false,
-    threshold: 0.1,
+    threshold: 0,
   });
 
   const handleFetchPreviousMessages = async () => {
@@ -62,14 +58,14 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
       setLoadError('이전 메시지를 가져오는 데 실패했습니다.');
     }
   };
+
   useEffect(() => {
     console.log('메시지 변경 감지:', messages);
   }, [messages]);
+  const shouldLoadMore =
+    inView && hasNextPage && !isFetchingNextPage && !loadError;
 
   useEffect(() => {
-    const shouldLoadMore =
-      inView && hasNextPage && !isFetchingNextPage && !loadError;
-
     console.log('이전 메시지 로드 조건', {
       inView,
       hasNextPage,
@@ -82,7 +78,7 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
     if (shouldLoadMore) {
       handleFetchPreviousMessages();
     }
-  }, [inView, hasNextPage, isFetchingNextPage, loadError, messages.length]);
+  }, [shouldLoadMore]);
 
   // // 스크롤 맨 아래로 이동
   // useEffect(() => {

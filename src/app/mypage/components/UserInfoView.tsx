@@ -181,7 +181,7 @@ const UserInfoView = () => {
 
   const handleWithdrawalButtonClick = () => {
     setConfirmMessage(
-      '회원 탈퇴를 진행하시겠습니까? \n 탈퇴 시 회원 정보 및 모든 데이터가 삭제되며 복구할 수 없습니다.',
+      '회원 탈퇴를 진행하시겠습니까? \n 탈퇴 시 회원 정보 및 모든 데이터가 삭제되며 \n 복구할 수 없습니다.',
     );
     setIsPasswordRequired(true);
     setOnConfirmCallback(() => async () => {
@@ -247,6 +247,12 @@ const UserInfoView = () => {
           return;
         }
 
+        // // API 경로를 결합할 때 중복된 슬래시 문제를 처리
+        // const apiRouteUrl = process.env.NEXT_PUBLIC_API_ROUTE_URL?.replace(
+        //   /\/$/,
+        //   '',
+        // ); // 끝의 슬래시 제거
+        // const url = `${apiRouteUrl}/users/${userInfo?.id}`; // 경로 결합
         const response = await axios.put(
           `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/users/${userInfo?.id}`,
           { nickname },
@@ -366,6 +372,11 @@ const UserInfoView = () => {
             >
               닉네임 변경
             </button>
+            {/* {userInfo?.signinType === 'GENERAL' && (
+              <button className="btn btn-secondary w-full md:w-auto">
+                비밀번호 변경
+              </button>
+            )} */}
             <button className="btn btn-secondary w-full md:w-auto">
               비밀번호 변경
             </button>
@@ -395,7 +406,9 @@ const UserInfoView = () => {
             setShowConfirm(false);
             setPassword('');
           }}
-          requirePasswordInput={isPasswordRequired} // 비밀번호 필드 활성화 여부
+          requirePasswordInput={
+            isPasswordRequired && userInfo?.signinType === 'GENERAL'
+          } // 비밀번호 필드 활성화 여부
           inputValue={password} // 비밀번호 state와 연결
           onInputChange={setPassword} // 비밀번호 입력 핸들러
         />

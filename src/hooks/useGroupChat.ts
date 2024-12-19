@@ -46,19 +46,16 @@ const fetchChatMessages = async ({
       },
     );
     const { content, pageable, last } = response.data;
+
+    const hasMorePages = pageParam === 0 ? false : !last;
     return {
       messages: content.map((msg: ChatMessage) => ({
         ...msg,
         timestamp: msg.createdAt, // createdAt 필드를 timestamp로 매핑
       })),
       page: pageable.pageNumber,
-      hasNextPage: !last, // last 필드를 hasNextPage로 사용
+      hasNextPage: hasMorePages, // last 필드를 hasNextPage로 사용
     };
-    // return {
-    //   messages: content || [],
-    //   page: pageable.pageNumber,
-    //   hasNextPage: !last,
-    // };
   } catch (error) {
     console.error('이전 메시지를 로드하는 데 실패했습니다.', error);
 
@@ -85,20 +82,38 @@ export const useGroupChat = ({ chatRoomId, userId }: UseGroupChatParams) => {
       pageParam: number;
       signal: AbortSignal;
     }) => fetchChatMessages({ pageParam, chatRoomId, signal }),
-    getNextPageParam: (lastPage: any) =>
-      lastPage.hasNextPage ? lastPage.page + 1 : undefined, // hasNextPage가 true일 때만 페이지 추가
-    // getNextPageParam: (lastPage: any, allPages: any[]) => {
-    // 현재 로드된 페이지 수를 기준으로 다음 페이지 결정
-    // if (allPages.length === 1) return 1;
-    // return lastPage.hasNextPage ? allPages.length : undefined;
-    // },
+    getNextPageParam: (lastPage: any, allPages: any) =>
+      // lastPage.hasNextPage ? lastPage.page + 1 : undefined,
+      {
+        if (allPages.length === 1 && lastPage.hasNextPage) {
+          return 1;
+        }
+
+        // 더 이상 로드할 페이지가 없으면 undefined 반환
+        return lastPage.hasNextPage ? lastPage.page + 1 : undefined;
+      },
+
     initialPageParam: 0,
     staleTime: Infinity,
     gcTime: 1000 * 60 * 60,
     maxPages: 1,
+    enabled: true, // 초기 자동 로드 방지
   });
 
   console.log('isFetchingNextPage: ', isFetchingNextPage);
+
+  const loadInitialMessages = useCallback(async () => {
+    try {
+      await fetchNextPage();
+    } catch (error) {
+      console.error('Initial messages load failed:', error);
+    }
+  }, [fetchNextPage]);
+
+  useEffect(() => {
+    // 초기 메시지 로드
+    loadInitialMessages();
+  }, [loadInitialMessages]);
 
   useEffect(() => {
     if (fetchedData) {

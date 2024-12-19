@@ -59,21 +59,31 @@ const MyStudyView = () => {
 
       if (userInfo?.id) {
         try {
-          if (userInfo?.id) {
-            const response = await axios.get(
-              `${process.env.NEXT_PUBLIC_API_ROUTE_URL}${config.url}?page=${page}`,
-            );
+          // NEXT_PUBLIC_API_ROUTE_URL의 끝에 슬래시가 있으면 제거
+          const apiRouteUrl = process.env.NEXT_PUBLIC_API_ROUTE_URL?.replace(
+            /\/$/,
+            '',
+          );
 
-            if (response.status === 200 && response.data) {
-              config.setData(response.data.content);
+          // config.url이 '/'로 시작하지 않으면 '/'를 추가하여 결합
+          const url = `${apiRouteUrl}${config.url.startsWith('/') ? config.url : `/${config.url}`}?page=${page}`;
 
-              setPagination({
-                currentPage: response.data.pageable.pageNumber + 1,
-                pageSize: response.data.pageable.pageSize,
-                totalElements: response.data.totalElements,
-              });
-              console.log(config.logMessage);
-            }
+          console.log('Request URL: ', url); // URL 로그로 확인
+
+          // const response = await axios.get(
+          //   `${process.env.NEXT_PUBLIC_API_ROUTE_URL}${config.url}?page=${page}`,
+          // );
+          const response = await axios.get(url);
+
+          if (response.status === 200 && response.data) {
+            config.setData(response.data.content);
+
+            setPagination({
+              currentPage: response.data.pageable.pageNumber + 1,
+              pageSize: response.data.pageable.pageSize,
+              totalElements: response.data.totalElements,
+            });
+            console.log(config.logMessage);
           }
         } catch (error: any) {
           handleApiError(error);
