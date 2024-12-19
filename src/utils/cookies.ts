@@ -14,11 +14,10 @@ export const setCookie = (
   maxAge: number,
 ) => {
   res.cookies.set(name, value, {
-    // secure: process.env.NODE_ENV === 'production', // https 일때만 전송
     httpOnly: true, // 클라이언트 자바스크립트에서는 접근 불가(보안상의 이유)
-    secure: true,
+    secure: process.env.NODE_ENV === 'production',
     path: '/', // 쿠키의 유효 경로
-    sameSite: 'lax',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge,
   });
 
@@ -27,11 +26,10 @@ export const setCookie = (
 
 export const deleteCookie = (res: NextResponse, name: string) => {
   res.cookies.set(name, '', {
-    // secure: process.env.NODE_ENV === 'production', // https 일때만 전송
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === 'production',
     path: '/', // 쿠키의 유효 경로
-    sameSite: 'lax',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 0,
     // expires: new Date(0),
   });
