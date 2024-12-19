@@ -8,7 +8,7 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const messageInputRef = useRef<HTMLInputElement>(null);
+  const messageInputRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,15 +31,17 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mt-4">
-      <div className="flex gap-2">
-        <input
+    <form
+      onSubmit={handleSubmit}
+      className="mt-4 w-full max-w-3xl mx-auto px-4"
+    >
+      <div className="flex gap-2 items-center">
+        {/* <input
           type="file"
           ref={fileInputRef}
           className="hidden"
           accept="image/*"
           onChange={() => {
-            /* 필요한 경우 파일 선택 핸들러 추가 */
           }}
         />
         <button
@@ -49,18 +51,26 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
           disabled={isLoading}
         >
           📎
-        </button>
-        <input
-          type="text"
+        </button> */}
+        <textarea
           ref={messageInputRef}
           value={content}
           onChange={e => setContent(e.target.value)}
+          onInput={e => {
+            const target = e.target as HTMLTextAreaElement;
+            target.style.height = 'auto'; // 높이를 초기화
+            target.style.height = `${target.scrollHeight}px`; // 내용에 따라 높이 조정
+          }}
           placeholder="메시지를 입력하세요..."
-          className="flex-1 input input-bordered bg-white"
+          className="flex-1 textarea textarea-bordered w-full bg-white text-base sm:text-lg max-h-60 overflow-y-auto"
           disabled={isLoading}
           autoFocus
         />
-        <button type="submit" className="btn btn-primary" disabled={isLoading}>
+        <button
+          type="submit"
+          className="btn btn-primary px-6 py-3 text-base"
+          disabled={isLoading}
+        >
           {isLoading ? '전송 중...' : '전송'}
         </button>
       </div>
