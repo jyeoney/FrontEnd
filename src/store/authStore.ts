@@ -6,6 +6,7 @@ export type UserInfo = {
   nickname: string;
   email: string;
   profileImageUrl: string | null;
+  signinType: string | null;
 };
 
 type AuthState = {
