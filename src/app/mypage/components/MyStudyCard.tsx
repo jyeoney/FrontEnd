@@ -5,6 +5,11 @@ import dayjs from 'dayjs';
 import { useAuthStore } from '@/store/authStore';
 import axios from 'axios';
 import Image from 'next/image';
+import {
+  convertSubjectToKorean,
+  convertDifficultyToKorean,
+  convertStudyStatus,
+} from '@/utils/study';
 import CustomAlert from '@/components/common/Alert';
 import { useState } from 'react';
 
@@ -43,7 +48,7 @@ const MyStudyCard = ({ post }: MyStudyCardProps) => {
 
   return (
     <div
-      className="card bg-base-100 shadow-xl cursor-pointer"
+      className="card bg-base-100 shadow-xl cursor-pointer hover:shadow-2xl transition-shadow w-full min-w-[320px] max-w-[320px]"
       onClick={() => router.push(`/community/study/${post.studyPostId}`)}
     >
       <figure className="px-4 pt-4">
@@ -67,15 +72,15 @@ const MyStudyCard = ({ post }: MyStudyCardProps) => {
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span>상태:</span>
-            <span>{post.status}</span>
+            <span>{convertStudyStatus(post.status)}</span>
           </div>
           <div className="flex justify-between">
             <span>주제:</span>
-            <span>{post.subject}</span>
+            <span>{convertSubjectToKorean(post.subject)}</span>
           </div>
           <div className="flex justify-between">
             <span>난이도:</span>
-            <span>{post.difficulty}</span>
+            <span>{convertDifficultyToKorean(post.difficulty)}</span>
           </div>
           <div className="flex justify-between">
             <span>요일:</span>
