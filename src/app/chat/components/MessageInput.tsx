@@ -56,6 +56,12 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
           ref={messageInputRef}
           value={content}
           onChange={e => setContent(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSubmit(e);
+            }
+          }}
           onInput={e => {
             const target = e.target as HTMLTextAreaElement;
             target.style.height = 'auto'; // 높이를 초기화
