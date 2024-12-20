@@ -61,7 +61,11 @@ export default function InfoList() {
         onWrite={handleWrite}
         isSignedIn={isSignedIn}
         renderPostCard={post => (
-          <div key={post.id} className="card bg-base-100 shadow-xl">
+          <div
+            key={post.id}
+            className="card bg-base-100 shadow-xl cursor-pointer hover:shadow-2xl transition-shadow w-full min-w-[320px] max-w-[320px]"
+            onClick={() => router.push(`/community/info/${post.id}`)}
+          >
             <figure className="px-4 pt-4">
               <img
                 src={post.thumbnailImgUrl || '/default-info-thumbnail.png'}
@@ -79,12 +83,6 @@ export default function InfoList() {
                 <div className="text-sm text-base-content/60">
                   작성자: {post.user.nickname}
                 </div>
-                <button
-                  className="btn btn-primary btn-sm"
-                  onClick={() => router.push(`/community/info/${post.id}`)}
-                >
-                  상세보기
-                </button>
               </div>
             </div>
           </div>
