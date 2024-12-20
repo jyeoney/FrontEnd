@@ -46,6 +46,40 @@ const MyStudyCard = ({ post }: MyStudyCardProps) => {
     return time.slice(0, 5);
   };
 
+  const checkStudyTime = () => {
+    const now = new Date();
+    const currentDay = ['일', '월', '화', '수', '목', '금', '토'][now.getDay()];
+    const currentTime = now.toLocaleTimeString('en-US', {
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    if (!post.dayType.includes(currentDay)) {
+      setAlertMessage('오늘은 스터디 진행 요일이 아닙니다.');
+      setShowAlert(true);
+      return false;
+    }
+
+    if (currentTime < post.startTime || currentTime > post.endTime) {
+      setAlertMessage('현재는 스터디 시간이 아닙니다.');
+      setShowAlert(true);
+      return false;
+    }
+
+    return true;
+  };
+
+  // 스터디룸 버튼의 onClick 핸들러 수정
+  const handleStudyRoomClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (checkStudyTime()) {
+      router.push(
+        `/studyroom?studyId=${post.id}&nickname=${userInfo?.nickname}`,
+      );
+    }
+  };
+
   return (
     <div
       className="card bg-base-100 shadow-xl cursor-pointer hover:shadow-2xl transition-shadow w-full min-w-[320px] max-w-[320px]"
@@ -140,12 +174,7 @@ const MyStudyCard = ({ post }: MyStudyCardProps) => {
           </button>
           <button
             className="btn btn-accent btn-sm"
-            onClick={e => {
-              e.stopPropagation();
-              router.push(
-                `/studyroom?studyId=${post.id}&nickname=${userInfo?.nickname}`,
-              );
-            }}
+            onClick={handleStudyRoomClick}
           >
             스터디룸
           </button>

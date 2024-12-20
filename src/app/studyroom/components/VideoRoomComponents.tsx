@@ -471,36 +471,39 @@ export default function VideoRoomComponent() {
 
   const confirmDisconnect = async () => {
     try {
+      // 1. 미디어 트랙 정리
+      localStream.current?.getTracks().forEach(track => {
+        console.log('Stopping track:', track.kind);
+        track.stop();
+      });
+
+      // 2. 피어 연결 정리
+      pcListMap.current.forEach((pc, key) => {
+        console.log('Closing peer connection:', key);
+        pc.close();
+        removeParticipant(key);
+      });
+      pcListMap.current.clear();
+
+      // 3. STOMP 연결 종료
       if (stompClient.current?.connected) {
-        // 1. 서버에 알림
         await stompClient.current.send(
           `/app/send/end/${studyId.current}/${myKey.current}`,
           {},
           {},
         );
 
-        // 2. 미디어 트랙 정리
-        localStream.current?.getTracks().forEach(track => {
-          console.log('Stopping track:', track.kind);
-          track.stop();
-        });
-
-        // 3. 피어 연결 정리
-        pcListMap.current.forEach((pc, key) => {
-          console.log('Closing peer connection:', key);
-          pc.close();
-          removeParticipant(key);
-        });
-
-        // 4. STOMP 연결 종료
         stompClient.current.disconnect(() => {
           console.log('WebSocket 연결이 정상적으로 종료되었습니다.');
-          router.push('/');
         });
       }
+
+      // 4. 페이지 이동
+      router.push('/mypage');
     } catch (error) {
       console.error('연결 종료 중 오류 발생:', error);
-      router.push('/');
+      // 에러가 발생해도 마이페이지로 이동
+      router.push('/mypage');
     }
   };
 
