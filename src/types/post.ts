@@ -7,6 +7,7 @@ export interface User {
   createdAt?: string;
   updatedAt?: string;
   nickname: string;
+  signinType?: string | null;
 }
 
 // 정보공유 게시글

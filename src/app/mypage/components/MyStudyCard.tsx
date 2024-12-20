@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 import { useAuthStore } from '@/store/authStore';
 import axios from 'axios';
 import Image from 'next/image';
+import { FaCrown } from 'react-icons/fa';
 import {
   convertSubjectToKorean,
   convertDifficultyToKorean,
@@ -98,9 +99,10 @@ const MyStudyCard = ({ post }: MyStudyCardProps) => {
         <h2 className="card-title text-lg items-center">
           {post.studyName}
           {userInfo?.id === post.studyLeaderId && (
-            <span className="badge bg-yellow-300 ml-2 rounded-full py-1 px-3 font-bold text-white shadow-md hover:bg-accent-focus transition">
-              스터디장
-            </span>
+            <div className="absolute top-4 right-4 flex flex-col items-center space-y-1 bg-rose-500 p-2 rounded-lg shadow-md">
+              <FaCrown className="text-white text-2xl" />
+              <span className="text-white text-xs font-bold">스터디장</span>
+            </div>
           )}
         </h2>
         <div className="space-y-2 text-sm">
@@ -139,9 +141,6 @@ const MyStudyCard = ({ post }: MyStudyCardProps) => {
             className="btn btn-primary btn-sm"
             onClick={async e => {
               e.stopPropagation();
-              // router.push(
-              //   `/chat/${1}/study/${1}?studyName=${encodeURIComponent('코테 스터디')}`,
-              // );
               try {
                 const response = await axios.post(
                   `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/chat/study/${post.id}/participant/${userInfo?.id}`,

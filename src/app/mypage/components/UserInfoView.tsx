@@ -16,17 +16,29 @@ const UserInfoView = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
   const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isPasswordRequired, setIsPasswordRequired] = useState(false);
+  const [isNewPasswordRequired, setIsNewPasswordRequired] = useState(false);
+  const [isConfirmPasswordRequired, setIsConfirmPasswordRequired] =
+    useState(false);
 
   const [showConfirm, setShowConfirm] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [confirmMessage, setConfirmMessage] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
-  const [onConfirmCallback, setOnConfirmCallback] = useState<() => void>(
+  const [confirmCallback, setConfirmCallback] = useState<() => void>(
+    () => () => {},
+  );
+  const [alertCallback, setAlertCallback] = useState<() => void>(
     () => () => {},
   );
 
   const router = useRouter();
+
+  // 회원 탈퇴 & 비밀번호 변경 요청 상태 관리
+  const [shouldWithdrawal, setShouldWithdrawal] = useState(false);
+  const [shouldChangePassword, setShouldChangePassword] = useState(false);
 
   useEffect(() => {
     if (userInfo) {
@@ -39,7 +51,7 @@ const UserInfoView = () => {
 
   const handleImageDeleteButtonClick = async () => {
     setConfirmMessage('프로필 이미지를 삭제하시겠습니까?');
-    setOnConfirmCallback(() => async () => {
+    setConfirmCallback(() => async () => {
       try {
         const response = await axios.delete(
           `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/users/${userInfo?.id}/profile-image`,
@@ -94,7 +106,7 @@ const UserInfoView = () => {
       return;
     }
     setConfirmMessage('프로필 이미지를 변경하시겠습니까?');
-    setOnConfirmCallback(() => async () => {
+    setConfirmCallback(() => async () => {
       try {
         const formData = new FormData();
 
@@ -179,80 +191,15 @@ const UserInfoView = () => {
     );
   };
 
-  const handleWithdrawalButtonClick = () => {
-    setConfirmMessage(
-      '회원 탈퇴를 진행하시겠습니까? \n 탈퇴 시 회원 정보 및 모든 데이터가 삭제되며 \n 복구할 수 없습니다.',
-    );
-    setIsPasswordRequired(true);
-    setOnConfirmCallback(() => async () => {
-      if (isPasswordRequired && !password) {
-        setAlertMessage('비밀번호를 입력해주세요.');
-        setShowAlert(true);
-        return;
-      }
-
-      try {
-        const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/auth/withdrawal`,
-          {
-            headers: { 'Content-Type': 'application/json' },
-          },
-        );
-
-        if (response.status === 200) {
-          resetStore();
-          router.push('/');
-          setAlertMessage(
-            '회원 탈퇴가 완료되었습니다. 이용해 주셔서 감사합니다.',
-          );
-          setShowAlert(true);
-        } else {
-          setAlertMessage('다시 시도해 주세요.');
-          setShowAlert(true);
-        }
-      } catch (error: any) {
-        if (error.response) {
-          const { status } = error.response;
-          console.log('error:' + error.response);
-          if (status === 400) {
-            setAlertMessage('잘못된 요청입니다.');
-          } else if (status === 404) {
-            setAlertMessage('사용자를 찾을 수 없습니다.');
-          } else {
-            setAlertMessage(
-              '서버에 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
-            );
-          }
-        } else {
-          setAlertMessage(
-            '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
-          );
-        }
-        setShowAlert(true);
-      } finally {
-        setShowConfirm(false);
-        setPassword('');
-        setIsPasswordRequired(false);
-      }
-    });
-    setShowConfirm(true);
-  };
-
   const handleNicknameButtonClick = async () => {
     setConfirmMessage('닉네임을 변경하시겠습니까?');
-    setOnConfirmCallback(() => async () => {
+    setConfirmCallback(() => async () => {
       try {
         if (!nickname || nickname.trim().length === 0) {
           setAlertMessage('닉네임을 입력해주세요.');
           return;
         }
 
-        // // API 경로를 결합할 때 중복된 슬래시 문제를 처리
-        // const apiRouteUrl = process.env.NEXT_PUBLIC_API_ROUTE_URL?.replace(
-        //   /\/$/,
-        //   '',
-        // ); // 끝의 슬래시 제거
-        // const url = `${apiRouteUrl}/users/${userInfo?.id}`; // 경로 결합
         const response = await axios.put(
           `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/users/${userInfo?.id}`,
           { nickname },
@@ -301,12 +248,183 @@ const UserInfoView = () => {
     setShowConfirm(true);
   };
 
+  useEffect(() => {
+    const withdrawal = async () => {
+      if (!shouldWithdrawal) return;
+
+      try {
+        if (userInfo?.signinType === 'GENERAL' && !password) {
+          setAlertMessage('현재 비밀번호를 입력해주세요.');
+          setShowAlert(true);
+          setShouldWithdrawal(false);
+          return;
+        }
+
+        const body =
+          userInfo?.signinType === 'GENERAL'
+            ? { password } // 일반 로그인 시 비밀번호 포함
+            : ''; // 소셜 로그인 시 빈 객체
+
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/auth/withdrawal`,
+          body,
+          {
+            headers: { 'Content-Type': 'application/json' },
+          },
+        );
+
+        if (response.status === 200) {
+          resetStore();
+          setAlertMessage(
+            '회원 탈퇴가 완료되었습니다. 이용해 주셔서 감사합니다.',
+          );
+          setAlertCallback(() => () => router.push('/'));
+          setShowAlert(true);
+        } else {
+          setAlertMessage('다시 시도해 주세요.');
+          setShowAlert(true);
+        }
+      } catch (error: any) {
+        if (error.response) {
+          const { status, data } = error.response;
+          const errorCode = data.errorCode;
+          console.log('error:' + error.response);
+          if (status === 400) {
+            if (errorCode === 'INVALID_PASSWORD') {
+              setAlertMessage(
+                '비밀번호가 일치하지 않습니다. 입력한 내용을 다시 확인해 주세요.',
+              );
+            } else {
+              setAlertMessage('비밀번호 형식이 올바르지 않습니다.');
+            }
+          } else if (status === 404) {
+            setAlertMessage('사용자를 찾을 수 없습니다.');
+          } else {
+            setAlertMessage(
+              '서버에 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+            );
+          }
+        } else {
+          setAlertMessage(
+            '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+          );
+        }
+        setShowAlert(true);
+      } finally {
+        setShouldWithdrawal(false);
+        setShowConfirm(false);
+        setPassword('');
+        setIsPasswordRequired(false);
+      }
+    };
+
+    withdrawal();
+  }, [shouldWithdrawal, password, resetStore, router]);
+
+  // 비밀번호 변경 요청을 처리하는 useEffect
+  useEffect(() => {
+    const changePassword = async () => {
+      if (!shouldChangePassword) return;
+
+      try {
+        if (!password || !newPassword || !confirmPassword) {
+          setAlertMessage('입력되지 않은 항목이 있습니다.');
+          setShowAlert(true);
+          setShouldChangePassword(false);
+          return;
+        }
+
+        if (newPassword !== confirmPassword) {
+          setAlertMessage('새 비밀번호가 일치하지 않습니다.');
+          setShowAlert(true);
+          setShouldChangePassword(false);
+          return;
+        }
+
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}/auth/change-password/${userInfo?.id}`,
+          {
+            currentPassword: password,
+            newPassword: newPassword,
+          },
+          {
+            headers: { 'Content-Type': 'application/json' },
+          },
+        );
+
+        if (response.status === 200) {
+          setAlertMessage('비밀번호가 성공적으로 변경되었습니다.');
+          setShowAlert(true);
+        } else {
+          setAlertMessage('다시 시도해 주세요.');
+          setShowAlert(true);
+        }
+      } catch (error: any) {
+        if (error.response) {
+          const { status, data } = error.response;
+          const message = data?.errorMessage;
+          if (status === 400) {
+            setAlertMessage(message || '현재 비밀번호가 올바르지 않습니다.');
+          } else {
+            setAlertMessage(
+              '서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+            );
+          }
+        } else {
+          setAlertMessage(
+            '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+          );
+        }
+        setShowAlert(true);
+      } finally {
+        setShouldChangePassword(false);
+        setShowConfirm(false);
+        setPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setIsPasswordRequired(false);
+        setIsNewPasswordRequired(false);
+        setIsConfirmPasswordRequired(false);
+      }
+    };
+
+    changePassword();
+  }, [
+    shouldChangePassword,
+    password,
+    newPassword,
+    confirmPassword,
+    userInfo?.id,
+  ]);
+
+  const handlePasswordButtonClick = () => {
+    setConfirmMessage('비밀번호를 변경하시겠습니까?');
+    setIsPasswordRequired(true);
+    setIsNewPasswordRequired(true);
+    setIsConfirmPasswordRequired(true);
+    setConfirmCallback(() => () => {
+      setShouldChangePassword(true);
+    });
+    setShowConfirm(true);
+  };
+
+  const handleWithdrawalButtonClick = () => {
+    setConfirmMessage(
+      '회원 탈퇴를 진행하시겠습니까? \n 탈퇴 시 회원 정보 및 모든 데이터가 삭제되며 \n 복구할 수 없습니다.',
+    );
+    setIsPasswordRequired(true);
+    setConfirmCallback(() => () => {
+      setShouldWithdrawal(true);
+    });
+    setShowConfirm(true);
+  };
+
   return (
     <div className="flex flex-col md:flex-row gap-8 p-8 max-w-4xl mx-auto">
       <div className="flex flex-col items-center w-full md:w-1/3 border-r pr-4">
         <div className="relative">
           <Image
-            src={profileImageUrl || '/default-avatar.png'}
+            src={profileImageUrl || '/default-profile-image.png'}
             alt="Profile"
             width={500}
             height={300}
@@ -372,14 +490,14 @@ const UserInfoView = () => {
             >
               닉네임 변경
             </button>
-            {/* {userInfo?.signinType === 'GENERAL' && (
-              <button className="btn btn-secondary w-full md:w-auto">
+            {userInfo?.signinType === 'GENERAL' && (
+              <button
+                onClick={handlePasswordButtonClick}
+                className="btn btn-secondary w-full md:w-auto"
+              >
                 비밀번호 변경
               </button>
-            )} */}
-            <button className="btn btn-secondary w-full md:w-auto">
-              비밀번호 변경
-            </button>
+            )}
           </div>
 
           <div className="flex flex-col md:flex-row items-center gap-4">
@@ -401,29 +519,36 @@ const UserInfoView = () => {
       {showConfirm && (
         <CustomConfirm
           message={confirmMessage}
-          onConfirm={onConfirmCallback}
+          onConfirm={confirmCallback}
           onCancel={() => {
             setShowConfirm(false);
             setPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+            setIsPasswordRequired(false);
+            setIsNewPasswordRequired(false);
+            setIsConfirmPasswordRequired(false);
           }}
           requirePasswordInput={
             isPasswordRequired && userInfo?.signinType === 'GENERAL'
-          } // 비밀번호 필드 활성화 여부
-          inputValue={password} // 비밀번호 state와 연결
-          onInputChange={setPassword} // 비밀번호 입력 핸들러
+          } // 회원탈퇴 시 비밀번호만 필요
+          requireNewPasswordInput={isNewPasswordRequired} // 비밀번호 변경 시 새 비밀번호 입력 필요
+          requireConfirmPasswordInput={isConfirmPasswordRequired} // 비밀번호 변경 시 비밀번호 확인 입력 필요
+          currentPasswordValue={password} // 비밀번호 state와 연결
+          onCurrentPasswordChange={setPassword} // 비밀번호 입력 핸들러
+          newPasswordValue={newPassword} // 비밀번호 변경 시 새 비밀번호
+          onNewPasswordChange={setNewPassword} // 비밀번호 변경 시 새 비밀번호 입력 핸들러
+          confirmPasswordValue={confirmPassword} // 비밀번호 변경 시 비밀번호 확인
+          onConfirmPasswordChange={setConfirmPassword} // 비밀번호 확인 입력 핸들러
         />
       )}
-      {/* {showConfirm && (
-        <CustomConfirm
-          message={confirmMessage}
-          onConfirm={onConfirmCallback}
-          onCancel={() => setShowConfirm(false)}
-        />
-      )} */}
       {showAlert && (
         <CustomAlert
           message={alertMessage}
-          onClose={() => setShowAlert(false)}
+          onClose={() => {
+            setShowAlert(false);
+            alertCallback();
+          }}
         />
       )}
     </div>

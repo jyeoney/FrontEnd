@@ -8,8 +8,14 @@ type CustomConfirmProps = {
   onConfirm: () => void;
   onCancel: () => void;
   requirePasswordInput?: boolean;
-  inputValue?: string;
-  onInputChange?: (value: string) => void;
+  requireNewPasswordInput?: boolean;
+  requireConfirmPasswordInput?: boolean;
+  currentPasswordValue?: string;
+  newPasswordValue?: string;
+  confirmPasswordValue?: string;
+  onCurrentPasswordChange?: (value: string) => void;
+  onNewPasswordChange?: (value: string) => void;
+  onConfirmPasswordChange?: (value: string) => void;
 };
 
 const CustomConfirm = ({
@@ -17,8 +23,14 @@ const CustomConfirm = ({
   onConfirm,
   onCancel,
   requirePasswordInput = false,
-  inputValue = '',
-  onInputChange = () => {},
+  requireNewPasswordInput = false,
+  requireConfirmPasswordInput = false,
+  currentPasswordValue = '',
+  newPasswordValue = '',
+  confirmPasswordValue = '',
+  onCurrentPasswordChange = () => {},
+  onNewPasswordChange = () => {},
+  onConfirmPasswordChange = () => {},
 }: CustomConfirmProps) => {
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
@@ -30,11 +42,21 @@ const CustomConfirm = ({
     return () => document.removeEventListener('click', handleOutsideClick);
   }, [onCancel]);
 
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const togglePasswordVisibility = () => {
-    setPasswordVisible(!passwordVisible);
+  const [currentPasswordVisible, setCurrentPasswordVisible] = useState(false);
+  const [newPasswordVisible, setNewPasswordVisible] = useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
+
+  const toggleCurrentPasswordVisibility = () => {
+    setCurrentPasswordVisible(!currentPasswordVisible);
   };
 
+  const toggleNewPasswordVisibility = () => {
+    setNewPasswordVisible(!newPasswordVisible);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setConfirmPasswordVisible(!confirmPasswordVisible);
+  };
   return (
     <div
       id="custom-confirm"
@@ -45,20 +67,66 @@ const CustomConfirm = ({
           {message}
         </p>
         {requirePasswordInput && (
-          <div className="relative">
+          <div className="relative mb-4">
             <input
-              type={passwordVisible ? 'text' : 'password'}
-              value={inputValue}
-              onChange={e => onInputChange(e.target.value)}
-              placeholder="비밀번호를 입력해주세요"
+              type={currentPasswordVisible ? 'text' : 'password'}
+              value={currentPasswordValue}
+              onChange={e => onCurrentPasswordChange(e.target.value)}
+              placeholder="현재 비밀번호를 입력해주세요"
               className="w-full input input-bordered px-4 py-2 focus:outline-indigo-500 text-sm sm:text-base"
             />
             <button
               type="button"
-              onClick={togglePasswordVisibility}
+              onClick={toggleCurrentPasswordVisibility}
               className="absolute right-2 top-1/2 transform -translate-y-1/2 mr-2"
             >
-              {passwordVisible ? (
+              {currentPasswordVisible ? (
+                <FaRegEye size={20} />
+              ) : (
+                <FaRegEyeSlash size={20} />
+              )}
+            </button>
+          </div>
+        )}
+
+        {requireNewPasswordInput && (
+          <div className="relative mb-4">
+            <input
+              type={newPasswordVisible ? 'text' : 'password'}
+              value={newPasswordValue}
+              onChange={e => onNewPasswordChange(e.target.value)}
+              placeholder="새 비밀번호를 입력해주세요"
+              className="w-full input input-bordered px-4 py-2 focus:outline-indigo-500 text-sm sm:text-base"
+            />
+            <button
+              type="button"
+              onClick={toggleNewPasswordVisibility}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 mr-2"
+            >
+              {newPasswordVisible ? (
+                <FaRegEye size={20} />
+              ) : (
+                <FaRegEyeSlash size={20} />
+              )}
+            </button>
+          </div>
+        )}
+
+        {requireConfirmPasswordInput && (
+          <div className="relative mb-4">
+            <input
+              type={confirmPasswordVisible ? 'text' : 'password'}
+              value={confirmPasswordValue}
+              onChange={e => onConfirmPasswordChange(e.target.value)}
+              placeholder="새 비밀번호 확인"
+              className="w-full input input-bordered px-4 py-2 focus:outline-indigo-500 text-sm sm:text-base"
+            />
+            <button
+              type="button"
+              onClick={toggleConfirmPasswordVisibility}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 mr-2"
+            >
+              {confirmPasswordVisible ? (
                 <FaRegEye size={20} />
               ) : (
                 <FaRegEyeSlash size={20} />
