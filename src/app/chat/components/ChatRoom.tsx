@@ -5,7 +5,7 @@ import MessageInput from './MessageInput';
 import { useEffect, useRef, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useSearchParams } from 'next/navigation';
-import { useInView } from 'react-intersection-observer';
+// import { useInView } from 'react-intersection-observer';
 interface ChatRoomProps {
   chatRoomId: string;
   studyId: string;
@@ -20,6 +20,9 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
   const userId = userInfo?.id || 111;
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const isConnecting = useRef(false);
+  const isInitialLoad = useRef(true);
+  // const isManualScrolling = useRef(false);
+  const isLoadingPrevMessages = useRef(false);
 
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -33,10 +36,79 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
     connect,
   } = useGroupChat({ chatRoomId, userId });
 
-  const { ref, inView } = useInView({
-    triggerOnce: false,
-    threshold: 0.1,
-  });
+  // const { ref, inView } = useInView({
+  //   triggerOnce: false,
+  //   threshold: 0.1,
+  // });
+
+  // const handleFetchPreviousMessages = async () => {
+  //   if (!hasNextPage || isFetchingNextPage || !chatContainerRef.current) return;
+
+  //   try {
+  //     const previousScrollHeight = chatContainerRef.current.scrollHeight;
+  //     const previousScrollTop = chatContainerRef.current.scrollTop;
+
+  //     await fetchNextPage();
+
+  //     // 스크롤 위치 조정 - 새로운 메시지 로드 후 스크롤 유지
+  //     if (chatContainerRef.current) {
+  //       const newScrollHeight = chatContainerRef.current.scrollHeight;
+  //       chatContainerRef.current.scrollTop =
+  //         newScrollHeight - previousScrollHeight + previousScrollTop;
+  //     }
+  //   } catch (error) {
+  //     console.error('이전 메시지 로드 실패:', error);
+  //     setLoadError('이전 메시지를 가져오는 데 실패했습니다.');
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   console.log('메시지 변경 감지:', messages);
+  // }, [messages]);
+  // const shouldLoadMore =
+  //   inView && hasNextPage && !isFetchingNextPage && !loadError;
+  // console.log('shouldLoadMore임!!!!!', shouldLoadMore);
+
+  // useEffect(() => {
+  //   console.log('이전 메시지 로드 조건', {
+  //     inView,
+  //     hasNextPage,
+  //     isFetchingNextPage,
+  //     loadError,
+  //     shouldLoadMore,
+  //     currentMessageCount: messages.length,
+  //   });
+
+  //   if (shouldLoadMore) {
+  //     handleFetchPreviousMessages();
+  //   }
+  // }, [shouldLoadMore]);
+
+  // // // 스크롤 맨 아래로 이동
+  // // useEffect(() => {
+  // //   if (chatContainerRef.current) {
+  // //     chatContainerRef.current.scrollTop =
+  // //       chatContainerRef.current.scrollHeight;
+  // //   }
+  // // }, [messages]);
+  // useEffect(() => {
+  //   if (messages.length && chatContainerRef.current) {
+  //     // 메시지가 추가될 때 스크롤 유지
+  //     chatContainerRef.current.scrollTop =
+  //       chatContainerRef.current.scrollHeight;
+  //   }
+  // }, [messages]);
+  const handleScroll = () => {
+    if (!chatContainerRef.current || isInitialLoad.current) return;
+
+    const { scrollTop } = chatContainerRef.current;
+
+    // 스크롤이 최상단에 가까워졌을 때 (예: 상위 20px 이내)
+    if (scrollTop < 20 && hasNextPage && !isFetchingNextPage) {
+      isLoadingPrevMessages.current = true;
+      handleFetchPreviousMessages();
+    }
+  };
 
   const handleFetchPreviousMessages = async () => {
     if (!hasNextPage || isFetchingNextPage || !chatContainerRef.current) return;
@@ -56,45 +128,41 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
     } catch (error) {
       console.error('이전 메시지 로드 실패:', error);
       setLoadError('이전 메시지를 가져오는 데 실패했습니다.');
+    } finally {
+      isLoadingPrevMessages.current = false;
     }
   };
 
+  // 최초 로드 시 스크롤을 맨 아래로
   useEffect(() => {
-    console.log('메시지 변경 감지:', messages);
-  }, [messages]);
-  const shouldLoadMore =
-    inView && hasNextPage && !isFetchingNextPage && !loadError;
-
-  useEffect(() => {
-    console.log('이전 메시지 로드 조건', {
-      inView,
-      hasNextPage,
-      isFetchingNextPage,
-      loadError,
-      shouldLoadMore,
-      currentMessageCount: messages.length,
-    });
-
-    if (shouldLoadMore) {
-      handleFetchPreviousMessages();
+    if (messages.length && chatContainerRef.current && isInitialLoad.current) {
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
+      isInitialLoad.current = false;
     }
-  }, [shouldLoadMore]);
+  }, [messages]);
 
-  // // 스크롤 맨 아래로 이동
-  // useEffect(() => {
-  //   if (chatContainerRef.current) {
-  //     chatContainerRef.current.scrollTop =
-  //       chatContainerRef.current.scrollHeight;
-  //   }
-  // }, [messages]);
+  // 스크롤 이벤트 리스너 등록
   useEffect(() => {
-    if (messages.length && chatContainerRef.current) {
-      // 메시지가 추가될 때 스크롤 유지
+    const container = chatContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, [hasNextPage, isFetchingNextPage]);
+
+  // 새 메시지가 추가될 때 스크롤 처리
+  useEffect(() => {
+    if (
+      !isInitialLoad.current &&
+      messages.length &&
+      !isLoadingPrevMessages.current &&
+      chatContainerRef.current
+    ) {
       chatContainerRef.current.scrollTop =
         chatContainerRef.current.scrollHeight;
     }
   }, [messages]);
-
   if (chatState.error) {
     return (
       <div className="flex flex-col items-center justify-center gap-4">
@@ -259,10 +327,10 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
               </div>
             );
           })}
-          {/* 스크롤이 최상단에 도달하면 트리거 됨 */}
+          {/* 스크롤이 최상단에 도달하면 트리거 됨
           {hasNextPage && !isFetchingNextPage && (
             <div ref={ref} className="h-1"></div>
-          )}
+          )} */}
         </div>
 
         {/* 메시지 입력 */}

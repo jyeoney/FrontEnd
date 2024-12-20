@@ -88,7 +88,7 @@ const MyStudyCard = ({ post }: MyStudyCardProps) => {
     >
       <figure className="px-4 pt-4">
         <Image
-          src={post.thumbnailImgUrl || '/default-study-thumbnail.png'}
+          src={post.thumbnailImgUrl || '/default-profile-image.png'}
           alt={post.studyName}
           width={500}
           height={300}
