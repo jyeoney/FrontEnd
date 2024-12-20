@@ -14,6 +14,7 @@ export const POST = async () => {
         { status: 200 },
       );
     }
+    // 액세스 토큰 재발급
     try {
       const reissueResponse = await axios.post(
         `${process.env.API_URL}/auth/token-reissue`, // 백엔드로 바로 요청
@@ -24,15 +25,16 @@ export const POST = async () => {
 
       if (reissueResponse.status === 200) {
         accessToken = reissueResponse.data.accessToken;
+        console.log('Reissue Response:', reissueResponse);
       } else {
         return NextResponse.json(
-          { errorMessage: 'sign-out route.ts 액세스 토큰 재발급 실패' },
+          { errorMessage: '액세스 토큰 재발급 실패' },
           { status: 500 },
         );
       }
     } catch (error) {
       return NextResponse.json(
-        { errorMessage: 'catch 문 액세스 토큰 재발급 실패', error },
+        { errorMessage: '액세스 토큰 재발급 실패', error },
         { status: 500 },
       );
     }

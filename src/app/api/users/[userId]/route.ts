@@ -24,8 +24,15 @@ export const PUT = async (request: NextRequest) => {
     );
 
     if (response.status === 200) {
-      const { id, nickname, email, profileImageUrl } = response.data;
-      const updatedUserInfo = { id, nickname, email, profileImageUrl };
+      const { id, nickname, email, profileImageUrl, signinType } =
+        response.data;
+      const updatedUserInfo = {
+        id,
+        nickname,
+        email,
+        profileImageUrl,
+        signinType,
+      };
       return NextResponse.json(updatedUserInfo, { status: response.status });
     }
   } catch (error: any) {

@@ -22,8 +22,15 @@ export const POST = async (request: NextRequest) => {
     );
 
     if (response.status === 200) {
-      const { id, nickname, email, profileImageUrl } = response.data;
-      const updatedUserInfo = { id, nickname, email, profileImageUrl };
+      const { id, nickname, email, profileImageUrl, signinType } =
+        response.data;
+      const updatedUserInfo = {
+        id,
+        nickname,
+        email,
+        profileImageUrl,
+        signinType,
+      };
       console.log('response data:', updatedUserInfo);
       return NextResponse.json(updatedUserInfo, { status: response.status });
     }
@@ -53,8 +60,15 @@ export const DELETE = async (request: NextRequest) => {
     );
 
     if (response.status === 200) {
-      const { id, nickname, email, profileImageUrl } = response.data;
-      const updatedUserInfo = { id, nickname, email, profileImageUrl };
+      const { id, nickname, email, profileImageUrl, signinType } =
+        response.data;
+      const updatedUserInfo = {
+        id,
+        nickname,
+        email,
+        profileImageUrl,
+        signinType,
+      };
       return NextResponse.json(updatedUserInfo, { status: response.status });
     }
   } catch (error: any) {
