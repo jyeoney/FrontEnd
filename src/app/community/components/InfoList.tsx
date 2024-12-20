@@ -7,6 +7,7 @@ import { InfoPost, PostResponse } from '@/types/post';
 import { PostList } from '@/app/community/components/PostList';
 import { useAuthStore } from '@/store/authStore';
 import SearchForm from '@/app/community/components/SearchForm';
+import MyInfoPostCard from '@/app/mypage/components/MyInfoPostCard';
 
 export default function InfoList() {
   const router = useRouter();
@@ -60,33 +61,7 @@ export default function InfoList() {
         onPageChange={handlePageChange}
         onWrite={handleWrite}
         isSignedIn={isSignedIn}
-        renderPostCard={post => (
-          <div
-            key={post.id}
-            className="card bg-base-100 shadow-xl cursor-pointer hover:shadow-2xl transition-shadow w-full min-w-[320px] max-w-[320px]"
-            onClick={() => router.push(`/community/info/${post.id}`)}
-          >
-            <figure className="px-4 pt-4">
-              <img
-                src={post.thumbnailImgUrl || '/default-info-thumbnail.png'}
-                alt={post.title}
-                className="rounded-xl h-48 w-full object-cover"
-              />
-            </figure>
-            <div className="card-body">
-              <h2 className="card-title">{post.title}</h2>
-              <p className="text-base-content/70">
-                {post.description?.slice(0, 100) || '내용이 없습니다.'}
-                {post.description && post.description.length > 100 ? '...' : ''}
-              </p>
-              <div className="flex justify-between items-center mt-4">
-                <div className="text-sm text-base-content/60">
-                  작성자: {post.user.nickname}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        renderPostCard={post => <MyInfoPostCard key={post.id} post={post} />}
       />
     </>
   );

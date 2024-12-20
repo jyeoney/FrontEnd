@@ -7,6 +7,7 @@ import { QnAPost, PostResponse } from '@/types/post';
 import { PostList } from '@/app/community/components/PostList';
 import { useAuthStore } from '@/store/authStore';
 import SearchForm from '@/app/community/components/SearchForm';
+import MyQnAPostCard from '@/app/mypage/components/MyQnAPostCard';
 
 export default function QnAList() {
   const router = useRouter();
@@ -60,33 +61,7 @@ export default function QnAList() {
         onPageChange={handlePageChange}
         onWrite={handleWrite}
         isSignedIn={isSignedIn}
-        renderPostCard={post => (
-          <div
-            key={post.id}
-            className="card bg-base-100 shadow-xl cursor-pointer hover:shadow-2xl transition-shadow w-full min-w-[320px] max-w-[320px]"
-            onClick={() => router.push(`/community/qna/${post.id}`)}
-          >
-            <figure className="px-4 pt-4">
-              <img
-                src={post.thumbnailImgUrl || '/default-qna-thumbnail.png'}
-                alt={post.title}
-                className="rounded-xl h-48 w-full object-cover"
-              />
-            </figure>
-            <div className="card-body">
-              <h2 className="card-title">{post.title}</h2>
-              <p className="text-base-content/70">
-                {post.content?.slice(0, 100) || '내용이 없습니다.'}
-                {post.content && post.content.length > 100 ? '...' : ''}
-              </p>
-              <div className="flex justify-between items-center mt-4">
-                <div className="text-sm text-base-content/60">
-                  작성자: {post.user.nickname}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        renderPostCard={post => <MyQnAPostCard key={post.id} post={post} />}
       />
     </div>
   );
