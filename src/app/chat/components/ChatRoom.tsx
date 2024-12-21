@@ -5,14 +5,14 @@ import MessageInput from './MessageInput';
 import { useEffect, useRef, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useSearchParams } from 'next/navigation';
-// import { useInView } from 'react-intersection-observer';
+import { useInView } from 'react-intersection-observer';
+
 interface ChatRoomProps {
   chatRoomId: string;
-  studyId: string;
+  // studyId: string;
 }
 
-const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
-  console.log('studyId', studyId);
+const ChatRoom = ({ chatRoomId }: ChatRoomProps) => {
   const searchParams = useSearchParams();
   const studyName = searchParams.get('studyName');
 
@@ -21,8 +21,8 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const isConnecting = useRef(false);
   const isInitialLoad = useRef(true);
-  // const isManualScrolling = useRef(false);
   const isLoadingPrevMessages = useRef(false);
+  const lastMessageLength = useRef(0);
 
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -36,133 +36,98 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
     connect,
   } = useGroupChat({ chatRoomId, userId });
 
-  // const { ref, inView } = useInView({
-  //   triggerOnce: false,
-  //   threshold: 0.1,
-  // });
-
-  // const handleFetchPreviousMessages = async () => {
-  //   if (!hasNextPage || isFetchingNextPage || !chatContainerRef.current) return;
-
-  //   try {
-  //     const previousScrollHeight = chatContainerRef.current.scrollHeight;
-  //     const previousScrollTop = chatContainerRef.current.scrollTop;
-
-  //     await fetchNextPage();
-
-  //     // 스크롤 위치 조정 - 새로운 메시지 로드 후 스크롤 유지
-  //     if (chatContainerRef.current) {
-  //       const newScrollHeight = chatContainerRef.current.scrollHeight;
-  //       chatContainerRef.current.scrollTop =
-  //         newScrollHeight - previousScrollHeight + previousScrollTop;
-  //     }
-  //   } catch (error) {
-  //     console.error('이전 메시지 로드 실패:', error);
-  //     setLoadError('이전 메시지를 가져오는 데 실패했습니다.');
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   console.log('메시지 변경 감지:', messages);
-  // }, [messages]);
-  // const shouldLoadMore =
-  //   inView && hasNextPage && !isFetchingNextPage && !loadError;
-  // console.log('shouldLoadMore임!!!!!', shouldLoadMore);
-
-  // useEffect(() => {
-  //   console.log('이전 메시지 로드 조건', {
-  //     inView,
-  //     hasNextPage,
-  //     isFetchingNextPage,
-  //     loadError,
-  //     shouldLoadMore,
-  //     currentMessageCount: messages.length,
-  //   });
-
-  //   if (shouldLoadMore) {
-  //     handleFetchPreviousMessages();
-  //   }
-  // }, [shouldLoadMore]);
-
-  // // // 스크롤 맨 아래로 이동
-  // // useEffect(() => {
-  // //   if (chatContainerRef.current) {
-  // //     chatContainerRef.current.scrollTop =
-  // //       chatContainerRef.current.scrollHeight;
-  // //   }
-  // // }, [messages]);
-  // useEffect(() => {
-  //   if (messages.length && chatContainerRef.current) {
-  //     // 메시지가 추가될 때 스크롤 유지
-  //     chatContainerRef.current.scrollTop =
-  //       chatContainerRef.current.scrollHeight;
-  //   }
-  // }, [messages]);
-  const handleScroll = () => {
-    if (!chatContainerRef.current || isInitialLoad.current) return;
-
-    const { scrollTop } = chatContainerRef.current;
-
-    // 스크롤이 최상단에 가까워졌을 때 (예: 상위 20px 이내)
-    if (scrollTop < 20 && hasNextPage && !isFetchingNextPage) {
-      isLoadingPrevMessages.current = true;
-      handleFetchPreviousMessages();
-    }
-  };
+  // Intersection Observer 설정
+  const { ref, inView } = useInView({
+    threshold: 0,
+    rootMargin: '50px 0px 0px 0px', // 상단 50px 이전에 트리거
+  });
 
   const handleFetchPreviousMessages = async () => {
-    if (!hasNextPage || isFetchingNextPage || !chatContainerRef.current) return;
+    if (
+      !hasNextPage ||
+      isFetchingNextPage ||
+      !chatContainerRef.current ||
+      isLoadingPrevMessages.current
+    )
+      return;
 
     try {
-      const previousScrollHeight = chatContainerRef.current.scrollHeight;
-      const previousScrollTop = chatContainerRef.current.scrollTop;
+      isLoadingPrevMessages.current = true;
+      // const currentScrollHeight = chatContainerRef.current.scrollHeight;
 
       await fetchNextPage();
 
-      // 스크롤 위치 조정 - 새로운 메시지 로드 후 스크롤 유지
-      if (chatContainerRef.current) {
-        const newScrollHeight = chatContainerRef.current.scrollHeight;
-        chatContainerRef.current.scrollTop =
-          newScrollHeight - previousScrollHeight + previousScrollTop;
-      }
+      // 스크롤 위치 유지를 위한 처리는 useEffect에서 수행
     } catch (error) {
       console.error('이전 메시지 로드 실패:', error);
       setLoadError('이전 메시지를 가져오는 데 실패했습니다.');
-    } finally {
       isLoadingPrevMessages.current = false;
     }
   };
+
+  // Intersection Observer를 통한 이전 메시지 로드
+  useEffect(() => {
+    if (
+      inView &&
+      hasNextPage &&
+      !isFetchingNextPage &&
+      !isInitialLoad.current
+    ) {
+      handleFetchPreviousMessages();
+    }
+  }, [inView, hasNextPage, isFetchingNextPage]);
 
   // 최초 로드 시 스크롤을 맨 아래로
   useEffect(() => {
     if (messages.length && chatContainerRef.current && isInitialLoad.current) {
       chatContainerRef.current.scrollTop =
         chatContainerRef.current.scrollHeight;
+      lastMessageLength.current = messages.length;
       isInitialLoad.current = false;
     }
   }, [messages]);
 
-  // 스크롤 이벤트 리스너 등록
-  useEffect(() => {
-    const container = chatContainerRef.current;
-    if (container) {
-      container.addEventListener('scroll', handleScroll);
-      return () => container.removeEventListener('scroll', handleScroll);
-    }
-  }, [hasNextPage, isFetchingNextPage]);
-
-  // 새 메시지가 추가될 때 스크롤 처리
+  // 이전 메시지 로드 시 스크롤 위치 유지
   useEffect(() => {
     if (
       !isInitialLoad.current &&
-      messages.length &&
+      isLoadingPrevMessages.current &&
+      chatContainerRef.current &&
+      messages.length !== lastMessageLength.current
+    ) {
+      const newScrollHeight = chatContainerRef.current.scrollHeight;
+      const targetScrollTop = newScrollHeight - lastMessageLength.current * 100;
+      chatContainerRef.current.scrollTop = targetScrollTop;
+      lastMessageLength.current = messages.length;
+      isLoadingPrevMessages.current = false;
+    }
+  }, [messages]);
+
+  // 새 메시지 추가 시 스크롤 처리
+  useEffect(() => {
+    if (
+      !isInitialLoad.current &&
       !isLoadingPrevMessages.current &&
-      chatContainerRef.current
+      chatContainerRef.current &&
+      messages.length > lastMessageLength.current
     ) {
       chatContainerRef.current.scrollTop =
         chatContainerRef.current.scrollHeight;
+      lastMessageLength.current = messages.length;
     }
   }, [messages]);
+
+  const isDateChanged = (
+    currentTimestamp: string,
+    prevTimestamp: string | null,
+  ) => {
+    const currentDate = new Date(currentTimestamp).toDateString();
+    const prevDate = prevTimestamp
+      ? new Date(prevTimestamp).toDateString()
+      : null;
+    return currentDate !== prevDate;
+  };
+
   if (chatState.error) {
     return (
       <div className="flex flex-col items-center justify-center gap-4">
@@ -174,21 +139,11 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
           disabled={isConnecting.current}
           className="btn btn-primary"
         >
-          {isConnecting.current ? '연결 중...' : '채빙방 재연결'}
+          {isConnecting.current ? '연결 중...' : '채팅방 재연결'}
         </button>
       </div>
     );
   }
-  const isDateChanged = (
-    currentTimestamp: string,
-    prevTimestamp: string | null,
-  ) => {
-    const currentDate = new Date(currentTimestamp).toDateString();
-    const prevDate = prevTimestamp
-      ? new Date(prevTimestamp).toDateString()
-      : null;
-    return currentDate !== prevDate;
-  };
 
   return (
     <div className="flex justify-center items-start h-screen">
@@ -207,6 +162,10 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
           ref={chatContainerRef}
           className="flex-1 h-[500px] overflow-y-auto space-y-4 px-6 pb-6"
         >
+          {hasNextPage && !isFetchingNextPage && (
+            <div ref={ref} className="h-1" />
+          )}
+
           {isFetchingNextPage && (
             <div className="text-center text-gray-500 py-2">
               이전 메시지 로딩 중...
@@ -227,8 +186,7 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
               isDateChanged(msg.timestamp, prevMessage?.timestamp);
 
             return (
-              <div key={msg.timestamp || idx}>
-                {/* 날짜 구분 라인 */}
+              <div className="mt-4" key={msg.timestamp || idx}>
                 {showDate && (
                   <div className="text-center text-gray-500 text-sm">
                     {new Date(msg.timestamp).toLocaleDateString('ko-KR', {
@@ -239,13 +197,11 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
                   </div>
                 )}
 
-                {/* 채팅 메시지 */}
                 <div
                   className={`flex items-end ${
                     msg.user.id === userId ? 'justify-end' : 'justify-start'
                   }`}
                 >
-                  {/* 상대방 프로필 이미지 및 유저 ID */}
                   {msg.user.id !== userId && (
                     <div className="flex flex-col items-center">
                       <img
@@ -265,7 +221,6 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
                     </div>
                   )}
 
-                  {/* 메시지 말풍선 */}
                   <div
                     className={`relative max-w-[70%] px-4 py-2 rounded-lg ${
                       msg.user.id === userId
@@ -293,8 +248,6 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
                       className="mt-2 rounded-lg max-w-[200px]"
                     />
                   )} */}
-
-                    {/* 말풍선 꼬리 */}
                     <div
                       className={`absolute bottom-0 w-0 h-0 border-t-[10px] ${
                         msg.user.id === userId
@@ -304,7 +257,6 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
                     />
                   </div>
 
-                  {/* 자신의 프로필 이미지 및 유저 ID */}
                   {msg.user.id === userId && (
                     <div className="flex flex-col items-center">
                       <img
@@ -327,13 +279,8 @@ const ChatRoom = ({ chatRoomId, studyId }: ChatRoomProps) => {
               </div>
             );
           })}
-          {/* 스크롤이 최상단에 도달하면 트리거 됨
-          {hasNextPage && !isFetchingNextPage && (
-            <div ref={ref} className="h-1"></div>
-          )} */}
         </div>
 
-        {/* 메시지 입력 */}
         <div className="p-6 border-t border-gray-300">
           <MessageInput onSendMessage={sendMessage} />
         </div>
