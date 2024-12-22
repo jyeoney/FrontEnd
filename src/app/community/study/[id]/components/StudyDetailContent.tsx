@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import StudyParticipants from './StudyParticipants';
 import { useQueryClient } from '@tanstack/react-query';
+import { convertDifficultyToKorean, convertMeetingType } from '@/utils/study';
 
 interface StudyDetailContentProps {
   studyId: string;
@@ -123,7 +124,7 @@ export default function StudyDetailContent({
         <div className="mb-6">
           <div className="grid grid-cols-2 gap-4 text-sm text-base-content/70">
             <p>스터디명: {study.studyName}</p>
-            <p>난이도: {study.difficulty}</p>
+            <p>난이도: {convertDifficultyToKorean(study.difficulty)}</p>
             <p>
               모집 기한: {dayjs(study.recruitmentPeriod).format('YYYY.MM.DD')}
               까지
@@ -140,7 +141,7 @@ export default function StudyDetailContent({
               스터디 시간: {study.startTime} ~ {study.endTime}
             </p>
             <p>스터디 요일: {study.dayType.join(', ')}</p>
-            <p>진행 방식: {study.meetingType}</p>
+            <p>진행 방식: {convertMeetingType(study.meetingType)}</p>
           </div>
         </div>
 

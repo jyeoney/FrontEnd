@@ -85,6 +85,19 @@ const getCommentEndpoint = (postType: string, commentId: number) => {
   }
 };
 
+const getReplyEndpointForEdit = (postType: string, replyId: number) => {
+  switch (postType) {
+    case 'STUDY':
+      return `/study-posts/replies/${replyId}`;
+    case 'INFO':
+      return `/info-posts/replies/${replyId}`;
+    case 'QNA':
+      return `/qna-posts/replies/${replyId}`;
+    default:
+      throw new Error('Invalid post type');
+  }
+};
+
 export default function Comments({ studyId, postType }: CommentsProps) {
   const { isSignedIn } = useAuthStore();
   const [comments, setComments] = useState<Comment[]>([]);
@@ -182,18 +195,30 @@ export default function Comments({ studyId, postType }: CommentsProps) {
 
     const handleEdit = async () => {
       try {
-        await axios.put(
-          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}${getCommentEndpoint(postType, comment.id)}`,
-          {
-            content: editContent,
-            isSecret: comment.isSecret,
-          },
-        );
+        const endpoint = isReply
+          ? getReplyEndpointForEdit(postType, comment.id)
+          : getCommentEndpoint(postType, comment.id);
+
+        await axios.put(`${process.env.NEXT_PUBLIC_API_ROUTE_URL}${endpoint}`, {
+          content: editContent,
+          isSecret: comment.isSecret,
+        });
 
         setComments(prev =>
-          prev.map(c =>
-            c.id === comment.id ? { ...c, content: editContent } : c,
-          ),
+          prev.map(c => {
+            if (c.id === comment.id) {
+              return { ...c, content: editContent };
+            }
+            if (c.replies) {
+              return {
+                ...c,
+                replies: c.replies.map(r =>
+                  r.id === comment.id ? { ...r, content: editContent } : r,
+                ),
+              };
+            }
+            return c;
+          }),
         );
         setIsEditing(false);
       } catch (error) {
@@ -205,10 +230,22 @@ export default function Comments({ studyId, postType }: CommentsProps) {
       if (!window.confirm('정말로 삭제하시겠습니까?')) return;
 
       try {
+        const endpoint = isReply
+          ? getReplyEndpointForEdit(postType, comment.id)
+          : getCommentEndpoint(postType, comment.id);
+
         await axios.delete(
-          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}${getCommentEndpoint(postType, comment.id)}`,
+          `${process.env.NEXT_PUBLIC_API_ROUTE_URL}${endpoint}?post_type=${postType}`,
         );
-        setComments(prev => prev.filter(c => c.id !== comment.id));
+
+        setComments(prev =>
+          isReply
+            ? prev.map(c => ({
+                ...c,
+                replies: c.replies?.filter(r => r.id !== comment.id) || [],
+              }))
+            : prev.filter(c => c.id !== comment.id),
+        );
       } catch (error) {
         console.error('댓글 삭제 실패:', error);
       }

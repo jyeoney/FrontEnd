@@ -286,6 +286,7 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
           required
           className="input input-bordered"
           min={dayjs().format('YYYY-MM-DD')}
+          max={dayjs().add(1, 'month').format('YYYY-MM-DD')}
           onChange={e => setRecruitmentEndDate(e.target.value)}
         />
       </div>
@@ -301,7 +302,8 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
             defaultValue={initialData?.startDate}
             required
             className="input input-bordered flex-1"
-            min={dayjs(recruitmentEndDate).format('YYYY-MM-DD')} // 모집 마감일 이후로 제한
+            min={dayjs(recruitmentEndDate).format('YYYY-MM-DD')}
+            max={dayjs(recruitmentEndDate).add(7, 'day').format('YYYY-MM-DD')}
             onChange={e => setStudyStartDate(e.target.value)}
           />
           <span className="self-center">~</span>
@@ -312,6 +314,7 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
             required
             className="input input-bordered flex-1"
             min={studyStartDate || dayjs().format('YYYY-MM-DD')}
+            max={dayjs(studyStartDate).add(60, 'day').format('YYYY-MM-DD')}
             disabled={!studyStartDate}
           />
         </div>

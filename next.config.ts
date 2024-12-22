@@ -1,6 +1,12 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  images: {
+    domains: [
+      'devonoffbucket.s3.ap-northeast-2.amazonaws.com',
+      'swany-bucket.s3.ap-northeast-2.amazonaws.com',
+    ], // 외부 이미지 도메인 추가
+  },
   async headers() {
     return [
       {

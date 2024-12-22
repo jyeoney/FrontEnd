@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
-export const PUT = async (
-  request: NextRequest,
-  { params }: { params: { userId: string } },
-) => {
+export const PUT = async (request: NextRequest) => {
   const { nickname } = await request.json();
-  const { userId } = await params;
+  const userId = request.nextUrl.pathname.split('/')[3];
 
   if (!nickname || nickname.trim().length === 0) {
     return NextResponse.json(
@@ -27,8 +24,15 @@ export const PUT = async (
     );
 
     if (response.status === 200) {
-      const { id, nickname, email, profileImageUrl } = response.data;
-      const updatedUserInfo = { id, nickname, email, profileImageUrl };
+      const { id, nickname, email, profileImageUrl, signinType } =
+        response.data;
+      const updatedUserInfo = {
+        id,
+        nickname,
+        email,
+        profileImageUrl,
+        signinType,
+      };
       return NextResponse.json(updatedUserInfo, { status: response.status });
     }
   } catch (error: any) {
@@ -38,7 +42,6 @@ export const PUT = async (
       return NextResponse.json(data, { status });
     }
 
-    // 네트워크 오류 처리
     return NextResponse.json(
       { message: '네트워크 오류가 발생했습니다.' },
       { status: 500 },

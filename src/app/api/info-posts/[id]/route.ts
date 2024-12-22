@@ -1,23 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-// import { cookies } from 'next/headers';
 import axios from 'axios';
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-) {
-  // const cookieStore = await cookies();
-  // const accessToken = cookieStore.get('accessToken')?.value;
-
-  // if (!accessToken) {
-  //   return NextResponse.json(
-  //     { message: '인증이 필요합니다.' },
-  //     { status: 401 },
-  //   );
-  // }
-
+export async function POST(request: NextRequest) {
   try {
-    const formData = await req.formData();
+    const id = request.nextUrl.pathname.split('/')[3];
+    const formData = await request.formData();
     const file = formData.get('file');
     const transformedFormData = new FormData();
 
@@ -39,11 +26,10 @@ export async function POST(
     });
 
     const response = await axios.post(
-      `${process.env.API_URL}/info-posts/${params.id}`,
+      `${process.env.API_URL}/info-posts/${id}`,
       transformedFormData,
       {
         headers: {
-          // Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'multipart/form-data',
         },
       },
@@ -62,26 +48,10 @@ export async function POST(
   }
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-) {
-  // const cookieStore = await cookies();
-  // const accessToken = cookieStore.get('accessToken')?.value;
-
-  // if (!accessToken) {
-  //   return NextResponse.json(
-  //     { message: '인증이 필요합니다.' },
-  //     { status: 401 },
-  //   );
-  // }
-
+export async function DELETE(request: NextRequest) {
   try {
-    await axios.delete(`${process.env.API_BASE_URL}/info-posts/${params.id}`, {
-      // headers: {
-      //   Authorization: `Bearer ${accessToken}`,
-      // },
-    });
+    const id = request.nextUrl.pathname.split('/')[3];
+    await axios.delete(`${process.env.API_BASE_URL}/info-posts/${id}`);
     return NextResponse.json({ message: '게시글이 삭제되었습니다.' });
   } catch (error) {
     console.error('게시글 삭제 실패:', error);

@@ -36,10 +36,16 @@ export const MEETING_TYPE = {
   HYBRID: '병행',
 } as const;
 
-export const STATUS_OPTIONS = {
+export const RECRUITMENT_STATUS = {
   RECRUITING: '모집 중',
-  IN_PROGRESS: '진행 중',
+  CLOSED: '모집 완료',
   CANCELED: '모집 취소',
+} as const;
+
+export const STUDY_STATUS = {
+  PENDING: '대기',
+  IN_PROGRESS: '진행 중',
+  COMPLETED: '진행 종료',
 } as const;
 
 export const DAY_KOREAN = {

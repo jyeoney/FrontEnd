@@ -3,11 +3,12 @@ import axios from 'axios';
 
 export const GET = async (
   request: NextRequest,
-  { params }: { params: { chatRoomId: string } },
+  // { params }: { params: { chatRoomId: string } },
 ) => {
-  const { chatRoomId } = await params;
+  // const { chatRoomId } = await params;
+  const chatRoomId = request.nextUrl.pathname.split('/')[3] as string;
   const searchParams = request.nextUrl.searchParams;
-  const page = searchParams.get('page');
+  const page = searchParams.get('page') || '0';
 
   try {
     const response = await axios.get(

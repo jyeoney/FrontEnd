@@ -8,15 +8,12 @@ export const config = {
   },
 };
 
-export const POST = async (
-  req: NextRequest,
-  { params }: { params: { userId: string } },
-) => {
-  const { userId } = await params;
+export const POST = async (request: NextRequest) => {
+  const userId = request.nextUrl.pathname.split('/')[3];
   try {
     const response = await axios.post(
       `${process.env.API_URL}/users/${userId}/profile-image`,
-      req.body,
+      request.body,
       {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -25,8 +22,15 @@ export const POST = async (
     );
 
     if (response.status === 200) {
-      const { isActive, createdAt, updatedAt, ...updatedUserInfo } =
+      const { id, nickname, email, profileImageUrl, signinType } =
         response.data;
+      const updatedUserInfo = {
+        id,
+        nickname,
+        email,
+        profileImageUrl,
+        signinType,
+      };
       console.log('response data:', updatedUserInfo);
       return NextResponse.json(updatedUserInfo, { status: response.status });
     }
@@ -44,11 +48,8 @@ export const POST = async (
 };
 
 // 프로필 이미지 삭제
-export const DELETE = async (
-  req: NextRequest,
-  { params }: { params: { userId: string } },
-) => {
-  const { userId } = await params;
+export const DELETE = async (request: NextRequest) => {
+  const userId = request.nextUrl.pathname.split('/')[3];
 
   try {
     const response = await axios.delete(
@@ -59,8 +60,15 @@ export const DELETE = async (
     );
 
     if (response.status === 200) {
-      const { isActive, createdAt, updatedAt, ...updatedUserInfo } =
+      const { id, nickname, email, profileImageUrl, signinType } =
         response.data;
+      const updatedUserInfo = {
+        id,
+        nickname,
+        email,
+        profileImageUrl,
+        signinType,
+      };
       return NextResponse.json(updatedUserInfo, { status: response.status });
     }
   } catch (error: any) {

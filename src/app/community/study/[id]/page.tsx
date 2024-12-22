@@ -1,10 +1,12 @@
 import StudyDetailContent from './components/StudyDetailContent';
 
-export default async function StudyDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+type StudyDetailPageProps = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
+const StudyDetailPage = async ({ params }: StudyDetailPageProps) => {
   const { id } = await params;
   return (
     <div>
@@ -12,4 +14,6 @@ export default async function StudyDetailPage({
       <StudyDetailContent studyId={id} />
     </div>
   );
-}
+};
+
+export default StudyDetailPage;

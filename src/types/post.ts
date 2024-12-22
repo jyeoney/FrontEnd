@@ -7,6 +7,7 @@ export interface User {
   createdAt?: string;
   updatedAt?: string;
   nickname: string;
+  signinType?: string | null;
 }
 
 // 정보공유 게시글
@@ -15,7 +16,7 @@ export interface InfoPost {
   user: User;
   thumbnailImgUrl: string | null;
   title: string;
-  description: string | null;
+  description: string;
   createdAt: string;
   updatedAt: string;
 }

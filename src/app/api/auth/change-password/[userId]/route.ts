@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
-export const POST = async (
-  request: NextRequest,
-  // { params }: { params: { studyId: string; userId: string } },
-) => {
-  // const { studyId, userId } = await params;
-  const { pathname } = request.nextUrl;
-  const [, , studyId, userId] = pathname.split('/');
+export const POST = async (request: NextRequest) => {
+  const { currentPassword, newPassword } = await request.json();
+  const userId = request.nextUrl.pathname.split('/')[4] as string;
 
   try {
     const response = await axios.post(
-      `${process.env.API_URL}/chat/study/${studyId}/participant/${userId}`, // 백엔드 서버 URL
-      {},
+      `${process.env.API_URL}/auth/change-password/${userId}`,
+      { currentPassword, newPassword },
       {
         headers: {
           'Content-Type': 'application/json',
@@ -29,7 +25,6 @@ export const POST = async (
       return NextResponse.json(data, { status });
     }
 
-    // 네트워크 오류 처리
     return NextResponse.json(
       { message: '네트워크 오류가 발생했습니다.' },
       { status: 500 },
