@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function InfoWritePage() {
   const [title, setTitle] = useState('');
@@ -11,6 +12,7 @@ export default function InfoWritePage() {
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const { isSignedIn } = useAuthStore();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!isSignedIn) {
@@ -51,6 +53,7 @@ export default function InfoWritePage() {
         },
       });
 
+      await queryClient.invalidateQueries({ queryKey: ['info-posts'] });
       router.push('/community/info');
     } catch (error) {
       console.error('게시글 작성 실패:', error);

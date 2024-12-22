@@ -7,6 +7,7 @@ import OnlineForm from '../../write/components/OnlineForm';
 import HybridForm from '../../write/components/HybridForm';
 import { BaseStudyPost } from '@/types/study';
 import { useAuthStore } from '@/store/authStore';
+import CustomAlert from '@/components/common/Alert';
 
 export default function StudyEditPage() {
   const params = useParams();
@@ -14,6 +15,8 @@ export default function StudyEditPage() {
   const [study, setStudy] = useState<BaseStudyPost | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { isSignedIn, userInfo } = useAuthStore();
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
   useEffect(() => {
     if (!isSignedIn) {
@@ -27,7 +30,8 @@ export default function StudyEditPage() {
         const studyData = response.data;
 
         if (userInfo?.id !== studyData.user.id) {
-          alert('수정 권한이 없습니다.');
+          setAlertMessage('수정 권한이 없습니다.');
+          setShowAlert(true);
           router.push('/community/study');
           return;
         }
@@ -35,7 +39,8 @@ export default function StudyEditPage() {
         setStudy(studyData);
       } catch (error) {
         console.error('스터디 정보 로딩 실패:', error);
-        alert('스터디 정보를 불러오는데 실패했습니다.');
+        setAlertMessage('스터디 정보를 불러오는데 실패했습니다.');
+        setShowAlert(true);
         router.push('/community/study');
       } finally {
         setIsLoading(false);
@@ -55,6 +60,12 @@ export default function StudyEditPage() {
         <OnlineForm initialData={study} isEdit={true} />
       ) : (
         <HybridForm initialData={study} isEdit={true} />
+      )}
+      {showAlert && (
+        <CustomAlert
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
       )}
     </div>
   );

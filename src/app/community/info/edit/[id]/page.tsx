@@ -4,6 +4,8 @@ import { useAuthStore } from '@/store/authStore';
 import { useRouter, useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useQueryClient } from '@tanstack/react-query';
+import CustomAlert from '@/components/common/Alert';
 
 export default function InfoEditPage() {
   const params = useParams();
@@ -13,6 +15,9 @@ export default function InfoEditPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { isSignedIn, userInfo } = useAuthStore();
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
   useEffect(() => {
     if (!isSignedIn) {
@@ -28,7 +33,8 @@ export default function InfoEditPage() {
         const post = response.data;
 
         if (userInfo?.id !== post.userId) {
-          alert('수정 권한이 없습니다.');
+          setAlertMessage('수정 권한이 없습니다.');
+          setShowAlert(true);
           router.push('/community/info');
           return;
         }
@@ -93,6 +99,7 @@ export default function InfoEditPage() {
         },
       });
 
+      await queryClient.invalidateQueries({ queryKey: ['info-posts'] });
       router.push(`/community/info/${params.id}`);
     } catch (error) {
       console.error('게시글 수정 실패:', error);
@@ -165,6 +172,12 @@ export default function InfoEditPage() {
       <button type="submit" className="btn btn-primary w-full">
         수정하기
       </button>
+      {showAlert && (
+        <CustomAlert
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
     </form>
   );
 }

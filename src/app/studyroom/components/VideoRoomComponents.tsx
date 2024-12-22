@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
 import { useRouter, useSearchParams } from 'next/navigation';
+import CustomAlert from '@/components/common/Alert';
 
 export default function VideoRoomComponent() {
   const router = useRouter();
@@ -30,6 +31,9 @@ export default function VideoRoomComponent() {
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false); // 모달 상태 추가
+
+  const [alertMessage, setAlertMessage] = useState<string>('');
+  const [showAlert, setShowAlert] = useState(false);
 
   const sendAnswer = (pc: RTCPeerConnection, otherKey: string) => {
     pc.createAnswer().then(answer => {
@@ -307,6 +311,24 @@ export default function VideoRoomComponent() {
             otherKeyList.current.push(key);
           }
         });
+
+        // 알림 구독 추가
+        stompClient.current.subscribe(
+          `/topic/alarm/${studyId.current}/${myKey.current}`,
+          (message: { body: string }) => {
+            const msg = JSON.parse(message.body);
+            if (msg.type === 'ALARM') {
+              console.log(msg.message);
+              setAlertMessage(msg.message);
+              setShowAlert(true);
+            } else if (msg.type === 'END') {
+              console.log(msg.message);
+              setAlertMessage(msg.message);
+              setShowAlert(true);
+              confirmDisconnect();
+            }
+          },
+        );
       },
     );
     setTimeout(() => {
@@ -618,6 +640,13 @@ export default function VideoRoomComponent() {
             </div>
           </div>
         </div>
+      )}
+
+      {showAlert && (
+        <CustomAlert
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
       )}
     </div>
   );

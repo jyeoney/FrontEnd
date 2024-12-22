@@ -67,13 +67,24 @@ const MyStudyCard = ({ post }: MyStudyCardProps) => {
       minute: '2-digit',
     });
 
+    // 시작 시간 1분 전 시간 계산
+    const startTimeDate = new Date();
+    const [startHour, startMinute] = post.startTime.split(':');
+    startTimeDate.setHours(parseInt(startHour, 10));
+    startTimeDate.setMinutes(parseInt(startMinute, 10) - 1);
+    const adjustedStartTime = startTimeDate.toLocaleTimeString('en-US', {
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
     if (!post.dayType.includes(currentDay)) {
       setAlertMessage('오늘은 스터디 진행 요일이 아닙니다.');
       setShowAlert(true);
       return false;
     }
 
-    if (currentTime < post.startTime || currentTime > post.endTime) {
+    if (currentTime < adjustedStartTime || currentTime > post.endTime) {
       setAlertMessage('현재는 스터디 시간이 아닙니다.');
       setShowAlert(true);
       return false;

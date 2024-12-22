@@ -6,7 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
 import axios from 'axios';
-
+import CustomAlert from '@/components/common/Alert';
 export function StudyApplication({
   study,
   isAuthor,
@@ -23,6 +23,8 @@ export function StudyApplication({
   );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
   // 신청 목록 조회
   useEffect(() => {
@@ -65,7 +67,8 @@ export function StudyApplication({
 
       if (response.status === 200) {
         setMyApplication(response.data);
-        alert('스터디 신청이 완료되었습니다.');
+        setAlertMessage('스터디 신청이 완료되었습니다.');
+        setShowAlert(true);
       }
     } catch (error) {
       console.error('스터디 신청 실패:', error);
@@ -97,9 +100,11 @@ export function StudyApplication({
     } catch (error: any) {
       console.error('신청 상태 변경 실패:', error);
       if (error.response?.data?.errorMessage) {
-        alert(error.response.data.errorMessage);
+        setAlertMessage(error.response.data.errorMessage);
+        setShowAlert(true);
       } else {
-        alert('신청 상태 변경에 실패했습니다.');
+        setAlertMessage('신청 상태 변경에 실패했습니다.');
+        setShowAlert(true);
       }
     }
   };
@@ -111,6 +116,8 @@ export function StudyApplication({
 
       if (response.status === 200) {
         setMyApplication(null);
+        setAlertMessage('신청 취소가 완료되었습니다.');
+        setShowAlert(true);
       }
     } catch (error) {
       console.error('신청 취소 실패:', error);
@@ -200,6 +207,12 @@ export function StudyApplication({
             </tbody>
           </table>
         </div>
+        {showAlert && (
+          <CustomAlert
+            message={alertMessage}
+            onClose={() => setShowAlert(false)}
+          />
+        )}
       </div>
     );
   }
@@ -222,6 +235,12 @@ export function StudyApplication({
             </button>
           )}
         </div>
+        {showAlert && (
+          <CustomAlert
+            message={alertMessage}
+            onClose={() => setShowAlert(false)}
+          />
+        )}
       </div>
     );
   }
@@ -253,6 +272,12 @@ export function StudyApplication({
       disabled={isLoading}
     >
       {isLoading ? '신청 중...' : '스터디 신청하기'}
+      {showAlert && (
+        <CustomAlert
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
     </button>
   );
 }

@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function QnAWritePage() {
   const [title, setTitle] = useState('');
@@ -11,6 +12,7 @@ export default function QnAWritePage() {
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const { isSignedIn, userInfo } = useAuthStore();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!isSignedIn) {
@@ -52,6 +54,7 @@ export default function QnAWritePage() {
         },
       });
 
+      await queryClient.invalidateQueries({ queryKey: ['qna-posts'] });
       router.push('/community/qna');
     } catch (error) {
       console.error('게시글 작성 실패:', error);

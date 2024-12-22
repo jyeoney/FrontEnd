@@ -13,7 +13,8 @@ import {
 } from '@/types/study';
 import { Location } from '@/types/location';
 import { useAuthStore } from '@/store/authStore';
-
+import { useQueryClient } from '@tanstack/react-query';
+import CustomAlert from '@/components/common/Alert';
 interface HybridFormProps {
   initialData?: BaseStudyPost;
   isEdit?: boolean;
@@ -31,6 +32,10 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
   const [recruitmentEndDate, setRecruitmentEndDate] = useState<string>('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { userInfo } = useAuthStore();
+  const queryClient = useQueryClient();
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+
   useEffect(() => {
     if (initialData && isEdit) {
       setSelectedDays(initialData.dayType);
@@ -159,7 +164,8 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
             'Content-Type': 'multipart/form-data',
           },
         });
-        alert('스터디 글이 수정되었습니다!');
+        setAlertMessage('스터디 글이 수정되었습니다!');
+        setShowAlert(true);
         router.push(`/community/study/${initialData.id}`);
       } else {
         const response = await axios.post('/api/study-posts', formData, {
@@ -169,17 +175,20 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
         });
 
         if (response.status === 200) {
-          alert('스터디 글이 작성되었습니다!');
+          setAlertMessage('스터디 글이 작성되었습니다!');
+          setShowAlert(true);
         }
       }
 
+      await queryClient.invalidateQueries({ queryKey: ['studies'] });
       router.push('/community/study');
     } catch (error) {
       console.error(
         isEdit ? '스터디 글 수정 실패:' : '스터디 글 작성 실패:',
         error,
       );
-      alert('스터디 글 작성에 실패했습니다. 다시 시도해주세요.');
+      setAlertMessage('스터디 글 작성에 실패했습니다. 다시 시도해주세요.');
+      setShowAlert(true);
     } finally {
       setIsLoading(false);
     }
@@ -335,7 +344,7 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
 
       <div className="form-control">
         <label className="label">
-          <span className="label-text">모집 인원</span>
+          <span className="label-text">���집 인원</span>
         </label>
         <input
           type="number"
@@ -437,6 +446,12 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
             ? '수정 완료'
             : '작성 완료'}
       </button>
+      {showAlert && (
+        <CustomAlert
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
     </form>
   );
 }
