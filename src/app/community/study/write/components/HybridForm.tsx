@@ -208,18 +208,20 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
             onChange={handleThumbnailChange}
             className="file-input file-input-bordered w-full"
           />
-          <button
-            type="button"
-            onClick={() => {
-              setThumbnailPreview(
-                'https://devonoffbucket.s3.ap-northeast-2.amazonaws.com/default/thumbnail.png',
-              );
-              setSelectedFile(null);
-            }}
-            className="btn btn-secondary"
-          >
-            기본 이미지로 변경
-          </button>
+          {isEdit && (
+            <button
+              type="button"
+              onClick={() => {
+                setThumbnailPreview(
+                  'https://devonoffbucket.s3.ap-northeast-2.amazonaws.com/default/thumbnail.png',
+                );
+                setSelectedFile(null);
+              }}
+              className="btn btn-secondary"
+            >
+              기본 이미지로 변경
+            </button>
+          )}
         </div>
         {thumbnailPreview && (
           <div className="mt-2">
@@ -344,7 +346,7 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
 
       <div className="form-control">
         <label className="label">
-          <span className="label-text">���집 인원</span>
+          <span className="label-text">모집 인원</span>
         </label>
         <input
           type="number"

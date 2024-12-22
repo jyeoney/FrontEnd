@@ -47,22 +47,22 @@ export default function QnAList() {
   };
 
   return (
-    <div className="space-y-4">
-      <SearchForm
-        initialKeyword={searchParams.get('title') || ''}
-        placeholder="Q&A 제목을 검색하세요"
-      />
-      <PostList<QnAPost>
-        title="Q&A"
-        posts={posts?.content || []}
-        totalPages={posts?.totalPages || 0}
-        currentPage={page}
-        isLoading={isLoading}
-        onPageChange={handlePageChange}
-        onWrite={handleWrite}
-        isSignedIn={isSignedIn}
-        renderPostCard={post => <MyQnAPostCard key={post.id} post={post} />}
-      />
-    </div>
+    <PostList<QnAPost>
+      title="Q&A"
+      posts={posts?.content || []}
+      totalPages={posts?.totalPages || 0}
+      currentPage={page}
+      isLoading={isLoading}
+      onPageChange={handlePageChange}
+      onWrite={handleWrite}
+      isSignedIn={isSignedIn}
+      renderPostCard={post => <MyQnAPostCard key={post.id} post={post} />}
+      searchForm={
+        <SearchForm
+          initialKeyword={searchParams.get('title') || ''}
+          placeholder="Q&A 제목을 검색하세요"
+        />
+      }
+    />
   );
 }

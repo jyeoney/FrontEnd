@@ -47,22 +47,22 @@ export default function InfoList() {
   };
 
   return (
-    <>
-      <SearchForm
-        initialKeyword={searchParams.get('title') || ''}
-        placeholder="정보공유 제목을 검색하세요"
-      />
-      <PostList<InfoPost>
-        title="정보공유"
-        posts={posts?.content || []}
-        totalPages={posts?.totalPages || 0}
-        currentPage={page}
-        isLoading={isLoading}
-        onPageChange={handlePageChange}
-        onWrite={handleWrite}
-        isSignedIn={isSignedIn}
-        renderPostCard={post => <MyInfoPostCard key={post.id} post={post} />}
-      />
-    </>
+    <PostList<InfoPost>
+      title="정보공유"
+      posts={posts?.content || []}
+      totalPages={posts?.totalPages || 0}
+      currentPage={page}
+      isLoading={isLoading}
+      onPageChange={handlePageChange}
+      onWrite={handleWrite}
+      isSignedIn={isSignedIn}
+      renderPostCard={post => <MyInfoPostCard key={post.id} post={post} />}
+      searchForm={
+        <SearchForm
+          initialKeyword={searchParams.get('title') || ''}
+          placeholder="정보공유 제목을 검색하세요"
+        />
+      }
+    />
   );
 }
