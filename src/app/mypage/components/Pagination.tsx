@@ -21,7 +21,7 @@ const Pagination = ({
     <div className="flex justify-center mt-8">
       <div className="join">
         <button
-          disabled={currentPage === 0}
+          disabled={currentPage === 1}
           onClick={() => onPageChange(currentPage - 1)}
           className="join-item btn"
         >
@@ -32,7 +32,7 @@ const Pagination = ({
           <button
             key={i}
             onClick={() => onPageChange(i)}
-            className={`join-item btn ${currentPage - 1 === i ? 'btn-active bg-blue-500 text-white' : ''}`}
+            className={`join-item btn ${currentPage - 1 === i ? 'btn-active' : ''}`}
           >
             {i + 1}
           </button>
