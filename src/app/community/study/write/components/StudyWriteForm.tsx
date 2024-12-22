@@ -23,13 +23,13 @@ export default function StudyWriteForm() {
     <>
       <div className="tabs tabs-boxed">
         <button
-          className={`tab ${studyType === 'ONLINE' ? 'tab-active' : ''}`}
+          className={`tab ${studyType === 'ONLINE' ? 'bg-black text-white border-transparent' : 'text-gray-700 hover:text-white hover:bg-gray-500'}`}
           onClick={() => setStudyType('ONLINE')}
         >
           {MEETING_TYPE.ONLINE}
         </button>
         <button
-          className={`tab ${studyType === 'HYBRID' ? 'tab-active' : ''}`}
+          className={`tab ${studyType === 'HYBRID' ? 'bg-black text-white border-transparent' : 'text-gray-700 hover:text-white hover:bg-gray-500'}`}
           onClick={() => setStudyType('HYBRID')}
         >
           {MEETING_TYPE.HYBRID}
