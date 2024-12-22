@@ -35,6 +35,8 @@ const Header = () => {
       setActiveMenu('info');
     } else if (pathname.includes('/community/qna')) {
       setActiveMenu('qna');
+    } else if (pathname.includes('/community/ranking')) {
+      setActiveMenu('ranking');
     } else if (pathname.includes('/mypage')) {
       setActiveMenu('mypage');
     }
@@ -148,6 +150,13 @@ const Header = () => {
           >
             Q&A
           </Link>
+          <Link
+            href="/community/ranking"
+            className={`btn join-item ${activeMenu === 'ranking' ? 'btn-active' : ''}`}
+            onClick={() => handleMenuClick('ranking')}
+          >
+            랭킹
+          </Link>
         </div>
       </div>
 
@@ -237,6 +246,13 @@ const Header = () => {
                 onClick={() => handleMenuClick('qna')}
               >
                 Q&A
+              </Link>
+              <Link
+                href="/community/ranking"
+                className={`block py-2 ${activeMenu === 'ranking' ? 'text-primary' : ''}`}
+                onClick={() => handleMenuClick('ranking')}
+              >
+                랭킹
               </Link>
             </div>
 

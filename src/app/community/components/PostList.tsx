@@ -1,8 +1,7 @@
 'use client';
 
 import { InfoPost, QnAPost } from '@/types/post';
-
-interface PostListProps<T extends InfoPost | QnAPost> {
+interface PostListProps<T> {
   title: string;
   posts: T[];
   totalPages: number;
@@ -14,6 +13,7 @@ interface PostListProps<T extends InfoPost | QnAPost> {
   filterComponent?: React.ReactNode;
   onWrite?: () => void;
   isSignedIn?: boolean;
+  searchForm?: React.ReactNode;
 }
 
 export function PostList<T extends InfoPost | QnAPost>({
@@ -28,9 +28,10 @@ export function PostList<T extends InfoPost | QnAPost>({
   filterComponent,
   onWrite,
   isSignedIn,
+  searchForm,
 }: PostListProps<T>) {
   return (
-    <div className="w-full">
+    <div className="w-full p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">{title}</h1>
         {onWrite && isSignedIn && (
@@ -39,6 +40,9 @@ export function PostList<T extends InfoPost | QnAPost>({
           </button>
         )}
       </div>
+
+      {/* 검색 영역 */}
+      {searchForm && <div className="mb-6">{searchForm}</div>}
 
       {/* 필터 영역 */}
       {showFilters && filterComponent}
