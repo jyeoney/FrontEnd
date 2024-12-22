@@ -14,7 +14,7 @@ import {
 import { Location } from '@/types/location';
 import { useAuthStore } from '@/store/authStore';
 import { useQueryClient } from '@tanstack/react-query';
-
+import CustomAlert from '@/components/common/Alert';
 interface HybridFormProps {
   initialData?: BaseStudyPost;
   isEdit?: boolean;
@@ -33,6 +33,8 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { userInfo } = useAuthStore();
   const queryClient = useQueryClient();
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
   useEffect(() => {
     if (initialData && isEdit) {
@@ -162,7 +164,8 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
             'Content-Type': 'multipart/form-data',
           },
         });
-        alert('스터디 글이 수정되었습니다!');
+        setAlertMessage('스터디 글이 수정되었습니다!');
+        setShowAlert(true);
         router.push(`/community/study/${initialData.id}`);
       } else {
         const response = await axios.post('/api/study-posts', formData, {
@@ -172,7 +175,8 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
         });
 
         if (response.status === 200) {
-          alert('스터디 글이 작성되었습니다!');
+          setAlertMessage('스터디 글이 작성되었습니다!');
+          setShowAlert(true);
         }
       }
 
@@ -183,7 +187,8 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
         isEdit ? '스터디 글 수정 실패:' : '스터디 글 작성 실패:',
         error,
       );
-      alert('스터디 글 작성에 실패했습니다. 다시 시도해주세요.');
+      setAlertMessage('스터디 글 작성에 실패했습니다. 다시 시도해주세요.');
+      setShowAlert(true);
     } finally {
       setIsLoading(false);
     }
@@ -441,6 +446,12 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
             ? '수정 완료'
             : '작성 완료'}
       </button>
+      {showAlert && (
+        <CustomAlert
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
     </form>
   );
 }

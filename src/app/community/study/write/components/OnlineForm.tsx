@@ -12,6 +12,7 @@ import {
 } from '@/types/study';
 import { useAuthStore } from '@/store/authStore';
 import { useQueryClient } from '@tanstack/react-query';
+import CustomAlert from '@/components/common/Alert';
 
 interface OnlineFormProps {
   initialData?: BaseStudyPost;
@@ -28,6 +29,8 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { userInfo } = useAuthStore();
   const queryClient = useQueryClient();
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
   useEffect(() => {
     if (initialData && isEdit) {
@@ -150,14 +153,16 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
               'Content-Type': 'multipart/form-data',
             },
           });
-          alert('스터디 글이 수정되었습니다!');
+          setAlertMessage('스터디 글이 수정되었습니다!');
+          setShowAlert(true);
           router.push(`/community/study/${initialData.id}`);
         } catch (error: any) {
           console.error('스터디 글 수정 실패:', error);
-          alert(
+          setAlertMessage(
             error.response?.data?.message ||
               '스터디 글 수정에 실패했습니다. 다시 시도해주세요.',
           );
+          setShowAlert(true);
           return;
         }
       } else {
@@ -167,21 +172,24 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
               'Content-Type': 'multipart/form-data',
             },
           });
-          alert('스터디 글이 작성되었습니다!');
+          setAlertMessage('스터디 글이 작성되었습니다!');
+          setShowAlert(true);
           await queryClient.invalidateQueries({ queryKey: ['studies'] });
           router.push('/community/study');
         } catch (error: any) {
           console.error('스터디 글 작성/수정 실패:', error);
-          alert(
+          setAlertMessage(
             error.response?.data?.message ||
               '스터디 글 작성/수정에 실패했습니다. 다시 시도해주세요.',
           );
+          setShowAlert(true);
           return;
         }
       }
     } catch (error: any) {
       console.error('요청 실패:', error);
-      alert('요청 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
+      setAlertMessage('요청 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
+      setShowAlert(true);
     } finally {
       setIsLoading(false);
     }
@@ -412,6 +420,13 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
             ? '수정 완료'
             : '작성 완료'}
       </button>
+
+      {showAlert && (
+        <CustomAlert
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
     </form>
   );
 }

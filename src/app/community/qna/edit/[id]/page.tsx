@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useQueryClient } from '@tanstack/react-query';
-
+import CustomAlert from '@/components/common/Alert';
 export default function QnAEditPage() {
   const params = useParams();
   const [title, setTitle] = useState('');
@@ -15,6 +15,8 @@ export default function QnAEditPage() {
   const { isSignedIn, userInfo } = useAuthStore();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
   useEffect(() => {
     if (!isSignedIn) {
@@ -30,7 +32,8 @@ export default function QnAEditPage() {
         const post = response.data;
 
         if (userInfo?.email !== post.user.email) {
-          alert('수정 권한이 없습니다.');
+          setAlertMessage('수정 권한이 없습니다.');
+          setShowAlert(true);
           router.push('/community/qna');
           return;
         }
@@ -100,7 +103,8 @@ export default function QnAEditPage() {
       router.push(`/community/qna/${params.id}`);
     } catch (error) {
       console.error('게시글 수정 실패:', error);
-      alert('게시글 수정에 실패했습니다.');
+      setAlertMessage('게시글 수정에 실패했습니다.');
+      setShowAlert(true);
     }
   };
 
@@ -170,6 +174,12 @@ export default function QnAEditPage() {
       <button type="submit" className="btn btn-primary w-full">
         수정하기
       </button>
+      {showAlert && (
+        <CustomAlert
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
     </form>
   );
 }

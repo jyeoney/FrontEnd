@@ -12,6 +12,7 @@ import axios from 'axios';
 import StudyParticipants from './StudyParticipants';
 import { useQueryClient } from '@tanstack/react-query';
 import { convertDifficultyToKorean, convertMeetingType } from '@/utils/study';
+import CustomAlert from '@/components/common/Alert';
 
 interface StudyDetailContentProps {
   studyId: string;
@@ -25,6 +26,8 @@ export default function StudyDetailContent({
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
   useEffect(() => {
     const fetchStudy = async () => {
@@ -37,7 +40,8 @@ export default function StudyDetailContent({
         }
       } catch (error: any) {
         console.error('스터디 정보 조회 실패:', error);
-        alert(error.response?.data?.message);
+        setAlertMessage(error.response?.data?.message);
+        setShowAlert(true);
       } finally {
         setIsLoading(false);
       }
@@ -72,7 +76,8 @@ export default function StudyDetailContent({
       }
     } catch (error) {
       console.error('스터디 모집 취소 실패:', error);
-      alert('스터디 모집 취소에 실패했습니다. 다시 시도해주세요.');
+      setAlertMessage('스터디 모집 취소에 실패했습니다. 다시 시도해주세요.');
+      setShowAlert(true);
     }
   };
 
@@ -176,6 +181,12 @@ export default function StudyDetailContent({
             />
           </div>
         )}
+      {showAlert && (
+        <CustomAlert
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
     </div>
   );
 }
