@@ -105,7 +105,7 @@ const MyStudyCard = ({ post }: MyStudyCardProps) => {
 
   return (
     <div
-      className="card bg-base-100 shadow-xl cursor-pointer hover:shadow-2xl transition-shadow w-full min-w-[320px] max-w-[320px] group"
+      className="card bg-base-100 shadow-xl cursor-pointer hover:shadow-2xl transition-shadow w-full min-w-[320px] max-w-[320px] group h-[548px]"
       onClick={() => router.push(`/community/study/${post.studyPostId}`)}
     >
       <figure className="px-4 pt-4">
@@ -117,7 +117,7 @@ const MyStudyCard = ({ post }: MyStudyCardProps) => {
           className="rounded-xl h-48 w-full object-cover"
         />
       </figure>
-      <div className="card-body">
+      <div className="card-body flex flex-col justify-between">
         <h2 className="card-title text-xl items-center">
           {truncateText(post.studyName, 20)}
           {userInfo?.id === post.studyLeaderId && (
@@ -127,7 +127,7 @@ const MyStudyCard = ({ post }: MyStudyCardProps) => {
             </div>
           )}
         </h2>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 mt-4">
           <div className="badge badge-lg bg-primary/70 px-4 py-3 rounded-full">
             {truncateText(convertSubjectToKorean(post.subject), 7)}
           </div>
@@ -166,7 +166,7 @@ const MyStudyCard = ({ post }: MyStudyCardProps) => {
           </div>
         </div>
 
-        <div className="card-actions justify-center mt-4 space-x-4">
+        <div className="card-actions justify-center mt-2 space-x-4">
           <button
             className="btn btn-base bg-blue-400 text-base hover:bg-blue-500 text-white rounded-full flex items-center gap-2 px-8 py-2"
             onClick={async e => {
@@ -209,8 +209,8 @@ const MyStudyCard = ({ post }: MyStudyCardProps) => {
             <FaChalkboardTeacher /> 스터디룸
           </button>
         </div>
-        <div className="text-right mt-4">
-          <span className="text-base py-1 px-3 text-gray-500 rounded-full font-semibold btn-ghost group-hover:bg-gray-300 group-hover:text-black transition-colors">
+        <div className="text-right mt-1">
+          <span className="text-sm font-semibold text-gray-500 rounded-full px-1 py-1 btn-ghost group-hover:bg-gray-300 group-hover:text-black transition-colors">
             상세보기 →
           </span>
         </div>

@@ -153,7 +153,7 @@ const MyStudyView = () => {
       return <p>{currentTab.emptyMessage}</p>;
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-20">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {currentTab.data.map((post: any) => (
           <div className="flex justify-center" key={post.id}>
             <currentTab.component post={post} />
@@ -164,7 +164,7 @@ const MyStudyView = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 max-w-6xl mx-auto">
       <div
         role="tablist"
         className="tabs tabs-lifted tabs-lg hover:tab-lifted "
@@ -186,7 +186,7 @@ const MyStudyView = () => {
           </button>
         ))}
       </div>
-      <div className="p-4 bg-base-200 rounded-lg shadow-md border-t-4 border-primary">
+      <div className="p-4">
         {renderTabContent()}
         <Pagination
           totalElements={pagination.totalElements}

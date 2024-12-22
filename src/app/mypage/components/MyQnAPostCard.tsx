@@ -4,6 +4,7 @@ import { QnAPost } from '@/types/post';
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 import Image from 'next/image';
+import { FaUser, FaRegCalendar } from 'react-icons/fa';
 
 interface MyPostCardProps {
   post: QnAPost;
@@ -12,13 +13,17 @@ interface MyPostCardProps {
 const MyQnAPostCard = ({ post }: MyPostCardProps) => {
   const router = useRouter();
 
+  const truncateText = (text: string, maxLength: number) => {
+    return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
+  };
+
   const formatDate = (date: string) => {
     return dayjs(date).format('YYYY-MM-DD HH:mm');
   };
 
   return (
     <div
-      className="card bg-base-100 shadow-xl cursor-pointer hover:shadow-2xl transition-shadow w-full min-w-[320px] max-w-[320px]"
+      className="card bg-base-100 shadow-xl cursor-pointer hover:shadow-2xl transition-shadow w-full min-w-[320px] max-w-[320px] group h-[500px]"
       onClick={() => router.push(`/community/qna/${post.id}`)}
     >
       <figure className="px-4 pt-4">
@@ -30,27 +35,34 @@ const MyQnAPostCard = ({ post }: MyPostCardProps) => {
           className="rounded-xl h-48 w-full object-cover"
         />
       </figure>
-      <div className="card-body">
-        <h2 className="card-title text-lg">{post.title}</h2>
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span>작성자: {post.user.nickname}</span>
+      <div className="card-body flex flex-col justify-between">
+        <h2 className="card-title text-xl">{truncateText(post.title, 50)}</h2>
+        <div className="space-y-4 mt-2">
+          <div className="flex items-center gap-2 text-base">
+            <FaUser className="text-gray-500" />
+            <span className="font-semibold text-sm text-gray-500">작성자</span>
+            <span className="ml-auto font-base text-sm text-gray-500">
+              {post.user.nickname}
+            </span>
           </div>
-          <div className="flex justify-between">
-            <span>내용:</span>
-            <span>{post.content}</span>
+          <div className="flex items-center gap-2 text-base">
+            <FaRegCalendar className="text-gray-500" />
+            <span className="font-semibold text-sm text-gray-500">작성일</span>
+            <span className="ml-auto font-base text-gray-90 text-sm text-gray-500">
+              {formatDate(post.createdAt)}
+            </span>
           </div>
-          <div className="flex justify-between">
-            <span>작성일:</span>
-            <span>{formatDate(post.createdAt)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>수정일:</span>
-            <span>{formatDate(post.updatedAt)}</span>
+          <div className="flex items-center bg-slate-100 px-3 py-3 rounded-lg mb-2 h-20">
+            <span className="ml-auto font-base text-sm text-gray-900 line-clamp-3 text-left w-full">
+              {post.content}
+            </span>
           </div>
         </div>
-        <div className="text-right mt-2">
-          <span className="text-sm hover:opacity-70">상세보기 →</span>
+
+        <div className="text-right mt-4">
+          <span className="text-sm font-semibold text-gray-500 rounded-full px-1 py-1 btn-ghost group-hover:bg-gray-300 group-hover:text-black transition-colors">
+            상세보기 →
+          </span>
         </div>
       </div>
     </div>

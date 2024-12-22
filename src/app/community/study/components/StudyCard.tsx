@@ -29,7 +29,7 @@ export function StudyCard({ post }: StudyCardProps) {
 
   return (
     <div
-      className="card bg-base-100 shadow-xl cursor-pointer hover:shadow-2xl transition-shadow w-full min-w-[320px] max-w-[320px] group"
+      className="card bg-base-100 shadow-xl cursor-pointer hover:shadow-2xl transition-shadow w-full min-w-[320px] max-w-[320px] group h-[535px]"
       onClick={() => router.push(`/community/study/${post.id}`)}
     >
       <figure className="px-4 pt-4">
@@ -41,7 +41,7 @@ export function StudyCard({ post }: StudyCardProps) {
           className="rounded-xl h-48 w-full object-cover"
         />
       </figure>
-      <div className="card-body">
+      <div className="card-body flex flex-col justify-between">
         <h2 className="card-title text-xl mb-4">
           {truncateText(post.title, 20)}
         </h2>
@@ -100,7 +100,7 @@ export function StudyCard({ post }: StudyCardProps) {
 
         {/* 상세보기 버튼 */}
         <div className="text-right mt-4">
-          <span className="text-base py-1 px-3 text-gray-500 rounded-full font-semibold btn-ghost ml-auto group-hover:bg-gray-300 group-hover:text-black transition-colors">
+          <span className="text-sm font-semibold text-gray-500 rounded-full px-1 py-1 btn-ghost group-hover:bg-gray-300 group-hover:text-black transition-colors">
             상세보기 →
           </span>
         </div>

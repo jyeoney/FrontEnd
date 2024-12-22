@@ -27,6 +27,13 @@ const Header = () => {
 
   // pathname이 변경될 때마다 현재 활성화된 메뉴 설정
   useEffect(() => {
+    const handleRouteChange = () => {
+      window.scrollTo(0, 0);
+    };
+
+    // pathname이 변경될 때마다 스크롤 처리
+    handleRouteChange();
+
     if (pathname === '/') {
       setActiveMenu('');
     } else if (pathname.includes('/community/study')) {
@@ -42,18 +49,24 @@ const Header = () => {
     }
   }, [pathname]);
 
+  useEffect(() => {
+    document.body.style.overflow = 'auto';
+  }, []);
+
   const toggleNav = () => {
     setIsNavOpen(!isNavOpen);
-    if (!isNavOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
+    if (isNavOpen) {
       document.body.style.overflow = 'auto';
+    } else {
+      document.body.style.overflow = 'hidden';
     }
   };
 
   const handleMenuClick = (menu: string) => {
     setActiveMenu(menu);
     setIsNavOpen(false);
+    document.body.style.overflow = 'auto';
+    window.scrollTo(0, 0);
   };
 
   useEffect(() => {
@@ -119,14 +132,17 @@ const Header = () => {
 
   return (
     <header className="navbar bg-base-100 shadow-md fixed w-full z-40">
-      {/* Logo */}
       <div className="navbar-start">
-        <Link href="/" className="btn btn-ghost text-xl text-base-content">
-          DevOff
+        <Link href="/" className="btn btn-ghost text-base-content text-center">
+          <div>
+            <span className="block text-xs text-gray-600">
+              스마트한 개발 스터디 플랫폼
+            </span>
+            <span className="block text-xl font-bold text-black">DevOnOff</span>
+          </div>
         </Link>
       </div>
 
-      {/* Desktop Menu */}
       <div className="navbar-center hidden lg:flex">
         <div className="join">
           <Link
@@ -258,7 +274,6 @@ const Header = () => {
 
             <div className="border-t border-gray-200 my-4" />
 
-            {/* Mobile Auth Buttons */}
             <div className="flex flex-col space-y-4">
               {isSignedIn ? (
                 <>
