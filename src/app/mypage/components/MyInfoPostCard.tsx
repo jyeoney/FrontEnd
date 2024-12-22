@@ -24,7 +24,7 @@ const MyInfoPostCard = ({ post }: MyPostCardProps) => {
 
   return (
     <div
-      className="card bg-base-100 shadow-xl cursor-pointer hover:shadow-2xl transition-shadow w-full min-w-[320px] max-w-[320px] group"
+      className="card bg-base-100 shadow-xl cursor-pointer hover:shadow-2xl transition-shadow w-full min-w-[320px] max-w-[320px] group h-[500px]"
       onClick={() => router.push(`/community/info/${post.id}`)}
     >
       <figure className="px-4 pt-4">
@@ -36,7 +36,7 @@ const MyInfoPostCard = ({ post }: MyPostCardProps) => {
           className="rounded-xl h-48 w-full object-cover"
         />
       </figure>
-      <div className="card-body">
+      <div className="card-body flex flex-col justify-between">
         <h2 className="card-title text-xl">{truncateText(post.title, 50)}</h2>
         <div className="space-y-4 mt-2">
           <div className="flex items-center gap-2 text-base">
@@ -53,15 +53,14 @@ const MyInfoPostCard = ({ post }: MyPostCardProps) => {
               {formatDate(post.createdAt)}
             </span>
           </div>
-          <div className="flex items-center bg-slate-100 px-3 py-3 rounded-lg mb-2">
-            <span className="ml-auto font-base text-sm text-gray-900">
-              {truncateText(post.description, 140)}
+          <div className="flex items-center bg-slate-100 px-3 py-3 rounded-lg mb-2 h-20">
+            <span className="ml-auto font-base text-sm text-gray-900 line-clamp-3 text-left w-full">
+              {post.description}
             </span>
           </div>
         </div>
-
-        <div className="text-right mt-4 ml-auto">
-          <span className="text-base py-1 px-3 text-gray-500 rounded-full font-semibold btn-ghost group-hover:bg-gray-300 group-hover:text-black transition-colors">
+        <div className="text-right mt-4">
+          <span className="text-sm font-semibold text-gray-500 rounded-full px-1 py-1 btn-ghost group-hover:bg-gray-300 group-hover:text-black transition-colors">
             상세보기 →
           </span>
         </div>
