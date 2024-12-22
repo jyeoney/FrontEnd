@@ -13,6 +13,7 @@ import {
 } from '@/types/study';
 import { Location } from '@/types/location';
 import { useAuthStore } from '@/store/authStore';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface HybridFormProps {
   initialData?: BaseStudyPost;
@@ -31,6 +32,8 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
   const [recruitmentEndDate, setRecruitmentEndDate] = useState<string>('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { userInfo } = useAuthStore();
+  const queryClient = useQueryClient();
+
   useEffect(() => {
     if (initialData && isEdit) {
       setSelectedDays(initialData.dayType);
@@ -173,6 +176,7 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
         }
       }
 
+      await queryClient.invalidateQueries({ queryKey: ['studies'] });
       router.push('/community/study');
     } catch (error) {
       console.error(
@@ -332,7 +336,7 @@ export default function HybridForm({ initialData, isEdit }: HybridFormProps) {
 
       <div className="form-control">
         <label className="label">
-          <span className="label-text">모집 인원</span>
+          <span className="label-text">���집 인원</span>
         </label>
         <input
           type="number"

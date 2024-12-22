@@ -7,6 +7,7 @@ import axios from 'axios';
 import dayjs from 'dayjs';
 import { InfoPost } from '@/types/post';
 import Comments from '@/app/community/study/[id]/components/Comments';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface InfoDetailContentProps {
   postId: string;
@@ -16,6 +17,7 @@ export default function InfoDetailContent({ postId }: InfoDetailContentProps) {
   const [post, setPost] = useState<InfoPost | null>(null);
   const { isSignedIn, userInfo } = useAuthStore();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -33,6 +35,20 @@ export default function InfoDetailContent({ postId }: InfoDetailContentProps) {
   }, [postId]);
 
   const isAuthor = isSignedIn && userInfo?.email === post?.user.email;
+
+  const handleDelete = async () => {
+    if (window.confirm('정말로 삭제하시겠습니까?')) {
+      try {
+        await axios.delete(
+          `${process.env.NEXT_PUBLIC_API_URL}/info-posts/${postId}`,
+        );
+        await queryClient.invalidateQueries({ queryKey: ['info-posts'] });
+        router.push('/community/info');
+      } catch (error) {
+        console.error('삭제 실패:', error);
+      }
+    }
+  };
 
   if (!post) return <div>Loading...</div>;
 
@@ -73,19 +89,7 @@ export default function InfoDetailContent({ postId }: InfoDetailContentProps) {
             >
               수정
             </button>
-            <button
-              onClick={async () => {
-                if (window.confirm('정말로 삭제하시겠습니까?')) {
-                  try {
-                    await axios.delete(`/api/info-posts/${post.id}`);
-                    router.push('/community/info');
-                  } catch (error) {
-                    console.error('삭제 실패:', error);
-                  }
-                }
-              }}
-              className="btn btn-error"
-            >
+            <button onClick={handleDelete} className="btn btn-error">
               삭제
             </button>
           </div>

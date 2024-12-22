@@ -7,6 +7,7 @@ import axios from 'axios';
 import dayjs from 'dayjs';
 import { QnAPost } from '@/types/post';
 import Comments from '@/app/community/study/[id]/components/Comments';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface QnADetailContentProps {
   postId: string;
@@ -16,6 +17,7 @@ export default function QnADetailContent({ postId }: QnADetailContentProps) {
   const [post, setPost] = useState<QnAPost | null>(null);
   const { isSignedIn, userInfo } = useAuthStore();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -33,6 +35,20 @@ export default function QnADetailContent({ postId }: QnADetailContentProps) {
   }, [postId]);
 
   const isAuthor = isSignedIn && userInfo?.email === post?.user.email;
+
+  const handleDelete = async () => {
+    if (window.confirm('정말로 삭제하시겠습니까?')) {
+      try {
+        await axios.delete(
+          `${process.env.NEXT_PUBLIC_API_URL}/qna-posts/${postId}`,
+        );
+        await queryClient.invalidateQueries({ queryKey: ['qna-posts'] });
+        router.push('/community/qna');
+      } catch (error) {
+        console.error('삭제 실패:', error);
+      }
+    }
+  };
 
   if (!post) return <div>Loading...</div>;
 
@@ -73,19 +89,7 @@ export default function QnADetailContent({ postId }: QnADetailContentProps) {
             >
               수정
             </button>
-            <button
-              onClick={async () => {
-                if (window.confirm('정말로 삭제하시겠습니까?')) {
-                  try {
-                    await axios.delete(`/api/qna-posts/${post.id}`);
-                    router.push('/community/qna');
-                  } catch (error) {
-                    console.error('삭제 실패:', error);
-                  }
-                }
-              }}
-              className="btn btn-error"
-            >
+            <button onClick={handleDelete} className="btn btn-error">
               삭제
             </button>
           </div>

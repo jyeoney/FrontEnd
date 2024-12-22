@@ -11,6 +11,7 @@ import {
   BaseStudyPost,
 } from '@/types/study';
 import { useAuthStore } from '@/store/authStore';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface OnlineFormProps {
   initialData?: BaseStudyPost;
@@ -26,6 +27,7 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
   const [recruitmentEndDate, setRecruitmentEndDate] = useState<string>('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { userInfo } = useAuthStore();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (initialData && isEdit) {
@@ -166,12 +168,13 @@ export default function OnlineForm({ initialData, isEdit }: OnlineFormProps) {
             },
           });
           alert('스터디 글이 작성되었습니다!');
+          await queryClient.invalidateQueries({ queryKey: ['studies'] });
           router.push('/community/study');
         } catch (error: any) {
-          console.error('스터디 글 작성 실패:', error);
+          console.error('스터디 글 작성/수정 실패:', error);
           alert(
             error.response?.data?.message ||
-              '스터디 글 작성에 실패했습니다. 다시 시도해주세요.',
+              '스터디 글 작성/수정에 실패했습니다. 다시 시도해주세요.',
           );
           return;
         }

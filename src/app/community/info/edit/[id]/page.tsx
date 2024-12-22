@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useRouter, useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function InfoEditPage() {
   const params = useParams();
@@ -13,6 +14,7 @@ export default function InfoEditPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { isSignedIn, userInfo } = useAuthStore();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!isSignedIn) {
@@ -93,6 +95,7 @@ export default function InfoEditPage() {
         },
       });
 
+      await queryClient.invalidateQueries({ queryKey: ['info-posts'] });
       router.push(`/community/info/${params.id}`);
     } catch (error) {
       console.error('게시글 수정 실패:', error);

@@ -10,6 +10,7 @@ import StudyLocation from './StudyLocation';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import StudyParticipants from './StudyParticipants';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface StudyDetailContentProps {
   studyId: string;
@@ -22,6 +23,7 @@ export default function StudyDetailContent({
   const [study, setStudy] = useState<BaseStudyPost | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const fetchStudy = async () => {
@@ -58,6 +60,7 @@ export default function StudyDetailContent({
     try {
       const response = await axios.patch(`/api/study-posts/${studyId}/cancel`);
       if (response.status === 200) {
+        await queryClient.invalidateQueries({ queryKey: ['studies'] });
         setStudy(prev => {
           if (!prev) return prev;
           return {
