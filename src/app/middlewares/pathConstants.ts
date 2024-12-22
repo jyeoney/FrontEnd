@@ -1,0 +1,17 @@
+export const IGNORED_PATHS = [
+  '/api/auth/sign-in',
+  '/api/mock/auth/sign-in',
+  '/api/auth/sign-in/kakao',
+  '/api/auth/sign-in/naver',
+  '/community/study/*',
+  '/community/qna/*',
+  '/community/info/*',
+  '/api/study-posts/search?*',
+  '/api/qna-posts/search?*',
+  '/api/info-posts/search?*',
+  '/api/auth/sign-out',
+  '/api/auth/status',
+  '/api/auth/token-reissue',
+  '/api/study/author/*',
+  '/api/auth/withdrawal',
+];
